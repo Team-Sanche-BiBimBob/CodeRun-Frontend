@@ -1,6 +1,7 @@
-import './word.css'
+import './WordPage.css'
+import React from 'react';
 
-function Word () {
+function WordPage () {
     return (
         <div className='main'>
             <div className='word_box'>
@@ -11,4 +12,4 @@ function Word () {
     );
 }
 
-export default Word;
+export default WordPage;

@@ -1,12 +1,13 @@
 import './App.css'
-import Word from './pages/word.jsx'
-import Sentence from './pages/sentence.jsx'
+import WordPage from './pages/WordPage.jsx'
+import SentencePage from './pages/SentencePage.jsx'
+import PaymentPage from './pages/PaymentPage.jsx'
 
 function App() {
 
   return (
     <>
-    
+    <PaymentPage></PaymentPage>
     </>
   )
 }

@@ -1,6 +1,7 @@
-import './sentence.css';
+import './SentencePage.css';
+import React from 'react';
 
-function Sentence() {
+function SentencePage() {
     return (
         <div className="main">
             <div className="gray-box"></div>
@@ -11,4 +12,4 @@ function Sentence() {
     );
 }
 
-export default Sentence;
+export default SentencePage;
