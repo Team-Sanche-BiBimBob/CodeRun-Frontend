@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import LanguageCard from '../components/LanguageCard/LanguageCard';
-import Header from '../components/common/Header';
+import LanguageCard from "../component/LanguageCard/LanguageCard";
+
 
 // 프로그래밍 언어 목록
 const programmingLanguages = [
@@ -83,7 +83,6 @@ const LanguageSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-center mb-12">
