@@ -1,15 +1,20 @@
+import { Routes, Route } from 'react-router';
+
+
 import './App.css'
-import WordPage from './pages/WordPage.jsx'
-import SentencePage from './pages/SentencePage.jsx'
-import PaymentPage from './pages/PaymentPage.jsx'
+import Header from './components/Header/Header.jsx'
 
-function App() {
-
+const App = () => {
   return (
-    <>
-    <PaymentPage></PaymentPage>
-    </>
-  )
-}
 
-export default App
+    <div>
+      <Header/>
+      <Routes>
+        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="/select-language" element={<LanguageSelection />} />
+      </Routes>
+    </div>
+  );
+};
+
+export default App;
