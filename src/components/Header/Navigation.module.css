@@ -1,0 +1,33 @@
+.nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  padding-top: 0.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-bottom-width: 2px;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.navLinkCurrent {
+  border-color: #14B8A6;
+  color: #111827;
+}
+
+.navLinkDefault {
+  border-color: transparent;
+  color: #374151;
+}
+
+.navLinkDefault:hover {
+  border-color: #D1D5DB;
+  color: #111827;
+}
