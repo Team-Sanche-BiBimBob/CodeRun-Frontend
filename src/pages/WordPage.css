@@ -1,0 +1,38 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #F0FDFA;
+}
+
+.main {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.word_box {
+    background-color: #14B8A6;
+    width : 349px;
+    height : 122px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 2rem;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.input_box {
+    border: none;
+    border-bottom: 2px solid #18b2aa;
+    background: transparent;
+    font-size: 1.8rem;
+    color: #666;
+    text-align: center;
+    outline: none;
+    width: 200px;
+}
