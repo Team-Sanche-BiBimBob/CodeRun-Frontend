@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import LanguageCard from "../component/LanguageCard/LanguageCard";
+import LanguageCard from "../components/LanguageCard/LanguageCard";
 
 
 // 프로그래밍 언어 목록
