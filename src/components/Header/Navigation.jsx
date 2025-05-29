@@ -27,7 +27,7 @@ const Navigation = () => {
           className={`${styles.navLink} ${item.current ? styles.navLinkCurrent : styles.navLinkDefault}`}
           aria-current={item.current ? 'page' : undefined}
         >
-          {item.name}
+          {item.name} 
         </a>
       ))}
     </nav>
