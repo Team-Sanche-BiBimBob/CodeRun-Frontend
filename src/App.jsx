@@ -8,11 +8,9 @@ const App = () => {
   return (
     <div>
       <Header/>
-      {/*  test*/}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/select-language" element={<LanguageSelection />} />
-        
       </Routes>
     </div>
   );
