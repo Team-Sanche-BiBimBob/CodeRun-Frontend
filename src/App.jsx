@@ -6,14 +6,15 @@ import Home from './pages/Home'
 
 const App = () => {
   return (
-    <div>
-      <Header/>
+    <div style={{ paddingTop: '80px' }}>
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/select-language" element={<LanguageSelection />} />
+        <Route path="/SelectLanguage" element={<LanguageSelection />} />
       </Routes>
     </div>
   );
 };
 
 export default App;
+  
