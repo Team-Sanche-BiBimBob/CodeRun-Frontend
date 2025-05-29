@@ -6,6 +6,7 @@ const Header = () => {
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.navContainer}>
+          {/*로고*/}
           <div className={styles.logoContainer}>
             <img 
               src="src/assets/logo.svg" 
@@ -14,12 +15,15 @@ const Header = () => {
             />
           </div>
 
+          {/*네비게이션*/}
           <div className={styles.navWrapper}>
             <Navigation />
           </div>
 
+          {/*사용자 정보*/}
           <div className={styles.userMenu}>
             <div className={styles.userInfo}>
+
               <img 
                 src="src/assets/user.jpg" 
                 alt="user" 
