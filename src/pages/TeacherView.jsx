@@ -1,5 +1,11 @@
-export default function TeacherView(){
+import React from 'react';
+
+function TeacherView () {
     return (
-        <div></div>
-    )
-};
+        <div>
+            
+        </div>
+    );
+}
+
+export default TeacherView;
