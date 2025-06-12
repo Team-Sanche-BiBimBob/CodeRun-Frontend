@@ -8,7 +8,7 @@ const Navigation = () => {
   const navigation = [
     { name: '홈', href: '/', current: false },
     { name: '경쟁전', href: '/competition', current: false },
-    { name: '타자연습', href: '/select-language', current: false },
+    { name: '타자연습', href: '/SelectLanguage', current: false },
     { name: '커뮤니티', href: '/community', current: false },
     { name: '문제집', href: '/problem', current: false },
   ];
@@ -27,7 +27,7 @@ const Navigation = () => {
           className={`${styles.navLink} ${item.current ? styles.navLinkCurrent : styles.navLinkDefault}`}
           aria-current={item.current ? 'page' : undefined}
         >
-          {item.name}
+          {item.name} 
         </a>
       ))}
     </nav>
