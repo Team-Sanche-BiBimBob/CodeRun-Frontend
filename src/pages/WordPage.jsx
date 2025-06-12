@@ -29,13 +29,15 @@ function WordPage() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       const currentWord = wordList[currentIndex];
-      if (userInput === currentWord) {
-        setHistory(prev => [currentWord, ...prev.slice(0, 1)]); // 최근 2개만 유지
-        setCurrentIndex(prev => prev + 1);
-        setUserInput('');
-      } else {
-        alert('오타가 있습니다! 다시 입력하세요.');
-      }
+      const isCorrect = userInput === currentWord;
+
+      const newEntry = isCorrect
+        ? { word: currentWord, isCorrect: true }
+        : { word: userInput, correctWord: currentWord, isCorrect: false };
+
+      setHistory(prev => [newEntry, ...prev.slice(0, 1)]);
+      setCurrentIndex(prev => prev + 1);
+      setUserInput('');
     }
   };
 
@@ -55,40 +57,65 @@ function WordPage() {
   };
 
   const previewNext = wordList[currentIndex + 1] || '';
-  const lastTyped1 = history[0] || '';
-  const lastTyped2 = history[1] || '';
 
   return (
-    <div className="h-screen flex flex-col justify-center items-center bg-teal-50 font-sans">
-      <div className="flex items-center space-x-12 mb-8">
-        {/* 다음 단어 미리보기 */}
-        <div className="text-teal-400 text-2xl w-24 text-right">{previewNext}</div>
+    <div className="h-screen flex flex-col justify-center items-center bg-teal-50 font-sans relative">
+      {/* 단어 라인 */}
+      <div className="grid grid-cols-3 items-end mb-6">
+        {/* 왼쪽 - 다음 단어 (회색) */}
+        <div className="text-[#BCCCD0] text-5xl whitespace-nowrap flex justify-end pr-6 mb-10">
+          {previewNext}
+        </div>
 
-        {/* 현재 단어 */}
-        <div className="bg-teal-500 w-[349px] h-[122px] rounded-xl shadow-md flex justify-center items-center text-3xl font-medium tracking-wider text-white">
+        {/* 가운데 - 워드박스 */}
+        <div className="bg-teal-500 w-[349px] h-[122px] rounded-xl shadow-md flex justify-center items-center text-5xl font-medium tracking-wider text-white z-10">
           {renderWord()}
         </div>
 
-        {/* 최근 완료 단어 2개 */}
-        <div className="flex flex-col text-teal-400 text-2xl w-24 text-left">
-          {lastTyped1 && <div>{lastTyped1}</div>}
-          {lastTyped2 && <div>{lastTyped2}</div>}
+        {/* 오른쪽 - 최근 단어들 */}
+        <div className="text-5xl flex flex-row items-center space-x-6 pl-6 mb-10 max-w-[350px] overflow-hidden">
+          {history.slice(0, 2).map((entry, index) => {
+            if (entry.isCorrect) {
+              return (
+                <div key={index} className="text-[#6BCABD] whitespace-nowrap">
+                  {entry.word}
+                </div>
+              );
+            } else {
+              return (
+                <div key={index} className="flex whitespace-nowrap tracking-normal">
+                  {entry.word.split('').map((char, idx) => {
+                    const correctChar = entry.correctWord[idx];
+                    const isCorrectChar = char === correctChar;
+                    return (
+                      <span
+                        key={idx}
+                        className={isCorrectChar ? 'text-black' : 'text-red-500'}
+                      >
+                        {char}
+                      </span>
+                    );
+                  })}
+                </div>
+              );
+            }
+          })}
         </div>
       </div>
 
       {/* 입력창 */}
-      <input
-        className="border-none bg-transparent text-2xl text-gray-600 text-center outline-none w-[200px] mb-2"
-        type="text"
-        value={userInput}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        autoFocus
-        placeholder="입력하세요"
-      />
-
-      {/* 밑줄 강조 */}
-      <div className="w-[200px] h-[2px] bg-[#37A998]" />
+      <div className="flex flex-col items-center">
+        <input
+          className="border-none bg-transparent text-2xl text-gray-600 text-center outline-none w-[200px] mb-2"
+          type="text"
+          value={userInput}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          placeholder="입력하세요"
+        />
+        <div className="w-[200px] h-[2px] bg-[#37A998]" />
+      </div>
     </div>
   );
 }
