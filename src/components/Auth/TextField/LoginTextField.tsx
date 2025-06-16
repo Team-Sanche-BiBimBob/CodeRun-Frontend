@@ -1,7 +1,7 @@
 import './LoginTextField.css';
 import React from 'react';
 
-const LoginTextField = (props) => {
+export const LoginTextField = (props) => {
     return (
       <div className="container">
         {props.isLoginTextField ? (
@@ -14,4 +14,3 @@ const LoginTextField = (props) => {
     )
 }
 
-export default LoginTextField
