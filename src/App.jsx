@@ -15,7 +15,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/full" element={<Fullcode />} />
-        <Route path="/SelectLanguage" element={<LanguageSelection />} /> 
+        <Route path="/selectLanguage" element={<LanguageSelection />} />
         <Route path="/word" element={<WordPage/>} />
         <Route path="/sentence" element={<SentencePage/>} />
         <Route path="/teacher" element={<TeacherView/>} />
