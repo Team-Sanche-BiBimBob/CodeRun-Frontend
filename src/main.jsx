@@ -1,11 +1,13 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import {BrowserRouter} from "react-router";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';  // 추가
+import App from './App.jsx';
+import './index.css';
 
-createRoot(document.getElementById('root')).render(
-    <BrowserRouter>
-            <App />
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>  {/* 여기서 감싸기 */}
+      <App />
     </BrowserRouter>
-)
-    
+  </React.StrictMode>,
+);
