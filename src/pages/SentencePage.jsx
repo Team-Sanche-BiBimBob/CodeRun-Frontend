@@ -42,41 +42,40 @@ function SentencePage() {
   const currentSentence = sentences[currentIndex];
   const isOvertyped = typedText.length > currentSentence.length;
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Backspace') {
-        setTypedText((prev) => prev.slice(0, -1));
-        setSpaceErrorIndex(null);
-      } else if (e.key.length === 1) {
-        const expectedChar = currentSentence[typedText.length];
-        const isSpaceError = expectedChar === ' ' && e.key !== ' ';
-        if (isSpaceError) {
-          setSpaceErrorIndex(typedText.length - 1);
-        } else {
-          setSpaceErrorIndex(null);
-        }
-        setTypedText((prev) => prev + e.key);
-      } else if (e.key === 'Enter') {
-        if (typedText.trim() === '') return;
-
-        const isIncomplete = typedText !== currentSentence;
-
-        setHistory((prev) => [
-          ...prev,
-          {
-            sentence: currentSentence,
-            typed: typedText,
-            isIncomplete,
-            isOvertyped,
-          },
-        ]);
-
-        setCurrentIndex((prev) => Math.min(prev + 1, sentences.length - 1));
-        setTypedText('');
+  const handleKeyDown = (e) => {
+    if (e.key === 'Backspace') {
+      setTypedText((prev) => prev.slice(0, -1));
+      setSpaceErrorIndex(null);
+    } else if (e.key.length === 1) {
+      const expectedChar = currentSentence[typedText.length];
+      const isSpaceError = expectedChar === ' ' && e.key !== ' ';
+      if (isSpaceError) {
+        setSpaceErrorIndex(typedText.length - 1);
+      } else {
         setSpaceErrorIndex(null);
       }
-    };
+      setTypedText((prev) => prev + e.key);
+    } else if (e.key === 'Enter') {
+      if (typedText.trim() === '') return;
 
+      const isIncomplete = typedText !== currentSentence;
+
+      setHistory((prev) => [
+        ...prev,
+        {
+          sentence: currentSentence,
+          typed: typedText,
+          isIncomplete,
+          isOvertyped,
+        },
+      ]);
+
+      setCurrentIndex((prev) => Math.min(prev + 1, sentences.length - 1));
+      setTypedText('');
+      setSpaceErrorIndex(null);
+    }
+  };
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [typedText, currentSentence, isOvertyped]);
