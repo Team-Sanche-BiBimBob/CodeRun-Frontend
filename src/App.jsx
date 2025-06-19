@@ -6,11 +6,12 @@ import LanguageSelection from './pages/LanguageSelection'
 import Home from './pages/Home'
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
+import MyPage from './pages/mypage/MyPage.js';
 
 const App = () => {
   const location = useLocation();
 
-  const headerVisibleRoutes = ["/", "/select-language", "/competition"];
+  const headerVisibleRoutes = ["/", "/select-language", "/competition","/mypage"];
 
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
@@ -23,6 +24,7 @@ const App = () => {
           <Route path="/select-language" element={<LanguageSelection />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path='/mypage' element={<MyPage />}/>
         </Routes>
       </div>
     </div>
