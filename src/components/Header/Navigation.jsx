@@ -10,7 +10,7 @@ const Navigation = () => {
     { name: '경쟁전', href: '/competition', current: false },
     { name: '타자연습', href: '/select-language', current: false },
     { name: '커뮤니티', href: '/community', current: false },
-    { name: '문제집', href: '/problem', current: false },
+    { name: '문제집', href: '/platform', current: false },
   ];
   navigation.forEach(it=> {
     if(it.href === location.pathname) {
