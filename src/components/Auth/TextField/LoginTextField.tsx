@@ -9,7 +9,7 @@ export const LoginTextField = (props) => {
         ) : (
             <img src='src/assets/authIcon/loginKeyIcon.svg' className='login-icon'/>
         )}
-        <input className='login-input' type='text' placeholder={props.placeholder}/>
+        <input className='login-input' type='text' placeholder={props.placeholder} onChange={props.onChange}/>
       </div>
     )
 }
