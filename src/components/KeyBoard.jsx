@@ -1,96 +1,109 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 
-const rows = [
-  [
-    { label: '!', width: 48 }, { label: '@', width: 48 }, { label: '#', width: 48 },
-    { label: '$', width: 48 }, { label: '%', width: 48 }, { label: '^', width: 48 },
-    { label: '&', width: 48 }, { label: '*', width: 48 }, { label: '(', width: 48 },
-    { label: ')', width: 48 }, { label: '-', width: 48 }, { label: '=', width: 48 },
-    { label: '\\', width: 48 }
-  ],
-  [
-    { label: 'Tab', width: 72 }, { label: 'Q', width: 48 }, { label: 'W', width: 48 },
-    { label: 'E', width: 48 }, { label: 'R', width: 48 }, { label: 'T', width: 48 },
-    { label: 'Y', width: 48 }, { label: 'U', width: 48 }, { label: 'I', width: 48 },
-    { label: 'O', width: 48 }, { label: 'P', width: 48 }, { label: '{', width: 48 },
-    { label: '}', width: 48 }
-  ],
-  [
-    { label: 'Caps', width: 80 }, { label: 'A', width: 48 }, { label: 'S', width: 48 },
-    { label: 'D', width: 48 }, { label: 'F', width: 48 }, { label: 'G', width: 48 },
-    { label: 'H', width: 48 }, { label: 'J', width: 48 }, { label: 'K', width: 48 },
-    { label: 'L', width: 48 }, { label: ':', width: 48 }, { label: '"', width: 48 },
-    { label: 'Enter', width: 72 }
-  ],
-  [
-    { label: 'Shift', width: 96 }, { label: 'Z', width: 48 }, { label: 'X', width: 48 },
-    { label: 'C', width: 48 }, { label: 'V', width: 48 }, { label: 'B', width: 48 },
-    { label: 'N', width: 48 }, { label: 'M', width: 48 }, { label: '<', width: 48 },
-    { label: '>', width: 48 }, { label: '?', width: 48 }, { label: 'Shift', width: 96 }
-  ],
-  [
-    { label: 'Ctrl', width: 60 }, { label: 'Win', width: 60 }, { label: 'Alt', width: 60 },
-    { label: 'Space', width: 240 }, { label: 'Alt', width: 60 }, { label: 'Fn', width: 60 },
-    { label: 'Ctrl', width: 60 }
-  ]
-];
+const KoreanKeyboard = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-const Key = ({ label, width = 48 }) => {
-  const isSpace = label === '␣' || label === 'Space';
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date) => {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+  };
 
   return (
-    <div
-      className={`h-[58px] flex items-center justify-center mx-[4px] my-[2px]
-        bg-white border border-gray-200 rounded-md text-[13px] font-light
-        ${isSpace ? 'opacity-0' : ''}`}
-      style={{ width: isSpace ? 240 : width }}
-    >
-      {isSpace ? '' : label}
+    <div className="w-full max-w-5xl mx-auto bg-gray-100 rounded-xl shadow-lg overflow-hidden">
+      {/* Status Bar */}
+      <div className="bg-gray-50 px-4 py-2 flex justify-between items-center text-sm text-gray-600 border-b border-gray-200">
+        <span>100타</span>
+        <span>진행시간: {formatTime(currentTime)}</span>
+        <span>정확도: 100%</span>
+      </div>
+
+      {/* Keyboard */}
+      <div className="p-8 bg-gray-100">
+        <div className="keyboard grid gap-2" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
+          {/* 1번 줄 */}
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">~</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">1</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">2</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">3</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">4</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">5</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">6</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">7</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">8</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">9</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">0</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">-</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">=</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12 col-span-2">←</div>
+
+          {/* 2번 줄 */}
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12" style={{ gridColumn: 'span 1.5' }}></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">Q</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">W</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">E</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">R</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">T</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">Y</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">U</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">I</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">O</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">P</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">[</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">]</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">\</div>
+
+          {/* 3번 줄 */}
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12" style={{ gridColumn: 'span 1.75' }}></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">A</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">S</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">D</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">F</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">G</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">H</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">J</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">K</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">L</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">;</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">'</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12" style={{ gridColumn: 'span 2.25' }}></div>
+
+          {/* 4번 줄 */}
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12 col-span-2">Shift</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">Z</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">X</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">C</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">V</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">B</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">N</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">M</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">,</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">.</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12">/</div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12 col-span-3"></div>
+
+          {/* 5번 줄 */}
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12 col-span-2"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12 col-span-6"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12"></div>
+          <div className="key bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 flex items-center justify-center text-sm font-medium text-gray-700 h-12 col-span-2"></div>
+        </div>
+      </div>
     </div>
   );
 };
 
-function formatTime(seconds) {
-  const total = Math.floor(seconds * 1000);
-  const sec = Math.floor(total / 1000).toString().padStart(2, '0');
-  const ms = (total % 1000).toString().padStart(3, '0');
-  return `${sec}.${ms}`;
-}
-
-export default function KeyboardWithStats() {
-  const [seconds, setSeconds] = useState(0);
-  const [isRunning, setIsRunning] = useState(true);
-
-  useEffect(() => {
-    if (!isRunning) return;
-    const timer = setInterval(() => {
-      setSeconds(prev => +(prev + 0.1).toFixed(1));
-    }, 100);
-    return () => clearInterval(timer);
-  }, [isRunning]);
-
-  return (
-    <div className="bg-[#f1fbfa] p-6 rounded-md max-w-5xl mx-auto">
-      {/* 상단 상태 정보 */}
-      <div className="flex justify-between items-center px-2 mb-4 text-[13px] text-gray-600 font-medium">
-        <div>100타</div>
-        <div>진행시간: {formatTime(seconds)}</div>
-        <div>정확도: 100%</div>
-      </div>
-
-      {/* 키보드 본체 */}
-      <div className="bg-[#f8f8f8] rounded-lg py-4 px-2">
-        {rows.map((row, rowIndex) => (
-          <div
-            key={`row-${rowIndex}`}
-            className={`flex ${rowIndex === 0 ? 'justify-start' : 'justify-center'}`}
-          >
-            {row.map((key, keyIndex) => (
-              <Key key={`key-${rowIndex}-${keyIndex}`} label={key.label} width={key.width} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+export default KoreanKeyboard;
