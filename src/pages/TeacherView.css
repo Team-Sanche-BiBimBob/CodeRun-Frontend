@@ -137,7 +137,7 @@
   flex-direction: column;
 }
 
-.hero-section {
+.Teacherhero-section {
   background: #14b8a6;
   color: white;
   padding: 60px 40px;
@@ -148,19 +148,19 @@
   position: relative;
 }
 
-.hero-content {
+.Teacherhero-content {
   text-align: left;
   margin-left: 40px;
 }
 
-.hero-title {
+.Teacherhero-title {
   font-size: 2.5rem;
   font-weight: 600;
   margin: 0 0 12px 0;
   letter-spacing: -0.5px;
 }
 
-.hero-subtitle {
+.Teacherhero-subtitle {
   font-size: 1.125rem;
   margin: 0;
   opacity: 0.9;
@@ -368,11 +368,11 @@
     border-bottom: 1px solid #e5e5e5;
   }
 
-  .hero-section {
+  .Theacherhero-section {
     padding: 40px 20px;
   }
 
-  .hero-title {
+  .Theacherhero-title {
     font-size: 2rem;
   }
 

@@ -70,7 +70,6 @@ const TeacherView = () => {
           클래스만들기
         </button>
 
-        {/* My Folders Section */}
         <div className="section">
           <div className="section-header">
             <span>나의 폴더</span>
@@ -118,10 +117,10 @@ const TeacherView = () => {
 
       {/* Main Content */}
       <div className="main-content">
-        <div className="hero-section">
-          <div className="hero-content">
-            <h1 className="hero-title">CodeRun{'{}'}</h1>
-            <p className="hero-subtitle">어제보다 한글자 더 빠르게</p>
+        <div className="Teacherhero-section">
+          <div className="Teacherhero-content">
+            <h1 className="Teacherhero-title">CodeRun{'{}'}</h1>
+            <p className="Teacherhero-subtitle">어제보다 한글자 더 빠르게</p>
           </div>
         </div>
         <div className="content-section">
