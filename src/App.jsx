@@ -6,7 +6,8 @@ import LanguageSelection from './pages/LanguageSelection'
 import Home from './pages/Home'
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
-import MyPage from './pages/mypage/MyPage.js';
+import MyPage from './pages/MyPage.jsx';
+import WordPage from './pages/WordPage.jsx';
 
 const App = () => {
   const location = useLocation();
@@ -19,6 +20,7 @@ const App = () => {
     <div>
       {showHeader && <Header />}
       <div className={showHeader ? "mt-[64px]" : ""}>
+        <WordPage/>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/select-language" element={<LanguageSelection />} />

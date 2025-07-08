@@ -3,13 +3,14 @@
 import './MyPage.css'
 import React from 'react'
 
+import MyPageDonut from '../components/Chart/MyPageDonut'
+
  
 
 const MyPage = () => {
   return (
     <div className='mypage-container'>
-        {/* <SkillPrograss /> */}
-        야야야야!
+        <MyPageDonut/>
     </div>
   )
 }
