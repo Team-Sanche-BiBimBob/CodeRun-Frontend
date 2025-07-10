@@ -124,17 +124,24 @@ const KoreanKeyboard = () => {
 
   // 키 입력 처리
   const handleKeyDown = useCallback((event) => {
-    if (
-      event.key === ' ' ||
-      event.code === 'Space' ||
-      ['Tab', 'Enter', 'Shift', 'Control', 'Alt', 'CapsLock'].includes(event.key)
-    ) {
-      event.preventDefault();
-    }
-
     const pressedKey = event.key;
     const pressedKeyCode = event.code;
     const isShiftPressed = event.shiftKey;
+
+    // 엔터키 눌렀을 때 단어 완성 전이면 넘어가지 않도록 막기
+    if (pressedKeyCode === 'Enter' && typedTextIndex < targetText.length) {
+      event.preventDefault();
+      return;
+    }
+
+    // 스페이스바 등 기본 스크롤 방지
+    if (
+      pressedKey === ' ' ||
+      pressedKeyCode === 'Space' ||
+      ['Tab', 'Shift', 'Control', 'Alt', 'CapsLock'].includes(pressedKey)
+    ) {
+      event.preventDefault();
+    }
 
     setHighlightedKey(pressedKeyCode);
 
@@ -154,14 +161,14 @@ const KoreanKeyboard = () => {
 
       if (pressedKeyCode === 'Space') {
         charForComparison = ' ';
-      } else if (pressedKeyCode === 'Enter') {
-        charForComparison = '\n';
       } else if (pressedKeyCode === 'Backspace') {
         if (typedTextIndex > 0) {
           setTypedTextIndex((prev) => prev - 1);
           setTypedCharacters((prev) => Math.max(0, prev - 1));
         }
         return;
+      } else if (pressedKeyCode === 'Enter') {
+        charForComparison = '\n';
       } else {
         charForComparison = getOutputChar(pressedKey, isShiftPressed);
       }
@@ -177,6 +184,7 @@ const KoreanKeyboard = () => {
       setTypedCharacters((prev) => prev + 1);
     }
 
+    // 마지막 문자 맞게 입력 시 자동 완료 처리
     if (typedTextIndex >= targetText.length - 1 && targetText.length > 0) {
       const lastExpectedChar = targetText[targetText.length - 1];
       const lastTypedChar = getOutputChar(pressedKey, isShiftPressed);
