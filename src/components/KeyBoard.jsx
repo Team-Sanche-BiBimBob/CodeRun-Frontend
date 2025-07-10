@@ -1,20 +1,21 @@
-// KoreanKeyboard.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StatusBar from './StatusBar'; // StatusBar 컴포넌트 import
 
 const KoreanKeyboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [typingSpeed, setTypingSpeed] = useState(0); // 타수 상태
-  const [accuracy, setAccuracy] = useState(100);     // 정확도 상태
-  const [typedCharacters, setTypedCharacters] = useState(0); // 입력된 총 문자 수
-  const [correctCharacters, setCorrectCharacters] = useState(0); // 올바르게 입력된 문자 수
-  const [highlightedKey, setHighlightedKey] = useState(null); // 현재 하이라이트 될 키 (event.code)
-  const [targetText, setTargetText] = useState("Type this text to practice your typing skills. "); // 연습할 텍스트
-  const [typedTextIndex, setTypedTextIndex] = useState(0); // 현재 입력해야 할 텍스트 인덱스
+  const [typingSpeed, setTypingSpeed] = useState(0);
+  const [accuracy, setAccuracy] = useState(100);
+  const [typedCharacters, setTypedCharacters] = useState(0);
+  const [correctCharacters, setCorrectCharacters] = useState(0);
+  const [highlightedKey, setHighlightedKey] = useState(null);
+  const [targetText, setTargetText] = useState("The quick brown fox jumps over the lazy dog. This is a typing practice sentence.");
+  const [typedTextIndex, setTypedTextIndex] = useState(0);
+  const [isStarted, setIsStarted] = useState(false);
+  const [userInput, setUserInput] = useState(""); // 사용자 입력 추적
 
-  const startTimeRef = useRef(Date.now()); // 시작 시간 기록
+  const startTimeRef = useRef(null);
 
-  // 시간 업데이트 타이머 (밀리초까지 표시를 위해 100ms 간격으로 업데이트)
+  // 실시간 시간 업데이트
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -22,19 +23,26 @@ const KoreanKeyboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // 타수 업데이트 로직
+  // 타이핑 속도 실시간 계산
   useEffect(() => {
-    const speedCalculationInterval = 5000; // 5초마다 타수 업데이트
-    const speedTimer = setInterval(() => {
-        if (typedCharacters > 0) {
-            const minutesElapsed = (Date.now() - startTimeRef.current) / 60000;
-            if (minutesElapsed > 0) {
-                setTypingSpeed(Math.round(correctCharacters / minutesElapsed));
-            }
-        }
-    }, speedCalculationInterval);
-    return () => clearInterval(speedTimer);
-  }, [typedCharacters, correctCharacters]);
+    if (isStarted && startTimeRef.current) {
+      const elapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
+      if (elapsedMinutes > 0) {
+        const wpm = Math.round(correctCharacters / elapsedMinutes);
+        setTypingSpeed(wpm);
+      }
+    }
+  }, [correctCharacters, isStarted]);
+
+  // 정확도 실시간 계산
+  useEffect(() => {
+    if (typedCharacters > 0) {
+      const accuracyPercent = Math.round((correctCharacters / typedCharacters) * 100);
+      setAccuracy(accuracyPercent);
+    } else {
+      setAccuracy(100);
+    }
+  }, [correctCharacters, typedCharacters]);
 
   // 입력된 키에 해당하는 문자 반환 (Shift 조합 포함)
   const getOutputChar = useCallback((pressedKey, isShifted) => {
@@ -243,26 +251,10 @@ const KoreanKeyboard = () => {
         accuracy={accuracy}
         currentTime={currentTime}
       />
-
-      {/* Target Text Display */}
-      <div className="p-4 bg-white border-b border-gray-200 text-lg font-bold text-center">
-        {targetText.split('').map((char, index) => (
-          <span
-            key={index}
-            className={`
-              ${index < typedTextIndex ? 'text-gray-400' : ''}
-              ${index === typedTextIndex ? 'text-blue-600 font-extrabold underline' : ''}
-            `}
-          >
-            {char === '\n' ? '↵' : char}
-          </span>
-        ))}
-      </div>
-
       {/* Keyboard */}
       <div className="p-8 bg-gray-100">
         <div
-          className="keyboard grid gap-x-3 gap-y-2" // ✅ 수정된 간격
+          className="keyboard grid gap-x-3 gap-y-2" // 수정된 간격
           style={{
             gridTemplateColumns: 'repeat(60, 1fr)',
           }}
