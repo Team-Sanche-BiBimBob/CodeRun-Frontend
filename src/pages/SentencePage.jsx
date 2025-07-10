@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useCallback } from 'react';
+import KeyBoard from "../components/KeyBoard";
 // 타자 연습할 문장 리스트
 const sentences = [
   'print("Hello world!")',
@@ -35,71 +35,61 @@ const sentences = [
 ];
 
 function SentencePage() {
-  // 현재 타이핑 중인 문장 인덱스 상태
   const [currentIndex, setCurrentIndex] = useState(0);
-  // 현재 입력한 텍스트 상태
   const [typedText, setTypedText] = useState('');
-  // 완료한 문장들 기록 배열
   const [history, setHistory] = useState([]);
-  // 공백 문자를 잘못 입력했을 때 에러 인덱스
   const [spaceErrorIndex, setSpaceErrorIndex] = useState(null);
 
-  // 현재 문장 변수 (현재 인덱스 기준)
   const currentSentence = sentences[currentIndex];
-  // 입력한 텍스트가 현재 문장보다 길어졌는지 여부
   const isOvertyped = typedText.length > currentSentence.length;
 
-  // 키보드 입력 처리 함수
-  const handleKeyDown = (e) => {
+  // 키 입력 처리
+  const handleKeyDown = useCallback((e) => {
+    if (e.code === 'Space' || e.key === ' ') {
+      const tag = e.target.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    }
+
     if (e.key === 'Backspace') {
-      // 백스페이스 입력 시 typedText 한 글자 삭제
       setTypedText((prev) => prev.slice(0, -1));
-      setSpaceErrorIndex(null); // 공백 에러 초기화
+      setSpaceErrorIndex(null);
     } else if (e.key.length === 1) {
-      // 일반 문자 입력 처리 (e.key가 한 글자인 경우)
-      const expectedChar = currentSentence[typedText.length]; // 현재 입력해야 하는 문자
-      // 공백 문자 예상되는데 다른 문자 입력하면 에러 표시
+      const expectedChar = currentSentence[typedText.length];
       const isSpaceError = expectedChar === ' ' && e.key !== ' ';
       if (isSpaceError) {
-        setSpaceErrorIndex(typedText.length - 1); // 공백 에러 인덱스 저장
+        setSpaceErrorIndex(typedText.length - 1);
       } else {
-        setSpaceErrorIndex(null); // 공백 에러 초기화
+        setSpaceErrorIndex(null);
       }
-      // typedText에 새 문자 추가
       setTypedText((prev) => prev + e.key);
     } else if (e.key === 'Enter') {
-      // 엔터 입력 시 처리
+      if (typedText.trim() === '') return;
 
-      if (typedText.trim() === '') return; // 빈 입력이면 무시
-
-      // 입력한 텍스트가 문장과 일치하는지 확인
       const isIncomplete = typedText !== currentSentence;
 
-      // 완료 기록에 추가
       setHistory((prev) => [
         ...prev,
         {
           sentence: currentSentence,
           typed: typedText,
-          isIncomplete, // 불일치 여부
-          isOvertyped,  // 초과 입력 여부
+          isIncomplete,
+          isOvertyped,
         },
       ]);
 
-      // 다음 문장으로 이동, 끝이면 인덱스 고정
       setCurrentIndex((prev) => Math.min(prev + 1, sentences.length - 1));
-      // 입력 텍스트 초기화
       setTypedText('');
-      setSpaceErrorIndex(null); // 공백 에러 초기화
+      setSpaceErrorIndex(null);
     }
-  };
+  }, [typedText, currentSentence, isOvertyped]);
 
-  // 컴포넌트가 마운트될 때 키다운 이벤트 등록, 언마운트 시 제거
-  // typedText, currentSentence, isOvertyped가 바뀔 때마다 effect 재실행
+  // 이벤트 리스너 등록 및 해제
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [typedText, currentSentence, isOvertyped]);
+  }, [handleKeyDown]);
 
   // 각 문장 박스에 적용할 스타일 클래스 반환 함수
   // 현재 인덱스를 기준으로 이전, 현재, 다음, 다다음 문장 구분하여 색상 다르게 함
@@ -211,6 +201,7 @@ function SentencePage() {
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 2)}`}>
         {sentences[currentIndex + 2] ?? ''}
       </div>
+      <KeyBoard/>
     </div>
   );
 }
