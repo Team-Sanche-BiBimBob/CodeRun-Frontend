@@ -37,7 +37,7 @@ const Home = () => {
                 </div>
                 <div className="language-body">
                   <p className="language-description">
-                    객체지향 프로그래밍의 대표적인 언어로, 다양한 플랫폼에서 실행 가능합니다.
+                    {language.description}
                   </p>
                   <button className="language-button">이동하기</button>
                 </div>
