@@ -131,41 +131,43 @@ function SentencePage() {
   const renderComparedTextWithCursor = (original, typed, isActive) => {
     const elements = [];
     const overtyped = typed.length > original.length;
-
-    for (let i = 0; i < original.length; i++) {
-      const char = original[i];
+  
+    const maxLen = Math.max(original.length, typed.length);
+  
+    for (let i = 0; i < maxLen; i++) {
+      const originalChar = original[i];
       const typedChar = typed[i];
-      const isCurrent = i === typed.length; // 커서 위치
-
-      let colorClass = 'text-black'; // 기본 검정색
-
+      const isCurrent = i === typed.length;
+  
+      let colorClass = 'text-black';
+      let displayChar = originalChar;
+  
       if (typedChar !== undefined) {
-        if (overtyped) {
-          colorClass = 'text-red-500'; // 초과 입력 시 빨간색
-        } else if (typedChar === char) {
-          colorClass = 'text-teal-600'; // 맞은 글자 초록색
+        if (overtyped || typedChar !== originalChar) {
+          colorClass = 'text-red-500';
+          displayChar = typedChar; // 틀린 글자만 표시
         } else {
-          colorClass = 'text-red-500'; // 틀린 글자 빨간색
+          colorClass = 'text-teal-600';
+          displayChar = typedChar;
         }
       }
-
-      // 공백 에러 인덱스는 빨간색 강조
+  
+      // 공백 에러 강제 강조
       if (spaceErrorIndex !== null && i === spaceErrorIndex) {
         colorClass = 'text-red-500';
       }
-
+  
       elements.push(
         <span key={i} className={`${colorClass} relative font-mono`}>
-          {char}
+          {displayChar}
           {isActive && isCurrent && (
-            // 현재 커서 위치에 깜빡이는 커서 표시
             <span className="absolute left-0 top-0 h-full w-[2px] bg-black custom-blink pointer-events-none" />
           )}
         </span>
       );
     }
-
-    // 입력이 문장 길이 이상일 경우 문장 끝에도 커서 표시
+  
+    // 커서가 문장 끝에 있을 때 깜빡이기
     if (isActive && typed.length >= original.length) {
       elements.push(
         <span
@@ -174,9 +176,10 @@ function SentencePage() {
         />
       );
     }
-
+  
     return <span className="whitespace-pre">{elements}</span>;
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
