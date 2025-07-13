@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import KeyBoard from "../components/KeyBoard";
-// 타자 연습할 문장 리스트
+import KeyBoard from '../components/KeyBoard';
+
 const sentences = [
   'print("Hello world!")',
   'for i in range(10):',
@@ -36,127 +36,125 @@ const sentences = [
 
 function SentencePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [typedText, setTypedText] = useState('');
+  const [typedChars, setTypedChars] = useState([]);
+  const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
   const [history, setHistory] = useState([]);
-  const [spaceErrorIndex, setSpaceErrorIndex] = useState(null);
 
   const currentSentence = sentences[currentIndex];
-  const isOvertyped = typedText.length > currentSentence.length;
 
-  // 키 입력 처리
   const handleKeyDown = useCallback((e) => {
-    if (e.code === 'Space' || e.key === ' ') {
-      const tag = e.target.tagName;
-      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
-        e.preventDefault();
-      }
-    }
-
     if (e.key === 'Backspace') {
-      setTypedText((prev) => prev.slice(0, -1));
-      setSpaceErrorIndex(null);
+      setTypedChars((prev) => prev.slice(0, -1));
+      setSpaceErrorIndices((prev) => prev.slice(0, -1));
     } else if (e.key.length === 1) {
-      const expectedChar = currentSentence[typedText.length];
-      const isSpaceError = expectedChar === ' ' && e.key !== ' ';
-      if (isSpaceError) {
-        setSpaceErrorIndex(typedText.length - 1);
-      } else {
-        setSpaceErrorIndex(null);
-      }
-      setTypedText((prev) => prev + e.key);
-    } else if (e.key === 'Enter') {
-      if (typedText.trim() === '') return;
+      const expectedChar = currentSentence[typedChars.length];
 
-      const isIncomplete = typedText !== currentSentence;
+      if (e.key === ' ') {
+        if (expectedChar === ' ') {
+          setTypedChars((prev) => [...prev, ' ']);
+          setSpaceErrorIndices((prev) => [...prev, false]);
+        } else {
+          // 문자를 입력해야 하는데 스페이스바 입력 (오류)
+          setTypedChars((prev) => [...prev, '']); // 공백 입력 무시
+          setSpaceErrorIndices((prev) => [...prev, true]);
+        }
+      } else {
+        setTypedChars((prev) => [...prev, e.key]);
+        setSpaceErrorIndices((prev) => [...prev, false]);
+      }
+    } else if (e.key === 'Enter') {
+      if (typedChars.length === 0) return;
+
+      const userTyped = typedChars.map((c, i) =>
+        spaceErrorIndices[i] ? '' : c
+      ).join('');
+
+      const isIncomplete = userTyped !== currentSentence;
 
       setHistory((prev) => [
         ...prev,
         {
           sentence: currentSentence,
-          typed: typedText,
+          typed: userTyped,
           isIncomplete,
-          isOvertyped,
         },
       ]);
 
       setCurrentIndex((prev) => Math.min(prev + 1, sentences.length - 1));
-      setTypedText('');
-      setSpaceErrorIndex(null);
+      setTypedChars([]);
+      setSpaceErrorIndices([]);
     }
-  }, [typedText, currentSentence, isOvertyped]);
+  }, [typedChars, spaceErrorIndices, currentSentence]);
 
-  // 이벤트 리스너 등록 및 해제
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // 각 문장 박스에 적용할 스타일 클래스 반환 함수
-  // 현재 인덱스를 기준으로 이전, 현재, 다음, 다다음 문장 구분하여 색상 다르게 함
   const getBoxStyle = (index) => {
-    if (index === currentIndex - 1) return 'bg-gray-300'; // 이전 문장
-    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold'; // 현재 문장 강조
-    if (index === currentIndex + 1) return 'bg-gray-100'; // 다음 문장
-    if (index === currentIndex + 2) return 'bg-gray-300'; // 다다음 문장
-    return 'hidden'; // 그 외는 숨김
+    if (index === currentIndex - 1) return 'bg-gray-300';
+    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
+    if (index === currentIndex + 1) return 'bg-gray-100';
+    if (index === currentIndex + 2) return 'bg-gray-300';
+    return 'hidden';
   };
 
-  // 완료된 문장 렌더링 (history에 저장된 문장)
-  // 일치하지 않는 글자는 빨간색, 일치하면 초록색으로 표시
-  const renderCompletedText = ({ sentence, typed, isIncomplete, isOvertyped }) => {
+  const renderCompletedText = ({ sentence, typed }) => {
+    const sentenceChars = sentence.split('');
+    const typedChars = typed.split('');
+
     return (
       <span className="whitespace-pre font-mono">
-        {sentence.split('').map((char, i) => {
-          const typedChar = typed[i];
-          let colorClass = 'text-teal-600'; // 기본 초록색
-
-          if (isOvertyped || isIncomplete) {
-            if (typedChar !== char) {
-              colorClass = 'text-red-500'; // 틀린 글자 빨간색
-            }
-          }
+        {sentenceChars.map((char, i) => {
+          const typedChar = typedChars[i];
+          const colorClass =
+            typedChar === char ? 'text-teal-600' : 'text-red-500';
 
           return (
             <span key={i} className={colorClass}>
-              {char}
+              {char === ' ' ? '\u00A0' : char}
             </span>
           );
         })}
+        {typedChars.length > sentenceChars.length &&
+          typedChars.slice(sentenceChars.length).map((char, i) => (
+            <span key={`extra-${i}`} className="text-red-500">
+              {char === ' ' ? '\u00A0' : char}
+            </span>
+          ))}
       </span>
     );
   };
 
-  // 현재 타이핑 중인 문장과 입력된 텍스트를 비교해 렌더링
-  // 커서 애니메이션 포함
-  const renderComparedTextWithCursor = (original, typed, isActive) => {
+  const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    const overtyped = typed.length > original.length;
-  
-    const maxLen = Math.max(original.length, typed.length);
-  
+    const maxLen = original.length;
+
     for (let i = 0; i < maxLen; i++) {
       const originalChar = original[i];
-      const typedChar = typed[i];
-      const isCurrent = i === typed.length;
-  
+      const typedChar = typedArr[i] ?? '';
+      const isError = spaceErrorIndices[i];
+      const isCurrent = i === typedArr.length;
+
       let colorClass = 'text-black';
       let displayChar = originalChar;
-  
-      if (typedChar !== undefined) {
-        if (overtyped || typedChar !== originalChar) {
-          colorClass = 'text-red-500';
-          displayChar = typedChar; // 틀린 글자만 표시
-        } else {
+
+      if (typedChar !== '') {
+        if (typedChar === originalChar && !isError) {
           colorClass = 'text-teal-600';
           displayChar = typedChar;
+        } else {
+          colorClass = 'text-red-500';
+          displayChar = typedChar || originalChar;
         }
-      }
-  
-      // 공백 에러 강제 강조
-      if (spaceErrorIndex !== null && i === spaceErrorIndex) {
+      } else if (isError) {
+        // 스페이스바 잘못 누른 경우
         colorClass = 'text-red-500';
+        displayChar = originalChar;
       }
-  
+
+      if (displayChar === ' ') displayChar = '\u00A0';
+
       elements.push(
         <span key={i} className={`${colorClass} relative font-mono`}>
           {displayChar}
@@ -166,9 +164,8 @@ function SentencePage() {
         </span>
       );
     }
-  
-    // 커서가 문장 끝에 있을 때 깜빡이기
-    if (isActive && typed.length >= original.length) {
+
+    if (isActive && typedArr.length >= original.length) {
       elements.push(
         <span
           key="cursor-end"
@@ -176,35 +173,35 @@ function SentencePage() {
         />
       );
     }
-  
+
     return <span className="whitespace-pre">{elements}</span>;
   };
-  
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
-      {/* 이전에 완료한 문장 박스 (currentIndex - 1) */}
+      {/* 이전 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && renderCompletedText(history[history.length - 1])}
       </div>
 
-      {/* 현재 타이핑 중인 문장 박스 (currentIndex) */}
+      {/* 현재 문장 */}
       <div className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
         <div className="relative font-mono text-2xl leading-[1.75rem] min-h-[1.75rem] w-full">
-          {renderComparedTextWithCursor(currentSentence, typedText, true)}
+          {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
       </div>
 
-      {/* 다음 문장 박스 (currentIndex + 1) */}
+      {/* 다음 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 1)}`}>
         {sentences[currentIndex + 1] ?? ''}
       </div>
 
-      {/* 다다음 문장 박스 (currentIndex + 2) */}
+      {/* 다다음 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 2)}`}>
         {sentences[currentIndex + 2] ?? ''}
       </div>
-      <KeyBoard/>
+
+      <KeyBoard />
     </div>
   );
 }
