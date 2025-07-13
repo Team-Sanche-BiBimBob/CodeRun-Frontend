@@ -29,33 +29,41 @@ function WordPage() {
   }, []);
 
   // 입력창에 타이핑할 때 상태 업데이트
-  const handleChange = (e) => {
-    setUserInput(e.target.value);
-  };
+  // 입력창에 타이핑할 때 상태 업데이트
+const handleChange = (e) => {
+  const value = e.target.value;
+  const currentWord = wordList[currentIndex] || '';
 
-  // 엔터 키를 누르면 현재 입력한 단어와 정답 단어 비교 후 처리
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      const currentWord = wordList[currentIndex]; // 현재 단어
-      const isCorrect = userInput === currentWord; // 정답 여부
+  // 상태 업데이트
+  setUserInput(value);
 
-      // 기록 객체 생성
-      // 맞으면 {word, isCorrect: true}
-      // 틀리면 {word: 사용자가 입력한 단어, correctWord: 정답, isCorrect: false}
-      const newEntry = isCorrect
-        ? { word: currentWord, isCorrect: true }
-        : { word: userInput, correctWord: currentWord, isCorrect: false };
+  // 정답이 완전히 입력되었을 경우 자동으로 다음 단어로 이동
+  if (value === currentWord) {
+    const newEntry = { word: currentWord, isCorrect: true };
+    setHistory(prev => [newEntry, ...prev.slice(0, 1)]);
+    setCurrentIndex(prev => prev + 1);
+    setUserInput('');
+  }
+};
 
-      // history 배열 맨 앞에 새 기록 추가, 최대 2개까지만 유지 (slice(0, 1))
-      setHistory(prev => [newEntry, ...prev.slice(0, 1)]);
+// 엔터 키를 누르면 입력 유효성 검사 후만 처리
+const handleKeyDown = (e) => {
+  if (e.key === 'Enter') {
+    if (userInput.trim() === '') return; // 빈 입력 무시
 
-      // 다음 단어로 인덱스 증가
-      setCurrentIndex(prev => prev + 1);
+    const currentWord = wordList[currentIndex]; // 현재 단어
+    const isCorrect = userInput === currentWord;
 
-      // 입력창 초기화
-      setUserInput('');
-    }
-  };
+    const newEntry = isCorrect
+      ? { word: currentWord, isCorrect: true }
+      : { word: userInput, correctWord: currentWord, isCorrect: false };
+
+    setHistory(prev => [newEntry, ...prev.slice(0, 1)]);
+    setCurrentIndex(prev => prev + 1);
+    setUserInput('');
+  }
+};
+
 
   // 현재 단어를 글자별로 렌더링, 입력과 비교해 맞으면 검정, 틀리면 빨간색 글자 표시
   const renderWord = () => {
