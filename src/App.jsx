@@ -10,9 +10,18 @@ import CodingPlatform from './pages/CodingPlatform.jsx';
 import TeacherView from './pages/TeacherView.jsx'
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
+import { useState, useEffect } from 'react';
+import Routers from './components/Routers.jsx';
 
 const App = () => {
   const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+
+  useEffect(() => {
+    const onStorage = () => setIsLoggedIn(!!localStorage.getItem('token'));
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const headerVisibleRoutes = ["/", "/select-language", "/competition"];
 
@@ -20,21 +29,8 @@ const App = () => {
 
   return (
     <div style={{ paddingTop: '80px' }}>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/selectLanguage" element={<LanguageSelection />} />
-        <Route path="/word" element={<WordPage/>} />
-        <Route path="/sentence" element={<SentencePage/>} />
-        <Route path="/platform" element={<CodingPlatform/>}/>
-        <Route path="/full" element={<Fullcode />} />
-        <Route path="/selectLanguage" element={<LanguageSelection />} />
-        <Route path="/word" element={<WordPage/>} />
-        <Route path="/sentence" element={<SentencePage/>} />
-        <Route path="/teacher" element={<TeacherView/>} />
-        <Route path="/login" element={<Login/>}/>
-        <Route path="/signup" element={<Signup/>}/>
-      </Routes>
+      <Header isLoggedIn={isLoggedIn} />
+      <Routers />
     </div>
   );
 };

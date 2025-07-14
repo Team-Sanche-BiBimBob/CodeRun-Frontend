@@ -1,18 +1,20 @@
 import styles from './Header.module.css';
 import Navigation from './Navigation';
 
-const Header = () => {
+const Header = ({ isLoggedIn }) => {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.navContainer}>
           {/*로고*/}
           <div className={styles.logoContainer}>
-            <img 
-              src="src/assets/logo.svg" 
-              alt="header" 
-              className={styles.logo}
-            />
+            <a href="/">
+              <img 
+                src="src/assets/logo.svg" 
+                alt="header" 
+                className={styles.logo}
+              />
+            </a>
           </div>
 
           {/*네비게이션*/}
@@ -22,15 +24,21 @@ const Header = () => {
 
           {/*사용자 정보*/}
           <div className={styles.userMenu}>
-            <div className={styles.userInfo}>
-
-              <img 
-                src="src/assets/user.jpg" 
-                alt="user" 
-                className={styles.userAvatar}
-              />
-              <span className={styles.username}>사용자이름</span>
-            </div>
+            {isLoggedIn ? (
+              <div className={styles.userInfo}>
+                <img 
+                  src="src/assets/user.jpg" 
+                  alt="user" 
+                  className={styles.userAvatar}
+                />
+                <span className={styles.username}>사용자이름</span>
+              </div>
+            ) : (
+              <>
+                <a href="/login" className={styles.loginBtn}>로그인</a>
+                <a href="/signup" className={styles.signupBtn}>회원가입</a>
+              </>
+            )}
           </div>
         </div>
       </div>
