@@ -52,10 +52,10 @@ const Login = () => {
 
         <div className="auth-right">
           <div className="input-group">
-            <LoginTextField isLoginTextField={true} placeholder="이메일" onChange={handleChangeEmail}/>
+            <LoginTextField isLoginTextField={true} placeholder="이메일을 입력하세요." onChange={handleChangeEmail}/>
           </div>
           <div className="input-group">
-            <LoginTextField placeholder="비밀번호" onChange={handleChangePassword}/>
+            <LoginTextField placeholder="비밀번호를 입력하세요." onChange={handleChangePassword} type="password"/>
           </div>
           <button className="auth-btn" onClick={handleLogin}>로그인</button>
           <p className="signup-link">
