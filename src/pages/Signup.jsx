@@ -57,13 +57,13 @@ const Signup = () => {
 
         <div className="auth-right">
           <div className="input-group">
-            <LoginTextField isLoginTextField={true} placeholder="아이디를 입력하세요" onChange={handleChangeUsername}/>
+            <LoginTextField isLoginTextField={true} placeholder="이메일을 입력하세요." onChange={handleChangeUsername}/>
           </div>
           <div className="input-group">
-            <LoginTextField placeholder="이메일 입력하세요" onChange={handleChangeEmail}/>
+            <LoginTextField placeholder="비밀번호를 입력하세요." onChange={handleChangeEmail} type='password'/>
           </div>
           <div className="input-group">
-            <LoginTextField placeholder="비밀번호를 입력하세요" onChange={handleChangePassword}/>
+            <LoginTextField placeholder="비밀번호를 재입력하세요." onChange={handleChangePassword} type='password'/>
           </div>
           <button className="auth-btn" onClick={handleSubmit}>회원가입</button>
         </div>

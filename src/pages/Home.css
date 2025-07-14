@@ -43,11 +43,13 @@
   color: white;
   max-width: 50%;
 }
+
 .hero-title {
   font-size: 36px;
   font-weight: 700;
   margin-bottom: 12px;
 }
+
 .hero-subtitle {
   font-size: 18px;
   font-weight: 400;
@@ -66,16 +68,88 @@
 }
 
 .content-wrapper {
-  max-width: 1000px; /* 원하는 최대 너비 */
-  margin: 0 auto; /* 중앙 정렬 */
-  padding: 60px 20px; /* 여백은 좌우 작게 */
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 60px 20px;
   display: flex;
   flex-direction: column;
-  gap: 100px;
+  gap: 60px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.languages-section {
+  width: 100%;
+}
+
+.languages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.language-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.language-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.language-header {
+  background-color: #17b6a2;
+  color: white;
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.language-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.language-body {
+  padding: 20px;
+}
+
+.language-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.language-button {
+  background-color: #d5f6f2;
+  color: #0e8f81;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.language-button:hover {
+  background-color: #bff1eb;
 }
 
 .weekly-challenge {
-  width: 898px;
+  width: 100%;
+  max-width: 898px;
   height: auto;
   background-color: white;
   border: 1px solid #e0e0e0;
@@ -180,9 +254,32 @@
     padding: 60px 5%;
   }
 
+  .languages-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
   .weekly-challenge,
   .ranking-section {
     width: 100%;
     max-width: 898px;
+  }
+}
+
+@media (max-width: 768px) {
+  .languages-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-content {
+    padding: 60px 40px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
   }
 }
