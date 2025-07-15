@@ -33,7 +33,7 @@ const Choice = () => {
         </button>
         <button
           className="px-10 py-4 border border-gray-300 rounded-lg text-xl bg-white hover:bg-gray-100 transition"
-          onClick={() => navigate('/fullcode')}
+          onClick={() => navigate('/full')}
         >
           풀코드
         </button>
