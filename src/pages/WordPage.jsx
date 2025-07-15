@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import KeyBoard from '../components/KeyBoard';
+import Statusbar from '../components/StatusBar';
 
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [
@@ -143,8 +145,9 @@ const handleKeyDown = (e) => {
           placeholder="입력하세요"
         />
         {/* 입력창 밑에 강조 라인 */}
-        <div className="w-[200px] h-[2px] bg-[#37A998]" />
+        <div className="w-[200px] h-[2px] bg-[#37A998] mb-10" />
       </div>
+      <KeyBoard/>
     </div>
   );
 }
