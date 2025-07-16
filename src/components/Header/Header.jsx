@@ -26,12 +26,12 @@ const Header = ({ isLoggedIn }) => {
           <div className={styles.userMenu}>
             {isLoggedIn ? (
               <div className={styles.userInfo}>
+                <span className={styles.username}>사용자이름</span>
                 <img 
                   src="src/assets/user.jpg" 
                   alt="user" 
                   className={styles.userAvatar}
                 />
-                <span className={styles.username}>사용자이름</span>
               </div>
             ) : (
               <>
