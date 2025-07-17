@@ -218,7 +218,7 @@ function WordPage() {
             placeholder="입력하세요"
           />
           {/* 입력창 밑에 강조 라인 */}
-          <div className="w-[200px] h-[2px] bg-[#37A998]" />
+          <div className="w-[200px] h-[2px] bg-[#37A998] mb-7" />
         </div>
       )}
 
