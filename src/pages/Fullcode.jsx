@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
+import CompletionModal from '../components/CompletionModal';
 import './Fullcode.css';
 
 const Fullcode = () => {
@@ -345,7 +346,13 @@ const Fullcode = () => {
               
               const finalAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
               
-              alert(`완료!\n소요 시간: ${formatTime(elapsedTime)}\n정확도: ${finalAccuracy}%\n분당 타수: ${calculateKPM()} KPM`);
+              // 완료 통계 저장 및 모달 표시
+              setCompletionStats({
+                accuracy: finalAccuracy,
+                typingSpeed: calculateKPM(),
+                elapsedTime: elapsedTime
+              });
+              setShowCompletionModal(true);
               
               // 에디터 초기화
               setCode('');
@@ -377,127 +384,133 @@ const Fullcode = () => {
     [
       'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];',
       'const result = numbers',
-      '    .filter(num => num % 2 === 0)',
-      '    .map(num => num * num);',
+      '  .filter(num => num % 2 === 0)',
+      '  .map(num => num * num);',
       'console.log(result);',
       '',
       'const people = [',
-      '    { name: "Alice", age: 25, city: "New York" },',
-      '    { name: "Bob", age: 30, city: "Chicago" },',
-      '    { name: "Charlie", age: 25, city: "New York" }',
+      '  { name: "Alice", age: 25, city: "New York" },',
+      '  { name: "Bob", age: 30, city: "Chicago" },',
+      '  { name: "Charlie", age: 25, city: "New York" }',
       '];',
       '',
       'const groupBy = (array, key) => {',
-      '    return array.reduce((acc, obj) => {',
-      '        const groupKey = obj[key];',
-      '        if (!acc[groupKey]) {',
-      '            acc[groupKey] = [];',
-      '        }',
-      '        acc[groupKey].push(obj);',
-      '        return acc;',
-      '    }, {});',
+      '  return array.reduce((acc, obj) => {',
+      '    const groupKey = obj[key];',
+      '    if (!acc[groupKey]) {',
+      '      acc[groupKey] = [];',
+      '    }',
+      '    acc[groupKey].push(obj);',
+      '    return acc;',
+      '  }, {});',
       '};',
       '',
-      'console.log(groupBy(people, "city"));'
+      'console.log(groupBy(people, "city"));',
     ].join('\n'),
     
     // 예제 2: 비동기 처리와 프로미스
     [
       'async function fetchUserData(userId) {',
-      '    try {',
-      '        const response = await fetch(`https://api.example.com/users/${userId}`);',
-      '        if (!response.ok) {',
-      '            throw new Error(`HTTP error! status: ${response.status}`);',
-      '        }',
-      '        const data = await response.json();',
-      '        return data;',
-      '    } catch (error) {',
-      '        console.error("Error fetching user data:", error);',
-      '        return null;',
+      '  try {',
+      '    const response = await fetch(`https://api.example.com/users/${userId}`);',
+      '    if (!response.ok) {',
+      '      throw new Error(`HTTP error! status: ${response.status}`);',
       '    }',
+      '    const data = await response.json();',
+      '    return data;',
+      '  } catch (error) {',
+      '    console.error("Error fetching user data:", error);',
+      '    return null;',
+      '  }',
       '}',
       '',
       'async function fetchMultipleUsers(userIds) {',
-      '    const promises = userIds.map(id => fetchUserData(id));',
-      '    const results = await Promise.allSettled(promises);',
-      '    return results',
-      '        .filter(result => result.status === "fulfilled" && result.value)',
-      '        .map(result => result.value);',
+      '  const promises = userIds.map(id => fetchUserData(id));',
+      '  const results = await Promise.allSettled(promises);',
+      '  return results',
+      '    .filter(result => result.status === "fulfilled" && result.value)',
+      '    .map(result => result.value);',
       '}',
       '',
       'const userIds = [1, 2, 3];',
       'fetchMultipleUsers(userIds).then(users => {',
-      '    console.log("Fetched users:", users);',
-      '});'
+      '  console.log("Fetched users:", users);',
+      '});',
     ].join('\n'),
     
     // 예제 3: 클래스와 상속
     [
       'class Animal {',
-      '    constructor(name) {',
-      '        this.name = name;',
-      '    }',
-      '    ', 
-      '    speak() {',
-      '        return `${this.name} makes a noise.`;',
-      '    }',
+      '  constructor(name) {',
+      '    this.name = name;',
+      '  }',
+      '',
+      '  speak() {',
+      '    return `${this.name} makes a noise.`;',
+      '  }',
       '}',
       '',
       'class Dog extends Animal {',
-      '    speak() {',
-      '        return `${this.name} says Woof!`;',
-      '    }',
-      '    ', 
-      '    fetch() {',
-      '        return `${this.name} fetches the ball!`;',
-      '    }',
+      '  speak() {',
+      '    return `${this.name} says Woof!`;',
+      '  }',
+      '',
+      '  fetch() {',
+      '    return `${this.name} fetches the ball!`;',
+      '  }',
       '}',
       '',
       '// 다형성 예제',
       'const animals = [new Dog("Buddy"), new Animal("Generic")];',
       'animals.forEach(animal => {',
-      '    console.log(animal.speak());',
-      '    if (animal instanceof Dog) {',
-      '        console.log(animal.fetch());',
-      '    }',
-      '});'
+      '  console.log(animal.speak());',
+      '  if (animal instanceof Dog) {',
+      '    console.log(animal.fetch());',
+      '  }',
+      '});',
     ].join('\n'),
     
     // 예제 4: 모듈 패턴과 클로저
     [
       'const counter = (() => {',
-      '    let count = 0;',
-      '    ', 
-      '    return {',
-      '        increment() {',
-      '            count += 1;',
-      '            return count;',
-      '        },',
-      '        decrement() {',
-      '            count -= 1;',
-      '            return count;',
-      '        },',
-      '        getCount() {',
-      '            return count;',
-      '        },',
-      '        reset() {',
-      '            count = 0;',
-      '            return count;',
-      '        }',
-      '    };',
+      '  let count = 0;',
+      '',
+      '  return {',
+      '    increment() {',
+      '      count += 1;',
+      '      return count;',
+      '    },',
+      '    decrement() {',
+      '      count -= 1;',
+      '      return count;',
+      '    },',
+      '    getCount() {',
+      '      return count;',
+      '    },',
+      '    reset() {',
+      '      count = 0;',
+      '      return count;',
+      '    }',
+      '  };',
       '})();',
       '',
       'console.log(counter.increment());',
       'console.log(counter.increment());',
       'console.log(counter.decrement());',
       'console.log(counter.getCount());',
-      'console.log(counter.reset());'
+      'console.log(counter.reset());',
     ].join('\n')
   ];
   
   // 랜덤으로 예제 코드 선택
   const [exampleCode, setExampleCode] = useState('');
   const [exampleLines, setExampleLines] = useState([]);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionStats, setCompletionStats] = useState({
+    accuracy: 0,
+    typingSpeed: 0,
+    elapsedTime: 0
+  });
   
   // 컴포넌트 마운트 시 랜덤 예제 선택
   useEffect(() => {
@@ -514,22 +527,42 @@ const Fullcode = () => {
     setStartTime(null);
   }, []);
   
-  // 시간 포맷팅 (초를 MM:SS 또는 HH:MM:SS 형식으로 변환)
+  // 시간 포맷팅 (초를 MM:SS 형식으로 변환)
   const formatTime = (totalSeconds) => {
     if (totalSeconds < 0) return '00:00';
     
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleRestart = () => {
+    setShowCompletionModal(false);
+    // 새 예제 코드 선택
+    const randomIndex = Math.floor(Math.random() * exampleCodes.length);
+    const selectedExample = exampleCodes[randomIndex];
+    setExampleCode(selectedExample);
+    setExampleLines(selectedExample.split('\n'));
+  };
+
+  const handleGoHome = () => {
+    setShowCompletionModal(false);
+    // 홈으로 이동하는 로직 (예: react-router의 navigate 사용)
+    // navigate('/');
   };
 
   return (
     <div className="fullcode-container">
+      <CompletionModal
+        isOpen={showCompletionModal}
+        accuracy={completionStats.accuracy}
+        typingSpeed={completionStats.typingSpeed}
+        elapsedTime={completionStats.elapsedTime}
+        formatTime={formatTime}
+        onRestart={handleRestart}
+        onGoHome={handleGoHome}
+      />
       <div className="stats-container">
         <div className="stat-box">
           <div className="stat-label">정확도</div>
