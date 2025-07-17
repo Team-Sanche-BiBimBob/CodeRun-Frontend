@@ -11,7 +11,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = () => {
-    if (!email || !password || !confirmPassword || !username) {
+    if (!email || !password || !confirmPassword) {
       alert("모든 항목을 입력해주세요.");
       return;
     }
@@ -23,9 +23,9 @@ const Signup = () => {
 
     api
       .post("/auth/signup", {
-        username,
         email,
         password,
+        username: "test"
       })
       .then((response) => {
         if (response.data.success) {

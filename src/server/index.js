@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const baseURL = import.meta.env.VITE_BASE_URL;
 export const api = axios.create({
-  baseURL: "http://54.180.95.232:8080",
+  baseURL
 });
 
 api.interceptors.request.use(async (config) => {
