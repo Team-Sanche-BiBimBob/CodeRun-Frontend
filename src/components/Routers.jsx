@@ -1,13 +1,15 @@
-    import { Routes, Route } from 'react-router';
-import LanguageSelection from '../pages/LanguageSelection';
-import Fullcode from '../pages/Fullcode';
+// components/Routers.jsx
+import { Routes, Route } from 'react-router-dom';
 import Home from '../pages/Home';
+import LanguageSelection from '../pages/LanguageSelection';
+import Choice from '../pages/choice'; 
 import WordPage from '../pages/WordPage';
 import SentencePage from '../pages/SentencePage';
-import CodingPlatform from '../pages/CodingPlatform.jsx';
-import TeacherView from '../pages/TeacherView.jsx';
-import Login from '../pages/Login.jsx';
-import Signup from '../pages/Signup.jsx';
+import Fullcode from '../pages/Fullcode';
+import CodingPlatform from '../pages/CodingPlatform';
+import TeacherView from '../pages/TeacherView';
+import Login from '../pages/Login';
+import Signup from '../pages/Signup';
 
 const Routers = () => (
   <Routes>
@@ -23,4 +25,4 @@ const Routers = () => (
   </Routes>
 );
 
-export default Routers; 
+export default Routers;
