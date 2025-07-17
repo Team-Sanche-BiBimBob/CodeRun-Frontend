@@ -42,7 +42,6 @@ const Fullcode = () => {
     
     // 에디터 옵션 설정 (스펠링 체크, 시맨틱 검증 비활성화)
     editor.updateOptions({
-      wordBasedSuggestions: 'off',
       suggestOnTriggerCharacters: false,
       quickSuggestions: false,
       parameterHints: {
@@ -66,16 +65,12 @@ const Fullcode = () => {
         showUsers: false,
         showWords: false,
         showColors: false,
-        showFiles: false,
-        showReferences: false,
         showOperators: false,
-        showUnits: false,
-        showSnippets: false
+        showUnits: false
       },
       'semanticHighlighting.enabled': false,
       'semanticValidation': false,
       'suggestSelection': 'none',
-      'wordBasedSuggestions': 'off',
       'suggest.showStatusBar': false,
       'suggest.showIcons': false,
       'suggest.showInlineDetails': false,
@@ -111,8 +106,6 @@ const Fullcode = () => {
       'suggest.filterGraceful': false,
       'suggest.localityBonus': false,
       'suggest.shareSuggestSelections': false,
-      'suggest.showWords': false,
-      'suggest.showReferences': false,
       'suggest.showCustomcolors': false,
       'suggest.showVariables': false,
       'suggest.showKeywords': false,
@@ -122,9 +115,7 @@ const Fullcode = () => {
       'suggest.showConstants': false,
       'suggest.showConstructors': false,
       'suggest.showValues': false,
-      'suggest.showFiles': false,
       'suggest.showFolders': false,
-      'suggest.showReferences': false,
       'suggest.showUsers': false,
       'suggest.showIssues': false
     });

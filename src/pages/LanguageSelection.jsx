@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LanguageCard from "../components/LanguageCard/LanguageCard";
 
-
-// 프로그래밍 언어 목록
 const programmingLanguages = [
   {
     id: 'python',
@@ -65,6 +64,7 @@ const programmingLanguages = [
 
 const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const navigate = useNavigate();
 
   const handleLanguageSelect = (languageId) => {
     setSelectedLanguage(languageId);
@@ -72,8 +72,7 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
-      console.log('Selected language:', selectedLanguage);
-      alert(`${selectedLanguage} 언어가 선택되었습니다!`);
+      navigate('/choice', { state: { language: selectedLanguage } });
     }
   };
 
@@ -83,7 +82,6 @@ const LanguageSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <main className="max-w-6xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-center mb-12">
           학습할 프로그래밍 언어를 선택하세요
