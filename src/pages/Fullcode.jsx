@@ -460,7 +460,6 @@ const Fullcode = () => {
       '  }',
       '}',
       '',
-      '// 다형성 예제',
       'const animals = [new Dog("Buddy"), new Animal("Generic")];',
       'animals.forEach(animal => {',
       '  console.log(animal.speak());',
