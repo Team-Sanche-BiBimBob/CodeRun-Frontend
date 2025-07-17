@@ -2,7 +2,9 @@ import axios from "axios";
 
 
 export const baseURL = import.meta.env.VITE_BASE_URL;
-export const api = axios.create(/*{baseURL}*/);
+export const api = axios.create({
+  baseURL: "http://54.180.95.232:8080",
+});
 
 api.interceptors.request.use(async (config) => {
   const auth_header = config.headers["x-auth-not-required"];
