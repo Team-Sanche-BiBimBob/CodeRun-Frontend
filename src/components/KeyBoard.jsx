@@ -38,22 +38,22 @@ const KoreanKeyboard = () => {
     return () => clearInterval(timer);
   }, [isStarted]);
 
-  // 타수 (WPM) 계산 - 올바른 WPM 계산 방식
+  // 타수 (WPM) 계산 - 실시간 업데이트
   useEffect(() => {
-    if (isStarted && startTimeRef.current) {
+    if (isStarted && startTimeRef.current && totalKeystrokes > 0) {
       const now = Date.now();
       const elapsedMinutes = (now - startTimeRef.current) / 1000 / 60;
       if (elapsedMinutes > 0) {
-        // WPM = (타이핑한 문자수 / 5) / 분
-        const wpm = Math.round((typedTextIndex / 5) / elapsedMinutes);
+        // WPM = (실제 타이핑한 문자수 / 5) / 분
+        const wpm = Math.round((totalKeystrokes / 5) / elapsedMinutes);
         setTypingSpeed(wpm);
       }
     } else {
       setTypingSpeed(0);
     }
-  }, [typedTextIndex, isStarted]);
+  }, [totalKeystrokes, isStarted, elapsedSeconds]); // elapsedSeconds 추가로 실시간 업데이트
 
-  // 정확도 계산 - 총 키 입력 대비 정확한 입력 비율
+  // 정확도 계산 - 실시간 업데이트
   useEffect(() => {
     if (totalKeystrokes > 0) {
       const accuracyPercent = Math.round((correctCharacters / totalKeystrokes) * 100);
@@ -162,12 +162,13 @@ const KoreanKeyboard = () => {
       if (pressedKeyCode === 'Backspace') {
         if (typedTextIndex > 0) {
           setTypedTextIndex((prev) => prev - 1);
-          // 백스페이스도 키 입력으로 카운트
+          // 백스페이스도 키 입력으로 카운트하여 실시간 업데이트
           setTotalKeystrokes((prev) => prev + 1);
         }
         return;
       }
 
+      // 일반 문자 입력 처리
       let isCorrectInput = false;
       const expectedChar = targetText[typedTextIndex];
       let charForComparison = null;
@@ -180,21 +181,21 @@ const KoreanKeyboard = () => {
         charForComparison = getOutputChar(pressedKey, isShiftPressed);
       }
 
-      // 총 키 입력 수 증가 (백스페이스 제외한 실제 문자 입력)
+      // 총 키 입력 수 증가 (모든 문자 입력을 즉시 반영)
       setTotalKeystrokes((prev) => prev + 1);
 
       if (charForComparison === expectedChar) {
+        // 정확한 입력
         setCorrectCharacters((prev) => prev + 1);
         setTypedTextIndex((prev) => prev + 1);
         isCorrectInput = true;
       } else {
-        // 틀린 문자를 입력해도 다음 문자로 넘어가지 않음
-        // 따라서 typedTextIndex는 증가하지 않음
+        // 틀린 입력 - 위치는 그대로, 오류만 카운트
         isCorrectInput = false;
       }
 
-      // 실제 타이핑한 문자수는 맞든 틀리든 증가 (위치 기준)
-      setTypedCharacters(typedTextIndex + (isCorrectInput ? 1 : 0));
+      // 타이핑한 문자수 업데이트
+      setTypedCharacters((prev) => prev + 1);
     }
 
     // 마지막 문자 맞게 입력 시 자동 완료 처리
