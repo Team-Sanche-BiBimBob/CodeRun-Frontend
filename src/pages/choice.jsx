@@ -7,7 +7,7 @@ const Choice = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center px-4 py-8">
       <div className="w-full max-w-6xl">
-        <h1 className="text-5xl font-bold text-center mb-16 text-black mt-12">
+        <h1 className="text-xl font-bold text-center mb-16 text-black mt-12">
           학습할 프로그래밍 언어의 종류를 선택하세요.
         </h1>
 
@@ -20,24 +20,32 @@ const Choice = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-16 justify-center items-center">
-          <button
-            className="px-20 py-7 border-2 border-gray-200 rounded-xl text-2xl bg-white hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 min-w-[220px]"
-            onClick={() => navigate('/word')}
-          >
-            단어
-          </button>
-          <button
-            className="px-20 py-7 border-2 border-gray-200 rounded-xl text-2xl bg-white hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 min-w-[220px]"
-            onClick={() => navigate('/sentence')}
-          >
-            문장
-          </button>
-          <button
-            className="px-20 py-7 border-2 border-gray-200 rounded-xl text-2xl bg-white hover:bg-pink-50 hover:border-pink-300 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 min-w-[220px]"
-            onClick={() => navigate('/full')}
-          >
-            풀코드
-          </button>
+          {['/word', '/sentence', '/full'].map((path, i) => {
+            const labels = ['단어', '문장', '풀코드'];
+            return (
+              <button
+                key={path}
+                className="px-20 py-7 border-2 rounded-xl text-2xl bg-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 min-w-[220px]"
+                onClick={() => navigate(path)}
+                style={{
+                  borderColor: '#e5e7eb', // 기본 border-gray-200
+                  color: '#000',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1CC5AE';
+                  e.currentTarget.style.borderColor = '#1CC5AE';
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fff';
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.color = '#000';
+                }}
+              >
+                {labels[i]}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
