@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import KeyBoard from '../components/KeyBoard';
 
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [
@@ -10,6 +12,8 @@ const words = [
 ];
 
 function WordPage() {
+  const navigate = useNavigate();
+  
   // 단어 리스트 상태 (랜덤 섞인 단어)
   const [wordList, setWordList] = useState([]);
   // 현재 타이핑 중인 단어 인덱스 상태
@@ -130,6 +134,10 @@ function WordPage() {
     setStartTime(new Date());
   };
 
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
   // 현재 단어를 글자별로 렌더링, 입력과 비교해 맞으면 검정, 틀리면 빨간색 글자 표시
   const renderWord = () => {
     const currentWord = wordList[currentIndex] || '';
@@ -213,6 +221,8 @@ function WordPage() {
         </div>
       )}
 
+      {!isComplete && <KeyBoard />}
+
       {/* 완료 모달 */}
       {isComplete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -279,7 +289,7 @@ function WordPage() {
             {/* 버튼들 */}
             <div className="relative z-10 flex justify-center gap-4 mt-8">
               <button 
-                onClick={() => setIsComplete(false)} 
+                onClick={handleGoHome} 
                 className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
               >
                 그만 하기

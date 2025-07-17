@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import KeyBoard from '../components/KeyBoard';
 
 const sentences = [
@@ -35,6 +36,7 @@ const sentences = [
 ];
 
 function SentencePage() {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [typedChars, setTypedChars] = useState([]);
   const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
@@ -239,6 +241,10 @@ function SentencePage() {
     setStartTime(new Date()); // 시작 시간 초기화
   };
 
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
       {/* 이전 문장 - 사용자가 입력한 내용으로 렌더링 */}
@@ -330,7 +336,7 @@ function SentencePage() {
             {/* 버튼들 */}
             <div className="relative z-10 flex justify-center gap-4 mt-8">
               <button 
-                onClick={() => setIsComplete(false)} 
+                onClick={handleGoHome} 
                 className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
               >
                 그만 하기
