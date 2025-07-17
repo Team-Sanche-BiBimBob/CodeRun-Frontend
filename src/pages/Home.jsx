@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Home.css';
 import { api } from '../server';
-import Footer from '../components/Footer/Footer.jsx';
+import Footer from '../components/Footer.jsx';
 
 const Home = () => {
   const [items, setItems] = useState([]);
