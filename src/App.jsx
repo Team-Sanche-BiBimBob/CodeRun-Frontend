@@ -19,8 +19,8 @@ const App = () => {
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
   return (
-    <div style={{ paddingTop: '80px' }}>
-      <Header isLoggedIn={isLoggedIn} />
+    <div style={{ paddingTop: showHeader ? '80px' : '0' }}>
+      {showHeader && <Header isLoggedIn={isLoggedIn} />}
       <Routers />
     </div>
   );
