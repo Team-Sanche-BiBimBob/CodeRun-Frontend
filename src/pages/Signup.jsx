@@ -22,10 +22,9 @@ const Signup = () => {
     }
 
     api
-      .post("/auth/signup", {
+      .post("/api/auth/signup", {
         email,
         password,
-        username: "test"
       })
       .then((response) => {
         if (response.data.success) {

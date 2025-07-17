@@ -28,8 +28,8 @@ const Login = () => {
       }
   
   
-      axios
-        .post("http://54.180.95.232:8080/auth/signin", {
+      api
+        .post("/api/auth/signin", {
           email,
           password,
         })
