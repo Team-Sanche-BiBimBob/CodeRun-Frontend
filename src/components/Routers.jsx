@@ -23,6 +23,7 @@ const Routers = () => (
     <Route path="/teacher" element={<TeacherView/>} />
     <Route path="/login" element={<Login/>}/>
     <Route path="/signup" element={<Signup/>}/>
+    <Route path="/choice" element={<Choice/>}/>
   </Routes>
 );
 
