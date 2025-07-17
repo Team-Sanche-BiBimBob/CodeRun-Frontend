@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import KeyBoard from "../components/KeyBoard";
-// 타자 연습할 문장 리스트
+import KeyBoard from '../components/KeyBoard';
+
 const sentences = [
   'print("Hello world!")',
   'for i in range(10):',
@@ -31,94 +31,105 @@ const sentences = [
   'dict_comp = {x: x**2 for x in range(5)}',
   'set_comp = {x for x in range(5)}',
   '@decorator',
-  'def func():',
+  'def func():'
 ];
 
 function SentencePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [typedText, setTypedText] = useState('');
+  const [typedChars, setTypedChars] = useState([]);
+  const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
   const [history, setHistory] = useState([]);
-  const [spaceErrorIndex, setSpaceErrorIndex] = useState(null);
+  const [isComplete, setIsComplete] = useState(false);
+  const [startTime, setStartTime] = useState(() => new Date());
 
   const currentSentence = sentences[currentIndex];
-  const isOvertyped = typedText.length > currentSentence.length;
 
-  // 키 입력 처리
   const handleKeyDown = useCallback((e) => {
-    if (e.code === 'Space' || e.key === ' ') {
-      const tag = e.target.tagName;
-      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
-        e.preventDefault();
-      }
-    }
+    if (isComplete) return;
 
     if (e.key === 'Backspace') {
-      setTypedText((prev) => prev.slice(0, -1));
-      setSpaceErrorIndex(null);
+      setTypedChars((prev) => prev.slice(0, -1));
+      setSpaceErrorIndices((prev) => prev.slice(0, -1));
     } else if (e.key.length === 1) {
-      const expectedChar = currentSentence[typedText.length];
-      const isSpaceError = expectedChar === ' ' && e.key !== ' ';
-      if (isSpaceError) {
-        setSpaceErrorIndex(typedText.length - 1);
-      } else {
-        setSpaceErrorIndex(null);
-      }
-      setTypedText((prev) => prev + e.key);
-    } else if (e.key === 'Enter') {
-      if (typedText.trim() === '') return;
+      const expectedChar = currentSentence[typedChars.length];
 
-      const isIncomplete = typedText !== currentSentence;
+      if (e.key === ' ') {
+        if (expectedChar === ' ') {
+          setTypedChars((prev) => [...prev, ' ']);
+          setSpaceErrorIndices((prev) => [...prev, false]);
+        } else {
+          setTypedChars((prev) => [...prev, '']);
+          setSpaceErrorIndices((prev) => [...prev, true]);
+        }
+      } else {
+        setTypedChars((prev) => [...prev, e.key]);
+        setSpaceErrorIndices((prev) => [...prev, false]);
+      }
+    } else if (e.key === 'Enter') {
+      if (typedChars.length === 0) return;
+
+      const userTyped = typedChars.map((c, i) =>
+        spaceErrorIndices[i] ? '' : c
+      ).join('');
+
+      const isIncomplete = userTyped !== currentSentence;
 
       setHistory((prev) => [
         ...prev,
         {
           sentence: currentSentence,
-          typed: typedText,
+          typed: userTyped,
           isIncomplete,
-          isOvertyped,
         },
       ]);
 
-      setCurrentIndex((prev) => Math.min(prev + 1, sentences.length - 1));
-      setTypedText('');
-      setSpaceErrorIndex(null);
-    }
-  }, [typedText, currentSentence, isOvertyped]);
+      if (currentIndex === sentences.length - 1) {
+        setIsComplete(true);
+      } else {
+        setCurrentIndex((prev) => prev + 1);
+      }
 
-  // 이벤트 리스너 등록 및 해제
+      setTypedChars([]);
+      setSpaceErrorIndices([]);
+    }
+  }, [typedChars, spaceErrorIndices, currentSentence, currentIndex, isComplete]);
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // 각 문장 박스에 적용할 스타일 클래스 반환 함수
-  // 현재 인덱스를 기준으로 이전, 현재, 다음, 다다음 문장 구분하여 색상 다르게 함
   const getBoxStyle = (index) => {
-    if (index === currentIndex - 1) return 'bg-gray-300'; // 이전 문장
-    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold'; // 현재 문장 강조
-    if (index === currentIndex + 1) return 'bg-gray-100'; // 다음 문장
-    if (index === currentIndex + 2) return 'bg-gray-300'; // 다다음 문장
-    return 'hidden'; // 그 외는 숨김
+    if (index === currentIndex - 1) return 'bg-gray-300';
+    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
+    if (index === currentIndex + 1) return 'bg-gray-100';
+    if (index === currentIndex + 2) return 'bg-gray-300';
+    return 'hidden';
   };
 
-  // 완료된 문장 렌더링 (history에 저장된 문장)
-  // 일치하지 않는 글자는 빨간색, 일치하면 초록색으로 표시
-  const renderCompletedText = ({ sentence, typed, isIncomplete, isOvertyped }) => {
+  // 사용자가 입력한 내용을 정확/틀린 글자별로 렌더링하는 함수
+  const renderUserTypedText = ({ sentence, typed }) => {
+    const sentenceChars = sentence.split('');
+    const typedChars = typed.split('');
+    const maxLength = Math.max(sentenceChars.length, typedChars.length);
+
     return (
       <span className="whitespace-pre font-mono">
-        {sentence.split('').map((char, i) => {
-          const typedChar = typed[i];
-          let colorClass = 'text-teal-600'; // 기본 초록색
-
-          if (isOvertyped || isIncomplete) {
-            if (typedChar !== char) {
-              colorClass = 'text-red-500'; // 틀린 글자 빨간색
-            }
+        {Array.from({ length: maxLength }, (_, i) => {
+          const originalChar = sentenceChars[i];
+          const typedChar = typedChars[i];
+          
+          if (typedChar === undefined) {
+            // 사용자가 입력하지 않은 부분은 표시하지 않음
+            return null;
           }
+
+          const colorClass = typedChar === originalChar ? 'text-teal-600' : 'text-red-500';
+          const displayChar = typedChar === ' ' ? '\u00A0' : typedChar;
 
           return (
             <span key={i} className={colorClass}>
-              {char}
+              {displayChar}
             </span>
           );
         })}
@@ -126,47 +137,44 @@ function SentencePage() {
     );
   };
 
-  // 현재 타이핑 중인 문장과 입력된 텍스트를 비교해 렌더링
-  // 커서 애니메이션 포함
-  const renderComparedTextWithCursor = (original, typed, isActive) => {
+  const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    const overtyped = typed.length > original.length;
 
     for (let i = 0; i < original.length; i++) {
-      const char = original[i];
-      const typedChar = typed[i];
-      const isCurrent = i === typed.length; // 커서 위치
+      const originalChar = original[i];
+      const typedChar = typedArr[i] || '';
+      const isError = spaceErrorIndices[i];
+      const isCurrent = i === typedArr.length;
 
-      let colorClass = 'text-black'; // 기본 검정색
+      let colorClass = 'text-black';
+      let displayChar = originalChar;
 
-      if (typedChar !== undefined) {
-        if (overtyped) {
-          colorClass = 'text-red-500'; // 초과 입력 시 빨간색
-        } else if (typedChar === char) {
-          colorClass = 'text-teal-600'; // 맞은 글자 초록색
+      if (typedChar !== '') {
+        if (typedChar === originalChar && !isError) {
+          colorClass = 'text-teal-600';
+          displayChar = typedChar;
         } else {
-          colorClass = 'text-red-500'; // 틀린 글자 빨간색
+          colorClass = 'text-red-500';
+          displayChar = typedChar || originalChar;
         }
+      } else if (isError) {
+        colorClass = 'text-red-500';
+        displayChar = originalChar;
       }
 
-      // 공백 에러 인덱스는 빨간색 강조
-      if (spaceErrorIndex !== null && i === spaceErrorIndex) {
-        colorClass = 'text-red-500';
-      }
+      if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
         <span key={i} className={`${colorClass} relative font-mono`}>
-          {char}
+          {displayChar}
           {isActive && isCurrent && (
-            // 현재 커서 위치에 깜빡이는 커서 표시
             <span className="absolute left-0 top-0 h-full w-[2px] bg-black custom-blink pointer-events-none" />
           )}
         </span>
       );
     }
 
-    // 입력이 문장 길이 이상일 경우 문장 끝에도 커서 표시
-    if (isActive && typed.length >= original.length) {
+    if (isActive && typedArr.length >= original.length) {
       elements.push(
         <span
           key="cursor-end"
@@ -178,30 +186,165 @@ function SentencePage() {
     return <span className="whitespace-pre">{elements}</span>;
   };
 
+  const getTotalTyped = useCallback(() => {
+    return history.reduce((acc, cur) => acc + cur.typed.length, 0);
+  }, [history]);
+
+  const getCorrectTyped = useCallback(() => {
+    return history.reduce((acc, cur) => {
+      const correctCount = cur.typed.split('').filter((char, i) => char === cur.sentence[i]).length;
+      return acc + correctCount;
+    }, 0);
+  }, [history]);
+
+  const getAccuracy = useCallback(() => {
+    const totalTyped = getTotalTyped();
+    const correctTyped = getCorrectTyped();
+    
+    // 현재 입력 중인 문장도 포함하여 계산
+    const currentTypedCount = typedChars.length;
+    const currentCorrectCount = typedChars.filter((char, i) => 
+      !spaceErrorIndices[i] && char === currentSentence[i]
+    ).length;
+    
+    const finalTotalTyped = totalTyped + currentTypedCount;
+    const finalCorrectTyped = correctTyped + currentCorrectCount;
+    
+    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+  }, [getTotalTyped, getCorrectTyped, typedChars, spaceErrorIndices, currentSentence]);
+
+  const getElapsedTimeSec = useCallback(() => {
+    return Math.floor((new Date() - startTime) / 1000);
+  }, [startTime]);
+
+  const getElapsedTime = useCallback(() => {
+    const diff = getElapsedTimeSec();
+    const minutes = String(Math.floor(diff / 60)).padStart(2, '0');
+    const seconds = String(diff % 60).padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }, [getElapsedTimeSec]);
+
+  const getTypingSpeed = useCallback(() => {
+    const elapsedSeconds = getElapsedTimeSec();
+    const totalTyped = getTotalTyped();
+    return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
+  }, [getElapsedTimeSec, getTotalTyped]);  
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setTypedChars([]);
+    setSpaceErrorIndices([]);
+    setHistory([]);
+    setIsComplete(false);
+    setStartTime(new Date()); // 시작 시간 초기화
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
-      {/* 이전에 완료한 문장 박스 (currentIndex - 1) */}
+      {/* 이전 문장 - 사용자가 입력한 내용으로 렌더링 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
-        {history.length > 0 && renderCompletedText(history[history.length - 1])}
+        {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}
       </div>
 
-      {/* 현재 타이핑 중인 문장 박스 (currentIndex) */}
+      {/* 현재 문장 */}
       <div className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
         <div className="relative font-mono text-2xl leading-[1.75rem] min-h-[1.75rem] w-full">
-          {renderComparedTextWithCursor(currentSentence, typedText, true)}
+          {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
       </div>
 
-      {/* 다음 문장 박스 (currentIndex + 1) */}
+      {/* 다음 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 1)}`}>
-        {sentences[currentIndex + 1] ?? ''}
+        {sentences[currentIndex + 1] || ''}
       </div>
 
-      {/* 다다음 문장 박스 (currentIndex + 2) */}
+      {/* 다다음 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 2)}`}>
-        {sentences[currentIndex + 2] ?? ''}
+        {sentences[currentIndex + 2] || ''}
       </div>
-      <KeyBoard/>
+
+      {!isComplete && <KeyBoard />}
+
+      {isComplete && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 w-[500px] text-center shadow-lg relative">
+            {/* 배경 장식 요소들 */}
+            <div className="absolute inset-0 overflow-hidden rounded-xl">
+              <div className="absolute top-4 left-8 w-6 h-6 bg-green-200 rounded transform rotate-45"></div>
+              <div className="absolute top-12 right-16 w-4 h-4 bg-purple-200 rounded-full"></div>
+              <div className="absolute top-16 left-20 w-8 h-4 bg-orange-200 rounded transform rotate-12"></div>
+              <div className="absolute top-6 right-8 w-5 h-8 bg-green-200 rounded transform rotate-45"></div>
+              <div className="absolute bottom-20 left-12 w-6 h-3 bg-purple-200 rounded transform rotate-45"></div>
+              <div className="absolute bottom-32 right-20 w-4 h-6 bg-orange-200 rounded transform rotate-12"></div>
+              <div className="absolute bottom-16 left-24 w-3 h-3 bg-green-200 rounded-full"></div>
+              <div className="absolute bottom-8 right-12 w-7 h-4 bg-purple-200 rounded transform rotate-45"></div>
+              <div className="absolute top-20 left-32 w-2 h-2 bg-orange-300 rounded-full"></div>
+              <div className="absolute top-32 right-32 w-8 h-3 bg-green-200 rounded transform rotate-45"></div>
+              <div className="absolute bottom-24 left-16 w-5 h-5 bg-purple-200 rounded transform rotate-12"></div>
+              <div className="absolute bottom-12 right-24 w-3 h-6 bg-orange-200 rounded transform rotate-45"></div>
+            </div>
+            
+            {/* 프로필 아이콘 */}
+            <div className="relative z-10 mb-6">
+              <div className="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-300 rounded-full mb-2"></div>
+                <div className="w-12 h-6 bg-gray-300 rounded-full absolute bottom-4"></div>
+              </div>
+            </div>
+            
+            {/* 대단해요! 텍스트 */}
+            <div className="relative z-10 text-2xl font-bold mb-8 text-gray-800">대단해요!</div>
+            
+            {/* 타수와 정확도 */}
+            <div className="relative z-10 flex justify-between items-center mb-6">
+              <div className="text-left">
+                <div className="text-sm text-gray-600 mb-1">정확도(%)</div>
+                <div className="flex items-center">
+                  <div className="w-32 h-3 bg-gray-200 rounded-full mr-3 relative">
+                    <div 
+                      className="h-full bg-teal-400 rounded-full relative"
+                      style={{ width: `${getAccuracy()}%` }}
+                    >
+                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-teal-400 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-right">
+                <div className="text-sm text-gray-600 mb-1">타수 {getTypingSpeed().toFixed(0)}타</div>
+                <div className="text-3xl font-bold text-teal-400">
+                  {getAccuracy().toFixed(2)}%
+                </div>
+              </div>
+            </div>
+            
+            {/* 소요시간 */}
+            <div className="relative z-10 text-left mb-8">
+              <div className="text-sm text-gray-600 mb-1">소요시간</div>
+              <div className="text-lg font-semibold text-gray-800">{getElapsedTime()}</div>
+            </div>
+            
+            {/* 버튼들 */}
+            <div className="relative z-10 flex justify-center gap-4 mt-8">
+              <button 
+                onClick={() => setIsComplete(false)} 
+                className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
+              >
+                그만 하기
+              </button>
+              <button 
+                onClick={handleRestart} 
+                className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
+              >
+                다시 하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

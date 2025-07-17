@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-const baseURL = 'http://10.80.163.113:8080';
+const baseURL = 'http://54.180.95.232:8080/';
 
 // https://vite.dev/config/
 export default defineConfig({

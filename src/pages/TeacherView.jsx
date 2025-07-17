@@ -115,7 +115,6 @@ const TeacherView = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="main-content">
         <div className="Teacherhero-section">
           <div className="Teacherhero-content">
@@ -157,7 +156,6 @@ const TeacherView = () => {
         </div>
       </div>
 
-      {/* New Modal */}
       {showModal && (
         <div className="new-modal-overlay">
           <div className="new-modal-content">
