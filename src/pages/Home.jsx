@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Home.css';
 import { api } from '../server';
+import Footer from '../components/Footer/Footer.jsx';
 
 const Home = () => {
   const [items, setItems] = useState([]);
@@ -47,7 +48,7 @@ const Home = () => {
         </section>
       </div>
 
-      <footer className="footer-placeholder"></footer>
+      <Footer/>
     </div>
   );
 };
