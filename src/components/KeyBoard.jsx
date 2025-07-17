@@ -313,11 +313,11 @@ const KoreanKeyboard = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto bg-gray-100 rounded-xl shadow-lg overflow-hidden relative">
-      <StatusBar
+      {/* <StatusBar
         typingSpeed={typingSpeed}
         accuracy={accuracy}
         currentTime={elapsedSeconds} // 진행 시간(초) 전달
-      />
+      /> */}
       {/* Keyboard */}
       <div className="p-8 bg-gray-100">
         <div
