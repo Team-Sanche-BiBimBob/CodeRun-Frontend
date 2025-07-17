@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import KeyBoard from '../components/KeyBoard';
+import CompletionModal from '../components/CompletionModal';
 
 const sentences = [
   'print("Hello world!")',
@@ -46,7 +47,22 @@ function SentencePage() {
 
   const currentSentence = sentences[currentIndex];
 
+  // 한글 입력 차단용 정규식
+  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+
   const handleKeyDown = useCallback((e) => {
+    // IME 입력 조합 중이면 무시 (한글 조합 중단)
+    if (e.isComposing || e.keyCode === 229) {
+      e.preventDefault();
+      return;
+    }
+
+    // 한글 입력 차단
+    if (hangulRegex.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
     if (isComplete) return;
 
     if (e.key === 'Backspace') {
@@ -101,14 +117,6 @@ function SentencePage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const getBoxStyle = (index) => {
-    if (index === currentIndex - 1) return 'bg-gray-300';
-    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
-    if (index === currentIndex + 1) return 'bg-gray-100';
-    if (index === currentIndex + 2) return 'bg-gray-300';
-    return 'hidden';
-  };
-
   // 사용자가 입력한 내용을 정확/틀린 글자별로 렌더링하는 함수
   const renderUserTypedText = ({ sentence, typed }) => {
     const sentenceChars = sentence.split('');
@@ -139,6 +147,7 @@ function SentencePage() {
     );
   };
 
+  // 현재 문장과 사용자가 입력한 텍스트를 비교하여, 색상과 커서 표시를 포함한 렌더링 함수
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
 
@@ -188,10 +197,12 @@ function SentencePage() {
     return <span className="whitespace-pre">{elements}</span>;
   };
 
+  // 총 입력한 글자 수 (history 기반)
   const getTotalTyped = useCallback(() => {
     return history.reduce((acc, cur) => acc + cur.typed.length, 0);
   }, [history]);
 
+  // 올바르게 입력한 글자 수 (history 기반)
   const getCorrectTyped = useCallback(() => {
     return history.reduce((acc, cur) => {
       const correctCount = cur.typed.split('').filter((char, i) => char === cur.sentence[i]).length;
@@ -199,11 +210,11 @@ function SentencePage() {
     }, 0);
   }, [history]);
 
+  // 정확도 계산 (history + 현재 입력 중인 텍스트 포함)
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
     
-    // 현재 입력 중인 문장도 포함하여 계산
     const currentTypedCount = typedChars.length;
     const currentCorrectCount = typedChars.filter((char, i) => 
       !spaceErrorIndices[i] && char === currentSentence[i]
@@ -215,6 +226,7 @@ function SentencePage() {
     return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
   }, [getTotalTyped, getCorrectTyped, typedChars, spaceErrorIndices, currentSentence]);
 
+  // 경과 시간 계산
   const getElapsedTimeSec = useCallback(() => {
     return Math.floor((new Date() - startTime) / 1000);
   }, [startTime]);
@@ -226,27 +238,38 @@ function SentencePage() {
     return `${minutes}:${seconds}`;
   }, [getElapsedTimeSec]);
 
+  // 분당 타자 속도 계산
   const getTypingSpeed = useCallback(() => {
     const elapsedSeconds = getElapsedTimeSec();
     const totalTyped = getTotalTyped();
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
   }, [getElapsedTimeSec, getTotalTyped]);  
 
+  // 다시 시작
   const handleRestart = () => {
     setCurrentIndex(0);
     setTypedChars([]);
     setSpaceErrorIndices([]);
     setHistory([]);
     setIsComplete(false);
-    setStartTime(new Date()); // 시작 시간 초기화
+    setStartTime(new Date());
   };
 
+  // 홈 이동
   const handleGoHome = () => {
     navigate('/');
   };
 
+  const getBoxStyle = (index) => {
+    if (index === currentIndex - 1) return 'bg-gray-300';
+    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
+    if (index === currentIndex + 1) return 'bg-gray-100';
+    if (index === currentIndex + 2) return 'bg-gray-300';
+    return 'hidden';
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
       {/* 이전 문장 - 사용자가 입력한 내용으로 렌더링 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}
@@ -269,88 +292,20 @@ function SentencePage() {
         {sentences[currentIndex + 2] || ''}
       </div>
 
-      {!isComplete && <KeyBoard />}
-
-      {isComplete && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 w-[500px] text-center shadow-lg relative">
-            {/* 배경 장식 요소들 */}
-            <div className="absolute inset-0 overflow-hidden rounded-xl">
-              <div className="absolute top-4 left-8 w-6 h-6 bg-green-200 rounded transform rotate-45"></div>
-              <div className="absolute top-12 right-16 w-4 h-4 bg-purple-200 rounded-full"></div>
-              <div className="absolute top-16 left-20 w-8 h-4 bg-orange-200 rounded transform rotate-12"></div>
-              <div className="absolute top-6 right-8 w-5 h-8 bg-green-200 rounded transform rotate-45"></div>
-              <div className="absolute bottom-20 left-12 w-6 h-3 bg-purple-200 rounded transform rotate-45"></div>
-              <div className="absolute bottom-32 right-20 w-4 h-6 bg-orange-200 rounded transform rotate-12"></div>
-              <div className="absolute bottom-16 left-24 w-3 h-3 bg-green-200 rounded-full"></div>
-              <div className="absolute bottom-8 right-12 w-7 h-4 bg-purple-200 rounded transform rotate-45"></div>
-              <div className="absolute top-20 left-32 w-2 h-2 bg-orange-300 rounded-full"></div>
-              <div className="absolute top-32 right-32 w-8 h-3 bg-green-200 rounded transform rotate-45"></div>
-              <div className="absolute bottom-24 left-16 w-5 h-5 bg-purple-200 rounded transform rotate-12"></div>
-              <div className="absolute bottom-12 right-24 w-3 h-6 bg-orange-200 rounded transform rotate-45"></div>
-            </div>
-            
-            {/* 프로필 아이콘 */}
-            <div className="relative z-10 mb-6">
-              <div className="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center">
-                <div className="w-8 h-8 bg-gray-300 rounded-full mb-2"></div>
-                <div className="w-12 h-6 bg-gray-300 rounded-full absolute bottom-4"></div>
-              </div>
-            </div>
-            
-            {/* 대단해요! 텍스트 */}
-            <div className="relative z-10 text-2xl font-bold mb-8 text-gray-800">대단해요!</div>
-            
-            {/* 타수와 정확도 */}
-            <div className="relative z-10 flex justify-between items-center mb-6">
-              <div className="text-left">
-                <div className="text-sm text-gray-600 mb-1">정확도(%)</div>
-                <div className="flex items-center">
-                  <div className="w-32 h-3 bg-gray-200 rounded-full mr-3 relative">
-                    <div 
-                      className="h-full bg-teal-400 rounded-full relative"
-                      style={{ width: `${getAccuracy()}%` }}
-                    >
-                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-teal-400 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <div className="text-sm text-gray-600 mb-1">타수 {getTypingSpeed().toFixed(0)}타</div>
-                <div className="text-3xl font-bold text-teal-400">
-                  {getAccuracy().toFixed(2)}%
-                </div>
-              </div>
-            </div>
-            
-            {/* 소요시간 */}
-            <div className="relative z-10 text-left mb-8">
-              <div className="text-sm text-gray-600 mb-1">소요시간</div>
-              <div className="text-lg font-semibold text-gray-800">{getElapsedTime()}</div>
-            </div>
-            
-            {/* 버튼들 */}
-            <div className="relative z-10 flex justify-center gap-4 mt-8">
-              <button 
-                onClick={handleGoHome} 
-                className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
-              >
-                그만 하기
-              </button>
-              <button 
-                onClick={handleRestart} 
-                className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
-              >
-                다시 하기
-              </button>
-            </div>
-          </div>
+      {!isComplete && (
+        <div className="mt-10 w-full flex justify-center min-h-[200px]">
+          <KeyBoard />
         </div>
       )}
+
+      <CompletionModal
+        isOpen={isComplete}
+        accuracy={getAccuracy().toFixed(2)}
+        typingSpeed={getTypingSpeed().toFixed(0)}
+        elapsedTime={getElapsedTime()}
+        onRestart={handleRestart}
+        onGoHome={handleGoHome}
+      />
     </div>
   );
 }

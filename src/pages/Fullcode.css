@@ -1,12 +1,78 @@
 .fullcode-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
     max-width: 1350px;
     margin: 0 auto;
     padding: 20px;
+    padding-top: 10px;
     min-height: 80vh;
-    height: calc(90vh - 40px); /* Full viewport height minus padding */
+    height: calc(90vh - 40px);
+  }
+  
+  .code-editors-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    flex: 1;
+    min-height: 0; /* Allows the container to respect the height */
+  }
+  
+  /* Editor containers */
+  .monaco-editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    min-height: 300px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  /* Make the Monaco Editor scrollable */
+  .monaco-editor {
+    flex: 1;
+    overflow: auto !important;
+  }
+  
+  /* Ensure the scrollable area works properly */
+  .monaco-editor .overflow-guard {
+    height: 100% !important;
+  }
+  
+  /* Statistics Container */
+  .stats-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    padding: 4px 6px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #e0e0e0;
+    padding: 2px 4px;
+  }
+  
+  .stat-label {
+    font-size: 11px;
+    color: #a0a0a0;
+    white-space: nowrap;
+    margin-right: 2px;
+  }
+  
+  .stat-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    min-width: 28px;
+    text-align: right;
   }
   
   .code-display, .code-input {
@@ -16,6 +82,7 @@
     border-radius: 6px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    height: 100%;
   }
   
   .code-header {

@@ -1,17 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Home.css';
-import { api } from '../server';
 import Footer from '../components/Footer.jsx';
+import { useNavigate } from 'react-router-dom'; // ✅ 추가
 
 const Home = () => {
   const [items, setItems] = useState([]);
+  const navigate = useNavigate(); // ✅ 추가
 
   useEffect(() => {
-    const response = api.get("/api/languages");
-    response.then(res => {
-      console.log(res.data);
-      setItems(res.data);
-    });
+    const dummyData = [
+      {
+        name: 'Python',
+        description: '간결하고 배우기 쉬운 문법으로 다양한 분야에서 사랑받는 프로그래밍 언어입니다.',
+      },
+      {
+        name: 'C',
+        description: '시스템 프로그래밍에 강력하며 하드웨어 제어에 많이 사용되는 저수준 언어입니다.',
+      },
+      {
+        name: 'JavaScript',
+        description: '웹 개발에 필수적인 언어로, 동적인 사용자 인터페이스 구현에 주로 사용됩니다.',
+      },
+    ];
+    setItems(dummyData);
   }, []);
 
   return (
@@ -37,10 +48,13 @@ const Home = () => {
                   <h3 className="language-name">{language.name}</h3>
                 </div>
                 <div className="language-body">
-                  <p className="language-description">
-                    {language.description}
-                  </p>
-                  <button className="language-button">이동하기</button>
+                  <p className="language-description">{language.description}</p>
+                  <button
+                    className="language-button"
+                    onClick={() => navigate('/choice')}
+                  >
+                    이동하기
+                  </button>
                 </div>
               </div>
             ))}
@@ -48,7 +62,7 @@ const Home = () => {
         </section>
       </div>
 
-      <Footer/>
+      <Footer />
     </div>
   );
 };

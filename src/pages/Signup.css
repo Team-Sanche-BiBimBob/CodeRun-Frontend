@@ -30,7 +30,6 @@
     flex-direction: column;
     justify-content: center;
     align-items: flex-end;
-    gap: 20px;
 }
 .signup-right {
     display: flex;
