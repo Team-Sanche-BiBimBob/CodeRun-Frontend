@@ -47,7 +47,22 @@ function SentencePage() {
 
   const currentSentence = sentences[currentIndex];
 
+  // 한글 입력 차단용 정규식
+  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+
   const handleKeyDown = useCallback((e) => {
+    // IME 입력 조합 중이면 무시 (한글 조합 중단)
+    if (e.isComposing || e.keyCode === 229) {
+      e.preventDefault();
+      return;
+    }
+
+    // 한글 입력 차단
+    if (hangulRegex.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
     if (isComplete) return;
 
     if (e.key === 'Backspace') {
@@ -102,14 +117,6 @@ function SentencePage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const getBoxStyle = (index) => {
-    if (index === currentIndex - 1) return 'bg-gray-300';
-    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
-    if (index === currentIndex + 1) return 'bg-gray-100';
-    if (index === currentIndex + 2) return 'bg-gray-300';
-    return 'hidden';
-  };
-
   // 사용자가 입력한 내용을 정확/틀린 글자별로 렌더링하는 함수
   const renderUserTypedText = ({ sentence, typed }) => {
     const sentenceChars = sentence.split('');
@@ -140,6 +147,7 @@ function SentencePage() {
     );
   };
 
+  // 현재 문장과 사용자가 입력한 텍스트를 비교하여, 색상과 커서 표시를 포함한 렌더링 함수
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
 
@@ -189,10 +197,12 @@ function SentencePage() {
     return <span className="whitespace-pre">{elements}</span>;
   };
 
+  // 총 입력한 글자 수 (history 기반)
   const getTotalTyped = useCallback(() => {
     return history.reduce((acc, cur) => acc + cur.typed.length, 0);
   }, [history]);
 
+  // 올바르게 입력한 글자 수 (history 기반)
   const getCorrectTyped = useCallback(() => {
     return history.reduce((acc, cur) => {
       const correctCount = cur.typed.split('').filter((char, i) => char === cur.sentence[i]).length;
@@ -200,11 +210,11 @@ function SentencePage() {
     }, 0);
   }, [history]);
 
+  // 정확도 계산 (history + 현재 입력 중인 텍스트 포함)
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
     
-    // 현재 입력 중인 문장도 포함하여 계산
     const currentTypedCount = typedChars.length;
     const currentCorrectCount = typedChars.filter((char, i) => 
       !spaceErrorIndices[i] && char === currentSentence[i]
@@ -216,6 +226,7 @@ function SentencePage() {
     return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
   }, [getTotalTyped, getCorrectTyped, typedChars, spaceErrorIndices, currentSentence]);
 
+  // 경과 시간 계산
   const getElapsedTimeSec = useCallback(() => {
     return Math.floor((new Date() - startTime) / 1000);
   }, [startTime]);
@@ -227,27 +238,38 @@ function SentencePage() {
     return `${minutes}:${seconds}`;
   }, [getElapsedTimeSec]);
 
+  // 분당 타자 속도 계산
   const getTypingSpeed = useCallback(() => {
     const elapsedSeconds = getElapsedTimeSec();
     const totalTyped = getTotalTyped();
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
   }, [getElapsedTimeSec, getTotalTyped]);  
 
+  // 다시 시작
   const handleRestart = () => {
     setCurrentIndex(0);
     setTypedChars([]);
     setSpaceErrorIndices([]);
     setHistory([]);
     setIsComplete(false);
-    setStartTime(new Date()); // 시작 시간 초기화
+    setStartTime(new Date());
   };
 
+  // 홈 이동
   const handleGoHome = () => {
     navigate('/');
   };
 
+  const getBoxStyle = (index) => {
+    if (index === currentIndex - 1) return 'bg-gray-300';
+    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
+    if (index === currentIndex + 1) return 'bg-gray-100';
+    if (index === currentIndex + 2) return 'bg-gray-300';
+    return 'hidden';
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
       {/* 이전 문장 - 사용자가 입력한 내용으로 렌더링 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}
@@ -270,7 +292,11 @@ function SentencePage() {
         {sentences[currentIndex + 2] || ''}
       </div>
 
-      {!isComplete && <KeyBoard />}
+      {!isComplete && (
+        <div className="mt-10 w-full flex justify-center min-h-[200px]">
+          <KeyBoard />
+        </div>
+      )}
 
       <CompletionModal
         isOpen={isComplete}

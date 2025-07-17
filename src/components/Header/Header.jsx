@@ -1,5 +1,6 @@
 import styles from './Header.module.css';
 import Navigation from './Navigation';
+import logo from '../../assets/logo.svg';
 
 const Header = ({ isLoggedIn }) => {
   return (
@@ -10,7 +11,7 @@ const Header = ({ isLoggedIn }) => {
           <div className={styles.logoContainer}>
             <a href="/">
               <img 
-                src="src/assets/logo.svg" 
+                src={logo}
                 alt="header" 
                 className={styles.logo}
               />
