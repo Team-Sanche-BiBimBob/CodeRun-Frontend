@@ -74,10 +74,17 @@ const CourseGrid = ({ courses, searchQuery, activeTab }) => {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
-    // 정확한 언어 매칭을 위해 개선
     const matchesTab = activeTab === '전체' || course.language === activeTab;
     return matchesSearch && matchesTab;
   });
+
+  if (filteredCourses.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500 text-lg">검색 결과가 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -147,77 +154,74 @@ export default function CodingPlatform() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // 초기 코스 데이터 - 각 언어별로 충분한 수량 제공
+  // 초기 코스 데이터
   const initialCourses = [
     // Python 코스들
-    { title: 'Python 단어 암기', description: '파이썬 변수의 개념', rating: 4.5, lessons: 100, language: 'Python' },
-    { title: 'Python 실습 문제', description: '기본 개념과 문법 타자 학습', rating: 4.7, lessons: 90, language: 'Python' },
-    { title: 'Python 문법 읽기', description: '파이썬 함수와 클래스 학습', rating: 4.3, lessons: 120, language: 'Python' },
+    { title: 'Python 기초 문법', description: '변수, 자료형, 연산자 등 파이썬의 기본 개념을 학습합니다', rating: 4.5, lessons: 100, language: 'Python' },
+    { title: 'Python 함수와 모듈', description: '함수 정의, 모듈 사용법, 패키지 관리를 배웁니다', rating: 4.7, lessons: 90, language: 'Python' },
+    { title: 'Python 객체지향', description: '클래스, 상속, 캡슐화 등 객체지향 개념을 학습합니다', rating: 4.3, lessons: 120, language: 'Python' },
+    { title: 'Python 데이터 처리', description: '리스트, 딕셔너리, 파일 입출력을 다룹니다', rating: 4.6, lessons: 80, language: 'Python' },
     
     // Java 코스들
-    { title: 'Java 문법 읽기', description: 'Java의 기본 문법 학습', rating: 4.3, lessons: 200, language: 'Java' },
-    { title: 'Java 단어 암기', description: '실무에 필요한 핵심 내용 타자 학습', rating: 4.1, lessons: 110, language: 'Java' },
-    { title: 'Java 실습 문제', description: '객체지향 프로그래밍 학습', rating: 4.4, lessons: 150, language: 'Java' },
+    { title: 'Java 기초 문법', description: 'Java의 기본 문법과 데이터 타입을 학습합니다', rating: 4.3, lessons: 200, language: 'Java' },
+    { title: 'Java 객체지향 프로그래밍', description: '클래스, 인터페이스, 추상클래스를 배웁니다', rating: 4.1, lessons: 110, language: 'Java' },
+    { title: 'Java 컬렉션 프레임워크', description: 'List, Set, Map 등 컬렉션 사용법을 학습합니다', rating: 4.4, lessons: 150, language: 'Java' },
+    { title: 'Java 예외 처리', description: 'try-catch, throws, 사용자 정의 예외를 다룹니다', rating: 4.2, lessons: 95, language: 'Java' },
     
     // JavaScript 코스들
-    { title: 'JavaScript 문법 읽기', description: '함수와 조건문 학습', rating: 4.6, lessons: 150, language: 'JavaScript' },
-    { title: 'JavaScript 단어 암기', description: 'ES6 문법과 기능 학습', rating: 4.2, lessons: 95, language: 'JavaScript' },
-    { title: 'JavaScript 실습 문제', description: 'DOM 조작과 이벤트 처리', rating: 4.7, lessons: 110, language: 'JavaScript' },
+    { title: 'JavaScript 기초', description: '변수, 함수, 조건문, 반복문을 학습합니다', rating: 4.6, lessons: 150, language: 'JavaScript' },
+    { title: 'JavaScript ES6+', description: '화살표 함수, 구조분해, 템플릿 리터럴을 배웁니다', rating: 4.2, lessons: 95, language: 'JavaScript' },
+    { title: 'JavaScript DOM 조작', description: '웹 페이지 요소를 동적으로 조작하는 방법을 학습합니다', rating: 4.7, lessons: 110, language: 'JavaScript' },
+    { title: 'JavaScript 비동기 처리', description: 'Promise, async/await, 콜백 함수를 다룹니다', rating: 4.5, lessons: 130, language: 'JavaScript' },
     
     // C 코스들
-    { title: 'C 단어 암기', description: 'C언어 기본 문법 학습', rating: 4.2, lessons: 120, language: 'C' },
-    { title: 'C 문법 읽기', description: '단계별 타자 학습 과정', rating: 4.0, lessons: 95, language: 'C' },
-    { title: 'C 실습 문제', description: '포인터와 메모리 관리', rating: 4.1, lessons: 140, language: 'C' },
+    { title: 'C 기초 문법', description: 'C언어의 기본 문법과 데이터 타입을 학습합니다', rating: 4.2, lessons: 120, language: 'C' },
+    { title: 'C 포인터와 배열', description: '포인터의 개념과 배열 사용법을 배웁니다', rating: 4.0, lessons: 95, language: 'C' },
+    { title: 'C 메모리 관리', description: '동적 메모리 할당과 해제를 다룹니다', rating: 4.1, lessons: 140, language: 'C' },
+    { title: 'C 구조체와 파일', description: '구조체 정의와 파일 입출력을 학습합니다', rating: 4.3, lessons: 110, language: 'C' },
     
     // SQL 코스들
-    { title: 'SQL 단어 암기', description: 'select문의 구조 쿼리 학습', rating: 4.4, lessons: 180, language: 'SQL' },
-    { title: 'SQL 실습 문제', description: '기본 개념과 문법 타자 학습', rating: 4.5, lessons: 130, language: 'SQL' },
-    { title: 'SQL 문법 읽기', description: '데이터베이스 설계와 정규화', rating: 4.2, lessons: 170, language: 'SQL' },
+    { title: 'SQL 기초 쿼리', description: 'SELECT, INSERT, UPDATE, DELETE 문을 학습합니다', rating: 4.4, lessons: 180, language: 'SQL' },
+    { title: 'SQL 조인과 서브쿼리', description: '테이블 간의 관계와 복잡한 쿼리를 다룹니다', rating: 4.5, lessons: 130, language: 'SQL' },
+    { title: 'SQL 함수와 집계', description: '내장 함수와 GROUP BY, HAVING을 학습합니다', rating: 4.2, lessons: 170, language: 'SQL' },
+    { title: 'SQL 데이터베이스 설계', description: '테이블 설계와 정규화를 배웁니다', rating: 4.6, lessons: 200, language: 'SQL' }
   ];
 
-  // 각 언어별로 균등하게 생성하는 함수
+  // 초기 데이터 로딩
+  useEffect(() => {
+    setCourses(initialCourses);
+  }, []);
+
+  // 더 많은 코스 생성
   const generateMoreCourses = () => {
     const languages = ['Python', 'Java', 'JavaScript', 'C', 'SQL'];
-    const types = ['단어 암기', '문법 읽기', '실습 문제'];
-    const descriptions = [
-      '기본 개념과 문법 타자 학습',
-      '실무에 필요한 핵심 내용 타자 학습',
-      '단계별 타자 학습 과정',
-      '고급 기능과 패턴 학습'
-    ];
+    const types = ['고급', '실무', '심화', '프로젝트', '알고리즘'];
+    const topics = {
+      Python: ['데이터 분석', '웹 개발', '머신러닝', '자동화', '크롤링'],
+      Java: ['스프링', '안드로이드', '웹 개발', '디자인 패턴', '멀티스레딩'],
+      JavaScript: ['React', 'Node.js', 'Vue.js', 'TypeScript', '웹팩'],
+      C: ['시스템 프로그래밍', '임베디드', '자료구조', '네트워크', '운영체제'],
+      SQL: ['성능 최적화', '저장 프로시저', '트리거', '인덱스', '백업/복구']
+    };
     
     const newCourses = [];
-    // 각 언어별로 최소 1개씩 생성
-    languages.forEach(language => {
+    
+    for (let i = 0; i < 6; i++) {
+      const language = languages[Math.floor(Math.random() * languages.length)];
       const type = types[Math.floor(Math.random() * types.length)];
-      const description = descriptions[Math.floor(Math.random() * descriptions.length)];
+      const topic = topics[language][Math.floor(Math.random() * topics[language].length)];
+      
       newCourses.push({
-        title: `${language} ${type}`,
-        description: description,
+        title: `${language} ${type} ${topic}`,
+        description: `${language}의 ${topic} 분야를 다루는 ${type} 수준의 코스입니다`,
         rating: (Math.random() * 1.5 + 3.5).toFixed(1),
         lessons: Math.floor(Math.random() * 200) + 50,
         language: language
       });
-    });
-    
-    // 추가로 랜덤하게 1개 더 생성
-    const randomLanguage = languages[Math.floor(Math.random() * languages.length)];
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
-    newCourses.push({
-      title: `${randomLanguage} ${randomType}`,
-      description: randomDescription,
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
-      lessons: Math.floor(Math.random() * 200) + 50,
-      language: randomLanguage
-    });
+    }
     
     return newCourses;
   };
-
-  useEffect(() => {
-    setCourses(initialCourses);
-  }, []);
 
   const handleLoadMore = () => {
     if (loading) return;
@@ -258,12 +262,11 @@ export default function CodingPlatform() {
             />
           </div>
           
-          {/* Right Sidebar - Fixed */}
+          {/* Right Sidebar */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-16 space-y-8">
               <StatsChart data={chartData} />
               
-              {/* Additional Stats */}
               <div className="bg-white rounded-lg shadow-md p-8 border border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-800 mb-6">이번 주 요약</h3>
                 <div className="space-y-6">
