@@ -24,7 +24,6 @@ const App = () => {
   }, []);
 
   const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher"];
-
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
   return (
