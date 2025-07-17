@@ -27,7 +27,7 @@ const Signup = () => {
         password,
       })
       .then((response) => {
-        if (response.data.success) {
+        if (response.data.error == null) {
           alert("회원가입 성공!");
         } else {
           alert("회원가입 실패: " + (response.data.message || "서버 오류"));
