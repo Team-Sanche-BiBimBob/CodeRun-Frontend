@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import './TeacherView.css';
 
 const TeacherView = () => {
-  const [selectedFolder, setSelectedFolder] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [randomCode, setRandomCode] = useState('');

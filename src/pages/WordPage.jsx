@@ -229,6 +229,8 @@ function WordPage() {
         </div>
       )}
 
+      {!isComplete && <KeyBoard />}
+
       <div className="mt-10 w-full flex justify-center min-h-[200px]">
         <KeyBoard />
       </div>

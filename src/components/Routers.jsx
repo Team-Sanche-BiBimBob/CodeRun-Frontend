@@ -11,20 +11,21 @@ import TeacherView from '../pages/TeacherView';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 
-const Routers = () => (
-  <Routes>
-    <Route path="/" element={<Home />} />
-    <Route path="/selectLanguage" element={<LanguageSelection />} />
-    <Route path="/choice" element={<Choice />} />
-    <Route path="/word" element={<WordPage/>} />
-    <Route path="/sentence" element={<SentencePage/>} />
-    <Route path="/problem" element={<CodingPlatform/>}/>
-    <Route path="/full" element={<Fullcode />} />
-    <Route path="/teacher" element={<TeacherView/>} />
-    <Route path="/login" element={<Login/>}/>
-    <Route path="/signup" element={<Signup/>}/>
-    <Route path="/choice" element={<Choice/>}/>
-  </Routes>
-);
+const Routers = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/selectLanguage" element={<LanguageSelection />} />
+      <Route path="/choice" element={<Choice />} />
+      <Route path="/word" element={<WordPage />} />
+      <Route path="/sentence" element={<SentencePage />} />
+      <Route path="/full" element={<Fullcode />} />
+      <Route path="/platform" element={<CodingPlatform />} />
+      <Route path="/teacher" element={<TeacherView />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+    </Routes>
+  );
+};
 
 export default Routers;
