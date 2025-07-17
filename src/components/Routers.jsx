@@ -15,6 +15,7 @@ const Routers = () => (
   <Routes>
     <Route path="/" element={<Home />} />
     <Route path="/selectLanguage" element={<LanguageSelection />} />
+    <Route path="/choice" element={<Choice />} />
     <Route path="/word" element={<WordPage/>} />
     <Route path="/sentence" element={<SentencePage/>} />
     <Route path="/problem" element={<CodingPlatform/>}/>
