@@ -6,14 +6,15 @@ const KoreanKeyboard = () => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
-  const [typedCharacters, setTypedCharacters] = useState(0);
-  const [correctCharacters, setCorrectCharacters] = useState(0);
+  const [typedCharacters, setTypedCharacters] = useState(0); // 실제 타이핑한 총 문자수
+  const [correctCharacters, setCorrectCharacters] = useState(0); // 맞게 입력한 문자수
   const [highlightedKey, setHighlightedKey] = useState(null);
   const [targetText, setTargetText] = useState(
     "The quick brown fox jumps over the lazy dog. This is a typing practice sentence."
   );
   const [typedTextIndex, setTypedTextIndex] = useState(0);
   const [isStarted, setIsStarted] = useState(false);
+  const [totalKeystrokes, setTotalKeystrokes] = useState(0); // 백스페이스 포함 총 키 입력수
 
   const startTimeRef = useRef(null);
 
@@ -37,28 +38,30 @@ const KoreanKeyboard = () => {
     return () => clearInterval(timer);
   }, [isStarted]);
 
-  // 타이핑 속도 실시간 계산 (WPM)
+  // 타수 (WPM) 계산 - 올바른 WPM 계산 방식
   useEffect(() => {
     if (isStarted && startTimeRef.current) {
-      const elapsedMinutes = elapsedSeconds / 60;
+      const now = Date.now();
+      const elapsedMinutes = (now - startTimeRef.current) / 1000 / 60;
       if (elapsedMinutes > 0) {
-        const wpm = Math.round(correctCharacters / elapsedMinutes);
+        // WPM = (타이핑한 문자수 / 5) / 분
+        const wpm = Math.round((typedTextIndex / 5) / elapsedMinutes);
         setTypingSpeed(wpm);
       }
     } else {
       setTypingSpeed(0);
     }
-  }, [correctCharacters, elapsedSeconds, isStarted]);
+  }, [typedTextIndex, isStarted]);
 
-  // 정확도 실시간 계산
+  // 정확도 계산 - 총 키 입력 대비 정확한 입력 비율
   useEffect(() => {
-    if (typedCharacters > 0) {
-      const accuracyPercent = Math.round((correctCharacters / typedCharacters) * 100);
+    if (totalKeystrokes > 0) {
+      const accuracyPercent = Math.round((correctCharacters / totalKeystrokes) * 100);
       setAccuracy(accuracyPercent);
     } else {
       setAccuracy(100);
     }
-  }, [correctCharacters, typedCharacters]);
+  }, [correctCharacters, totalKeystrokes]);
 
   // 입력된 키에 해당하는 문자 반환 (Shift 조합 포함)
   const getOutputChar = useCallback((pressedKey, isShifted) => {
@@ -155,54 +158,70 @@ const KoreanKeyboard = () => {
         return;
       }
 
+      // 백스페이스 처리
+      if (pressedKeyCode === 'Backspace') {
+        if (typedTextIndex > 0) {
+          setTypedTextIndex((prev) => prev - 1);
+          // 백스페이스도 키 입력으로 카운트
+          setTotalKeystrokes((prev) => prev + 1);
+        }
+        return;
+      }
+
       let isCorrectInput = false;
       const expectedChar = targetText[typedTextIndex];
       let charForComparison = null;
 
       if (pressedKeyCode === 'Space') {
         charForComparison = ' ';
-      } else if (pressedKeyCode === 'Backspace') {
-        if (typedTextIndex > 0) {
-          setTypedTextIndex((prev) => prev - 1);
-          setTypedCharacters((prev) => Math.max(0, prev - 1));
-        }
-        return;
       } else if (pressedKeyCode === 'Enter') {
         charForComparison = '\n';
       } else {
         charForComparison = getOutputChar(pressedKey, isShiftPressed);
       }
 
+      // 총 키 입력 수 증가 (백스페이스 제외한 실제 문자 입력)
+      setTotalKeystrokes((prev) => prev + 1);
+
       if (charForComparison === expectedChar) {
         setCorrectCharacters((prev) => prev + 1);
         setTypedTextIndex((prev) => prev + 1);
         isCorrectInput = true;
       } else {
+        // 틀린 문자를 입력해도 다음 문자로 넘어가지 않음
+        // 따라서 typedTextIndex는 증가하지 않음
         isCorrectInput = false;
       }
 
-      setTypedCharacters((prev) => prev + 1);
+      // 실제 타이핑한 문자수는 맞든 틀리든 증가 (위치 기준)
+      setTypedCharacters(typedTextIndex + (isCorrectInput ? 1 : 0));
     }
 
     // 마지막 문자 맞게 입력 시 자동 완료 처리
     if (typedTextIndex >= targetText.length - 1 && targetText.length > 0) {
       const lastExpectedChar = targetText[targetText.length - 1];
-      const lastTypedChar = getOutputChar(pressedKey, isShiftPressed);
-      const lastTypedCode = pressedKeyCode;
+      let lastTypedChar;
+      
+      if (pressedKeyCode === 'Space') {
+        lastTypedChar = ' ';
+      } else if (pressedKeyCode === 'Enter') {
+        lastTypedChar = '\n';
+      } else {
+        lastTypedChar = getOutputChar(pressedKey, isShiftPressed);
+      }
 
-      if (
-        lastExpectedChar === lastTypedChar ||
-        (lastExpectedChar === ' ' && lastTypedCode === 'Space') ||
-        (lastExpectedChar === '\n' && lastTypedCode === 'Enter')
-      ) {
-        alert('타자 연습 완료!');
-        setTypedTextIndex(0);
-        setTypedCharacters(0);
-        setCorrectCharacters(0);
-        setAccuracy(100);
-        setTypingSpeed(0);
-        setElapsedSeconds(0);
-        setIsStarted(false);
+      if (lastExpectedChar === lastTypedChar) {
+        setTimeout(() => {
+          alert('타자 연습 완료!');
+          setTypedTextIndex(0);
+          setTypedCharacters(0);
+          setCorrectCharacters(0);
+          setTotalKeystrokes(0);
+          setAccuracy(100);
+          setTypingSpeed(0);
+          setElapsedSeconds(0);
+          setIsStarted(false);
+        }, 100);
       }
     }
   }, [typedTextIndex, targetText, getOutputChar, isStarted]);
