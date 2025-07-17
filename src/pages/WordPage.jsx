@@ -39,12 +39,17 @@ function WordPage() {
     setStartTime(new Date());
   }, []);
 
+  // 한글 포함 여부 체크 정규식
+  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+
   // 입력창에 타이핑할 때 상태 업데이트
   const handleChange = (e) => {
     const value = e.target.value;
-    const currentWord = wordList[currentIndex] || '';
 
-    // 상태 업데이트
+    // 한글 포함되면 무시
+    if (hangulRegex.test(value)) return;
+
+    const currentWord = wordList[currentIndex] || '';
     setUserInput(value);
 
     // 정답이 완전히 입력되었을 경우 자동으로 다음 단어로 이동
@@ -66,6 +71,9 @@ function WordPage() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       if (userInput.trim() === '') return; // 빈 입력 무시
+
+      // 한글 포함 시 무시
+      if (hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex]; // 현재 단어
       const isCorrect = userInput === currentWord;
@@ -159,8 +167,7 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="h-screen flex flex-col justify-center items-center bg-teal-50 font-sans relative">
-      {/* 단어 표시 영역 (왼쪽: 다음 단어, 가운데: 현재 단어, 오른쪽: 최근 기록) */}
+    <div className="relative min-h-screen flex flex-col items-center bg-teal-50 font-sans pt-16 pb-32">
       <div className="grid grid-cols-3 items-end mb-6">
         {/* 왼쪽 - 다음 단어 회색으로 미리보기 */}
         <div className="text-[#BCCCD0] text-5xl whitespace-nowrap flex justify-end pr-6 mb-10">
@@ -222,7 +229,9 @@ function WordPage() {
         </div>
       )}
 
-      {!isComplete && <KeyBoard />}
+      <div className="mt-10 w-full flex justify-center min-h-[200px]">
+        <KeyBoard />
+      </div>
 
       <CompletionModal
         isOpen={isComplete}
