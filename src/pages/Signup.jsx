@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./Auth.css";
 import { LoginTextField } from "../components/Auth/TextField/LoginTextField";
 import { api } from "../server";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -9,6 +10,7 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = () => {
     if (!email || !password || !confirmPassword) {
@@ -27,8 +29,9 @@ const Signup = () => {
         password,
       })
       .then((response) => {
-        if (response.data.success) {
+        if (response.data.error == null) {
           alert("회원가입 성공!");
+          navigate("/login");
         } else {
           alert("회원가입 실패: " + (response.data.message || "서버 오류"));
         }

@@ -74,7 +74,8 @@ const CourseGrid = ({ courses, searchQuery, activeTab }) => {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === '전체' || course.title.includes(activeTab);
+    // 정확한 언어 매칭을 위해 개선
+    const matchesTab = activeTab === '전체' || course.language === activeTab;
     return matchesSearch && matchesTab;
   });
 
@@ -146,30 +147,72 @@ export default function CodingPlatform() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  // 초기 코스 데이터 - 각 언어별로 충분한 수량 제공
   const initialCourses = [
-    { title: 'Python 단어 암기', description: '파이썬 변수의 개념', rating: 4.5, lessons: 100 },
-    { title: 'Java 문법 읽기', description: 'Java의 기본 문법 학습', rating: 4.3, lessons: 200 },
-    { title: 'JavaScript 문법 읽기', description: '함수와 조건문 학습', rating: 4.6, lessons: 150 },
-    { title: 'C 단어 암기', description: '파이썬 변수의 개념', rating: 4.2, lessons: 120 },
-    { title: 'SQL 단어 암기', description: 'select문의 구조 쿼리 학습', rating: 4.4, lessons: 180 },
-    { title: 'Kotlin 단어 암기', description: '파이썬 변수의 개념', rating: 4.1, lessons: 90 },
+    // Python 코스들
+    { title: 'Python 단어 암기', description: '파이썬 변수의 개념', rating: 4.5, lessons: 100, language: 'Python' },
+    { title: 'Python 실습 문제', description: '기본 개념과 문법 타자 학습', rating: 4.7, lessons: 90, language: 'Python' },
+    { title: 'Python 문법 읽기', description: '파이썬 함수와 클래스 학습', rating: 4.3, lessons: 120, language: 'Python' },
+    
+    // Java 코스들
+    { title: 'Java 문법 읽기', description: 'Java의 기본 문법 학습', rating: 4.3, lessons: 200, language: 'Java' },
+    { title: 'Java 단어 암기', description: '실무에 필요한 핵심 내용 타자 학습', rating: 4.1, lessons: 110, language: 'Java' },
+    { title: 'Java 실습 문제', description: '객체지향 프로그래밍 학습', rating: 4.4, lessons: 150, language: 'Java' },
+    
+    // JavaScript 코스들
+    { title: 'JavaScript 문법 읽기', description: '함수와 조건문 학습', rating: 4.6, lessons: 150, language: 'JavaScript' },
+    { title: 'JavaScript 단어 암기', description: 'ES6 문법과 기능 학습', rating: 4.2, lessons: 95, language: 'JavaScript' },
+    { title: 'JavaScript 실습 문제', description: 'DOM 조작과 이벤트 처리', rating: 4.7, lessons: 110, language: 'JavaScript' },
+    
+    // C 코스들
+    { title: 'C 단어 암기', description: 'C언어 기본 문법 학습', rating: 4.2, lessons: 120, language: 'C' },
+    { title: 'C 문법 읽기', description: '단계별 타자 학습 과정', rating: 4.0, lessons: 95, language: 'C' },
+    { title: 'C 실습 문제', description: '포인터와 메모리 관리', rating: 4.1, lessons: 140, language: 'C' },
+    
+    // SQL 코스들
+    { title: 'SQL 단어 암기', description: 'select문의 구조 쿼리 학습', rating: 4.4, lessons: 180, language: 'SQL' },
+    { title: 'SQL 실습 문제', description: '기본 개념과 문법 타자 학습', rating: 4.5, lessons: 130, language: 'SQL' },
+    { title: 'SQL 문법 읽기', description: '데이터베이스 설계와 정규화', rating: 4.2, lessons: 170, language: 'SQL' },
   ];
 
+  // 각 언어별로 균등하게 생성하는 함수
   const generateMoreCourses = () => {
-    const languages = ['Python', 'Java', 'JavaScript', 'C', 'Swift', 'TypeScript', 'Java', 'Kotlin', 'Python', 'SQL'];
-    const types = ['단어 암기', '문법 읽기', '실습 문제', '프로젝트'];
+    const languages = ['Python', 'Java', 'JavaScript', 'C', 'SQL'];
+    const types = ['단어 암기', '문법 읽기', '실습 문제'];
     const descriptions = [
       '기본 개념과 문법 타자 학습',
       '실무에 필요한 핵심 내용 타자 학습',
       '단계별 타자 학습 과정',
-      '프로젝트 기반 언어 타자 학습'
+      '고급 기능과 패턴 학습'
     ];
-    return Array.from({ length: 6 }, () => ({
-      title: `${languages[Math.floor(Math.random() * languages.length)]} ${types[Math.floor(Math.random() * types.length)]}`,
-      description: descriptions[Math.floor(Math.random() * descriptions.length)],
+    
+    const newCourses = [];
+    // 각 언어별로 최소 1개씩 생성
+    languages.forEach(language => {
+      const type = types[Math.floor(Math.random() * types.length)];
+      const description = descriptions[Math.floor(Math.random() * descriptions.length)];
+      newCourses.push({
+        title: `${language} ${type}`,
+        description: description,
+        rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+        lessons: Math.floor(Math.random() * 200) + 50,
+        language: language
+      });
+    });
+    
+    // 추가로 랜덤하게 1개 더 생성
+    const randomLanguage = languages[Math.floor(Math.random() * languages.length)];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
+    newCourses.push({
+      title: `${randomLanguage} ${randomType}`,
+      description: randomDescription,
       rating: (Math.random() * 1.5 + 3.5).toFixed(1),
-      lessons: Math.floor(Math.random() * 200) + 50
-    }));
+      lessons: Math.floor(Math.random() * 200) + 50,
+      language: randomLanguage
+    });
+    
+    return newCourses;
   };
 
   useEffect(() => {
@@ -192,7 +235,7 @@ export default function CodingPlatform() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-16 px-6 lg:px-12">
-      <div className="max-w-5xl mx-auto"> {/* Changed from max-w-6xl to max-w-5xl for a more compact layout */}
+      <div className="max-w-5xl mx-auto">
         <div className="pt-8 mb-16">
           <h1 className="text-3xl font-bold text-gray-800 mb-3">문제집 리스트</h1>
           <p className="text-gray-600 text-lg">다양한 프로그래밍 언어를 학습해보세요</p>
