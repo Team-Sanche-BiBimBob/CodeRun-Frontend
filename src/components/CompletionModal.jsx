@@ -5,7 +5,6 @@ function CompletionModal({
   accuracy, 
   typingSpeed, 
   elapsedTime, 
-  formatTime,
   onRestart, 
   onGoHome 
 }) {
@@ -70,7 +69,7 @@ function CompletionModal({
         {/* 소요시간 */}
         <div className="relative z-10 text-left mb-8">
           <div className="text-sm text-gray-600 mb-1">소요시간</div>
-          <div className="text-lg font-semibold text-gray-800">{formatTime(elapsedTime)}</div>
+          <div className="text-lg font-semibold text-gray-800">{elapsedTime}</div>
         </div>
 
         {/* 버튼들 */}
