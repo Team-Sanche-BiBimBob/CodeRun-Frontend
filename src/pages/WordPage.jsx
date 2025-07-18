@@ -5,11 +5,11 @@ import CompletionModal from '../components/CompletionModal';
 
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [
-  "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
-  "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float",
-  "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native",
-  "new", "null", "package", "private", "protected", "public", "return", "short", "static", "strictfp",
-  "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile"
+  'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
+  'extends', 'final', 'for', 'if', 'import', 'interface', 'new', 'null', 'private', 'public',
+  'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
+  'let', 'var', 'typeof', 'and', 'def', 'lambda', 'not', 'or', 'SELECT', 'FROM',
+  'WHERE', 'INSERT', 'CREATE', 'guard', 'protocol', 'companion', 'sealed', 'suspend', 'when', 'object'
 ];
 
 function WordPage() {
