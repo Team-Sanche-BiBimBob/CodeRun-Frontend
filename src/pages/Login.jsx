@@ -5,6 +5,7 @@ import { LoginTextField } from "../components/Auth/TextField/LoginTextField";
 import { useState } from "react";
 import { api } from "../server";
 import axios from "axios";
+import { href } from "react-router";
 
 
 const Login = () => {
@@ -34,8 +35,10 @@ const Login = () => {
           password,
         })
         .then((response) => {
-          if (response.data.success) {
-            alert("로그인 성공!");
+          console.log(response.data.error)
+          if (response.data.error == null) {
+            localStorage.setItem('accessToken', response.data.accessToken);
+            window.location.href = "/";
           } else {
             alert("로그인 실패: " + (response.data.message || "서버 오류"));
           }

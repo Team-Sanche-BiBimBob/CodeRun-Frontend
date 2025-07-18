@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import CompletionModal from '../components/CompletionModal';
 import './Fullcode.css';
@@ -545,10 +546,11 @@ const Fullcode = () => {
     setExampleLines(selectedExample.split('\n'));
   };
 
+  const navigate = useNavigate();
+
   const handleGoHome = () => {
     setShowCompletionModal(false);
-    // 홈으로 이동하는 로직 (예: react-router의 navigate 사용)
-    // navigate('/');
+    navigate('/');
   };
 
   return (

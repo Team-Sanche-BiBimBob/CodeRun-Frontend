@@ -5,11 +5,9 @@ import CompletionModal from '../components/CompletionModal';
 
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [
-  "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
-  "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float",
-  "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native",
-  "new", "null", "package", "private", "protected", "public", "return", "short", "static", "strictfp",
-  "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile"
+  'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
+  'extends', 'final', 'for', 'if', 'import', 'interface', 'new', 'null', 'private', 'public',
+  'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function'
 ];
 
 function WordPage() {
@@ -169,28 +167,16 @@ function WordPage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center bg-teal-50 font-sans pt-16 pb-32">
       <div className="grid grid-cols-3 items-end mb-6">
-        {/* 왼쪽 - 다음 단어 회색으로 미리보기 */}
-        <div className="text-[#BCCCD0] text-5xl whitespace-nowrap flex justify-end pr-6 mb-10">
-          {previewNext}
-        </div>
-
-        {/* 가운데 - 현재 단어 박스, 글자별 색상 다르게 */}
-        <div className="bg-teal-500 w-[349px] h-[122px] rounded-xl shadow-md flex justify-center items-center text-5xl font-medium tracking-wider text-white z-10">
-          {renderWord()}
-        </div>
-
-        {/* 오른쪽 - 최근 타이핑한 단어들 표시 (최대 2개) */}
-        <div className="text-5xl flex flex-row items-center space-x-6 pl-6 mb-10 max-w-[350px] overflow-hidden">
-          {history.slice(0, 2).map((entry, index) => {
+        {/* 왼쪽 - 최근 타이핑한 단어들 (최신 단어가 중앙 박스 가까이 오도록 순서 반전) */}
+        <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
+          {history.slice(0, 2).reverse().map((entry, index) => {
             if (entry.isCorrect) {
-              // 맞게 입력한 단어는 파란색으로 단어 전체 표시
               return (
                 <div key={index} className="text-[#6BCABD] whitespace-nowrap">
                   {entry.word}
                 </div>
               );
             } else {
-              // 틀린 단어는 글자별로 맞는 글자는 검정, 틀린 글자는 빨간색으로 표시
               return (
                 <div key={index} className="flex whitespace-nowrap tracking-normal">
                   {entry.word.split('').map((char, idx) => {
@@ -210,8 +196,18 @@ function WordPage() {
             }
           })}
         </div>
+  
+        {/* 가운데 - 현재 단어 박스 */}
+        <div className="bg-teal-500 w-[349px] h-[122px] rounded-xl shadow-md flex justify-center items-center text-5xl font-medium tracking-wider text-white z-10">
+          {renderWord()}
+        </div>
+  
+        {/* 오른쪽 - 다음 단어 미리보기 */}
+        <div className="text-[#BCCCD0] text-5xl whitespace-nowrap flex justify-start pl-6 mb-10">
+          {previewNext}
+        </div>
       </div>
-
+  
       {/* 입력창 영역 */}
       {!isComplete && (
         <div className="flex flex-col items-center">
@@ -224,17 +220,14 @@ function WordPage() {
             autoFocus
             placeholder="입력하세요"
           />
-          {/* 입력창 밑에 강조 라인 */}
           <div className="w-[200px] h-[2px] bg-[#37A998] mb-7" />
         </div>
       )}
-
-      {!isComplete && <KeyBoard />}
-
+  
       <div className="mt-10 w-full flex justify-center min-h-[200px]">
         <KeyBoard />
       </div>
-
+  
       <CompletionModal
         isOpen={isComplete}
         accuracy={getAccuracy().toFixed(2)}
@@ -244,7 +237,7 @@ function WordPage() {
         onGoHome={handleGoHome}
       />
     </div>
-  );
+  );  
 }
 
 export default WordPage;
