@@ -7,9 +7,7 @@ import CompletionModal from '../components/CompletionModal';
 const words = [
   'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
   'extends', 'final', 'for', 'if', 'import', 'interface', 'new', 'null', 'private', 'public',
-  'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
-  'let', 'var', 'typeof', 'and', 'def', 'lambda', 'not', 'or', 'SELECT', 'FROM',
-  'WHERE', 'INSERT', 'CREATE', 'guard', 'protocol', 'companion', 'sealed', 'suspend', 'when', 'object'
+  'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function'
 ];
 
 function WordPage() {

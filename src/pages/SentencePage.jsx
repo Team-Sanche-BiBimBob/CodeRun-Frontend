@@ -4,56 +4,16 @@ import KeyBoard from '../components/KeyBoard';
 import CompletionModal from '../components/CompletionModal';
 
 const sentences = [
-  // Python
   'print("Hello world!")',
   'for i in range(10):',
-  'def greet(name):',
-  'return f"Hello, {name}!"',
-  'if x > 0:',
-  
-  // JavaScript
   'console.log("Hello world!");',
-  'for (let i = 0; i < 10; i++) {',
   'function greet(name) {',
-  'return `Hello, ${name}!`;',
-  'if (x > 0) {',
-  
-  // Java
   'System.out.println("Hello world!");',
-  'for (int i = 0; i < 10; i++) {',
-  'public static void main(String[] args) {',
   'public class Person {',
-  'private String name;',
-  
-  // C
-  'printf("Hello world!");',
-  'for (int i = 0; i < 10; i++) {',
-  'int main() {',
-  'if (x > 0) {',
-  'while (condition) {',
-  
-  // SQL
   'SELECT * FROM users;',
-  'INSERT INTO users (name) VALUES ("John");',
-  'UPDATE users SET name = "Jane" WHERE id = 1;',
-  'DELETE FROM users WHERE id = 1;',
-  'CREATE TABLE users (id INT, name VARCHAR(50));',
-  
-  // TypeScript
   'let message: string = "Hello world!";',
-  'function greet(name: string): string {',
-  'interface User { name: string; }',
-  
-  // Kotlin
   'println("Hello world!")',
-  'fun greet(name: String): String {',
-  
-  // Swift
-  'print("Hello world!")',
-  'func greet(name: String) -> String {',
-  'var message = "Hello world!"',
-  'if x > 0 {',
-  'for i in 0..<10 {'
+  'func greet(name: String) -> String {'
 ];
 
 function SentencePage() {
