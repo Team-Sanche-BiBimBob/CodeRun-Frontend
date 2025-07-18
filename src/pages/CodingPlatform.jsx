@@ -29,10 +29,9 @@ const FilterTabs = ({ activeTab, setActiveTab }) => {
           onClick={() => setActiveTab(tab)}
           className={`px-6 py-3 rounded-full whitespace-nowrap transition-colors font-medium ${
             activeTab === tab
-              ? 'text-white shadow-md'
+              ? 'bg-teal-600 text-white shadow-md'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
-          style={activeTab === tab ? { backgroundColor: '#0D9488' } : {}}
         >
           {tab}
         </button>
@@ -58,10 +57,7 @@ const CourseCard = ({ course }) => {
           <BookOpen className="w-5 h-5 mr-2" />
           <span>{course.lessons}개 문제</span>
         </div>
-        <button 
-          className="text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity font-medium"
-          style={{ backgroundColor: '#0D9488' }}
-        >
+        <button className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium">
           시작하기
         </button>
       </div>
@@ -119,7 +115,7 @@ const StatsChart = ({ data }) => {
   return (
     <div className="bg-white rounded-xl shadow-md p-8 border border-gray-100">
       <div className="flex items-center mb-6">
-        <TrendingUp className="w-6 h-6 mr-3" style={{ color: '#0D9488' }} />
+        <TrendingUp className="w-6 h-6 text-teal-600 mr-3" />
         <h3 className="text-xl font-semibold text-gray-800">학습 통계</h3>
       </div>
       <div className="space-y-4">
@@ -130,11 +126,8 @@ const StatsChart = ({ data }) => {
             </span>
             <div className="flex-1 bg-gray-200 rounded-full h-4 mx-4">
               <div
-                className="h-4 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${(value / maxValue) * 100}%`,
-                  backgroundColor: '#0D9488'
-                }}
+                className="bg-teal-600 h-4 rounded-full transition-all duration-500"
+                style={{ width: `${(value / maxValue) * 100}%` }}
               />
             </div>
             <span className="font-semibold text-gray-700 w-10 text-right">{value}</span>
@@ -272,15 +265,15 @@ export default function CodingPlatform() {
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">완료한 문제</span>
-                    <span className="font-semibold" style={{ color: '#0D9488' }}>245개</span>
+                    <span className="font-semibold text-teal-600">245개</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">학습 시간</span>
-                    <span className="font-semibold" style={{ color: '#0D9488' }}>12시간</span>
+                    <span className="font-semibold text-teal-600">12시간</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">연속 학습</span>
-                    <span className="font-semibold" style={{ color: '#0D9488' }}>5일</span>
+                    <span className="font-semibold text-teal-600">5일</span>
                   </div>
                 </div>
               </div>
