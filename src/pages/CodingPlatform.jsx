@@ -29,10 +29,9 @@ const FilterTabs = ({ activeTab, setActiveTab }) => {
           onClick={() => setActiveTab(tab)}
           className={`px-6 py-3 rounded-full whitespace-nowrap transition-colors font-medium ${
             activeTab === tab
-              ? 'text-white shadow-md'
+              ? 'bg-teal-600 text-white shadow-md'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
-          style={activeTab === tab ? { backgroundColor: '#0D9488' } : {}}
         >
           {tab}
         </button>
@@ -58,10 +57,7 @@ const CourseCard = ({ course }) => {
           <BookOpen className="w-5 h-5 mr-2" />
           <span>{course.lessons}개 문제</span>
         </div>
-        <button 
-          className="text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity font-medium"
-          style={{ backgroundColor: '#0D9488' }}
-        >
+        <button className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium">
           시작하기
         </button>
       </div>
@@ -74,9 +70,17 @@ const CourseGrid = ({ courses, searchQuery, activeTab }) => {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === '전체' || course.title.includes(activeTab);
+    const matchesTab = activeTab === '전체' || course.language === activeTab;
     return matchesSearch && matchesTab;
   });
+
+  if (filteredCourses.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500 text-lg">검색 결과가 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -111,7 +115,7 @@ const StatsChart = ({ data }) => {
   return (
     <div className="bg-white rounded-xl shadow-md p-8 border border-gray-100">
       <div className="flex items-center mb-6">
-        <TrendingUp className="w-6 h-6 mr-3" style={{ color: '#0D9488' }} />
+        <TrendingUp className="w-6 h-6 text-teal-600 mr-3" />
         <h3 className="text-xl font-semibold text-gray-800">학습 통계</h3>
       </div>
       <div className="space-y-4">
@@ -122,11 +126,8 @@ const StatsChart = ({ data }) => {
             </span>
             <div className="flex-1 bg-gray-200 rounded-full h-4 mx-4">
               <div
-                className="h-4 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${(value / maxValue) * 100}%`,
-                  backgroundColor: '#0D9488'
-                }}
+                className="bg-teal-600 h-4 rounded-full transition-all duration-500"
+                style={{ width: `${(value / maxValue) * 100}%` }}
               />
             </div>
             <span className="font-semibold text-gray-700 w-10 text-right">{value}</span>
@@ -146,35 +147,74 @@ export default function CodingPlatform() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  // 초기 코스 데이터
   const initialCourses = [
-    { title: 'Python 단어 암기', description: '파이썬 변수의 개념', rating: 4.5, lessons: 100 },
-    { title: 'Java 문법 읽기', description: 'Java의 기본 문법 학습', rating: 4.3, lessons: 200 },
-    { title: 'JavaScript 문법 읽기', description: '함수와 조건문 학습', rating: 4.6, lessons: 150 },
-    { title: 'C 단어 암기', description: '파이썬 변수의 개념', rating: 4.2, lessons: 120 },
-    { title: 'SQL 단어 암기', description: 'select문의 구조 쿼리 학습', rating: 4.4, lessons: 180 },
-    { title: 'Kotlin 단어 암기', description: '파이썬 변수의 개념', rating: 4.1, lessons: 90 },
+    // Python 코스들
+    { title: 'Python 기초 문법', description: '변수, 자료형, 연산자 등 파이썬의 기본 개념을 학습합니다', rating: 4.5, lessons: 100, language: 'Python' },
+    { title: 'Python 함수와 모듈', description: '함수 정의, 모듈 사용법, 패키지 관리를 배웁니다', rating: 4.7, lessons: 90, language: 'Python' },
+    { title: 'Python 객체지향', description: '클래스, 상속, 캡슐화 등 객체지향 개념을 학습합니다', rating: 4.3, lessons: 120, language: 'Python' },
+    { title: 'Python 데이터 처리', description: '리스트, 딕셔너리, 파일 입출력을 다룹니다', rating: 4.6, lessons: 80, language: 'Python' },
+    
+    // Java 코스들
+    { title: 'Java 기초 문법', description: 'Java의 기본 문법과 데이터 타입을 학습합니다', rating: 4.3, lessons: 200, language: 'Java' },
+    { title: 'Java 객체지향 프로그래밍', description: '클래스, 인터페이스, 추상클래스를 배웁니다', rating: 4.1, lessons: 110, language: 'Java' },
+    { title: 'Java 컬렉션 프레임워크', description: 'List, Set, Map 등 컬렉션 사용법을 학습합니다', rating: 4.4, lessons: 150, language: 'Java' },
+    { title: 'Java 예외 처리', description: 'try-catch, throws, 사용자 정의 예외를 다룹니다', rating: 4.2, lessons: 95, language: 'Java' },
+    
+    // JavaScript 코스들
+    { title: 'JavaScript 기초', description: '변수, 함수, 조건문, 반복문을 학습합니다', rating: 4.6, lessons: 150, language: 'JavaScript' },
+    { title: 'JavaScript ES6+', description: '화살표 함수, 구조분해, 템플릿 리터럴을 배웁니다', rating: 4.2, lessons: 95, language: 'JavaScript' },
+    { title: 'JavaScript DOM 조작', description: '웹 페이지 요소를 동적으로 조작하는 방법을 학습합니다', rating: 4.7, lessons: 110, language: 'JavaScript' },
+    { title: 'JavaScript 비동기 처리', description: 'Promise, async/await, 콜백 함수를 다룹니다', rating: 4.5, lessons: 130, language: 'JavaScript' },
+    
+    // C 코스들
+    { title: 'C 기초 문법', description: 'C언어의 기본 문법과 데이터 타입을 학습합니다', rating: 4.2, lessons: 120, language: 'C' },
+    { title: 'C 포인터와 배열', description: '포인터의 개념과 배열 사용법을 배웁니다', rating: 4.0, lessons: 95, language: 'C' },
+    { title: 'C 메모리 관리', description: '동적 메모리 할당과 해제를 다룹니다', rating: 4.1, lessons: 140, language: 'C' },
+    { title: 'C 구조체와 파일', description: '구조체 정의와 파일 입출력을 학습합니다', rating: 4.3, lessons: 110, language: 'C' },
+    
+    // SQL 코스들
+    { title: 'SQL 기초 쿼리', description: 'SELECT, INSERT, UPDATE, DELETE 문을 학습합니다', rating: 4.4, lessons: 180, language: 'SQL' },
+    { title: 'SQL 조인과 서브쿼리', description: '테이블 간의 관계와 복잡한 쿼리를 다룹니다', rating: 4.5, lessons: 130, language: 'SQL' },
+    { title: 'SQL 함수와 집계', description: '내장 함수와 GROUP BY, HAVING을 학습합니다', rating: 4.2, lessons: 170, language: 'SQL' },
+    { title: 'SQL 데이터베이스 설계', description: '테이블 설계와 정규화를 배웁니다', rating: 4.6, lessons: 200, language: 'SQL' }
   ];
 
-  const generateMoreCourses = () => {
-    const languages = ['Python', 'Java', 'JavaScript', 'C', 'Swift', 'TypeScript', 'Java', 'Kotlin', 'Python', 'SQL'];
-    const types = ['단어 암기', '문법 읽기', '실습 문제', '프로젝트'];
-    const descriptions = [
-      '기본 개념과 문법 타자 학습',
-      '실무에 필요한 핵심 내용 타자 학습',
-      '단계별 타자 학습 과정',
-      '프로젝트 기반 언어 타자 학습'
-    ];
-    return Array.from({ length: 6 }, () => ({
-      title: `${languages[Math.floor(Math.random() * languages.length)]} ${types[Math.floor(Math.random() * types.length)]}`,
-      description: descriptions[Math.floor(Math.random() * descriptions.length)],
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
-      lessons: Math.floor(Math.random() * 200) + 50
-    }));
-  };
-
+  // 초기 데이터 로딩
   useEffect(() => {
     setCourses(initialCourses);
   }, []);
+
+  // 더 많은 코스 생성
+  const generateMoreCourses = () => {
+    const languages = ['Python', 'Java', 'JavaScript', 'C', 'SQL'];
+    const types = ['고급', '실무', '심화', '프로젝트', '알고리즘'];
+    const topics = {
+      Python: ['데이터 분석', '웹 개발', '머신러닝', '자동화', '크롤링'],
+      Java: ['스프링', '안드로이드', '웹 개발', '디자인 패턴', '멀티스레딩'],
+      JavaScript: ['React', 'Node.js', 'Vue.js', 'TypeScript', '웹팩'],
+      C: ['시스템 프로그래밍', '임베디드', '자료구조', '네트워크', '운영체제'],
+      SQL: ['성능 최적화', '저장 프로시저', '트리거', '인덱스', '백업/복구']
+    };
+    
+    const newCourses = [];
+    
+    for (let i = 0; i < 6; i++) {
+      const language = languages[Math.floor(Math.random() * languages.length)];
+      const type = types[Math.floor(Math.random() * types.length)];
+      const topic = topics[language][Math.floor(Math.random() * topics[language].length)];
+      
+      newCourses.push({
+        title: `${language} ${type} ${topic}`,
+        description: `${language}의 ${topic} 분야를 다루는 ${type} 수준의 코스입니다`,
+        rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+        lessons: Math.floor(Math.random() * 200) + 50,
+        language: language
+      });
+    }
+    
+    return newCourses;
+  };
 
   const handleLoadMore = () => {
     if (loading) return;
@@ -192,7 +232,7 @@ export default function CodingPlatform() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-16 px-6 lg:px-12">
-      <div className="max-w-5xl mx-auto"> {/* Changed from max-w-6xl to max-w-5xl for a more compact layout */}
+      <div className="max-w-5xl mx-auto">
         <div className="pt-8 mb-16">
           <h1 className="text-3xl font-bold text-gray-800 mb-3">문제집 리스트</h1>
           <p className="text-gray-600 text-lg">다양한 프로그래밍 언어를 학습해보세요</p>
@@ -215,26 +255,25 @@ export default function CodingPlatform() {
             />
           </div>
           
-          {/* Right Sidebar - Fixed */}
+          {/* Right Sidebar */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-16 space-y-8">
               <StatsChart data={chartData} />
               
-              {/* Additional Stats */}
               <div className="bg-white rounded-lg shadow-md p-8 border border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-800 mb-6">이번 주 요약</h3>
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">완료한 문제</span>
-                    <span className="font-semibold" style={{ color: '#0D9488' }}>245개</span>
+                    <span className="font-semibold text-teal-600">245개</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">학습 시간</span>
-                    <span className="font-semibold" style={{ color: '#0D9488' }}>12시간</span>
+                    <span className="font-semibold text-teal-600">12시간</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">연속 학습</span>
-                    <span className="font-semibold" style={{ color: '#0D9488' }}>5일</span>
+                    <span className="font-semibold text-teal-600">5일</span>
                   </div>
                 </div>
               </div>

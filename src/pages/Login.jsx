@@ -4,10 +4,15 @@ import { LoginTextField } from "../components/Auth/TextField/LoginTextField";
 
 import { useState } from "react";
 import { api } from "../server";
+import axios from "axios";
+import { href } from "react-router";
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  
 
   const handleChangeEmail = (e)=>{
     setEmail(e.target.value);
@@ -17,25 +22,32 @@ const Login = () => {
     setPassword(e.target.value);
   }
 
-  const handleLogin = ()=>{
-    api.post("/api/auth/signin", {
-        email,
-        password
-      }, {
-        headers:{
-          'Content-Type':'application/json; charset=utf-8'
-        }
-    })
-    .then((response)=>{
-      // 로그인 성공
-      console.log(response);
-      localStorage.setItem("token", response.data.accessToken);
-      // 홈으로 이동?
-    })
-    .catch((error)=>{
-      console.log(error);
-    });
-  }
+  const handleSubmit = () => {
+      if (!email || !password) {
+        alert("모든 항목을 입력해주세요.");
+        return;
+      }
+  
+  
+      api
+        .post("/api/auth/signin", {
+          email,
+          password,
+        })
+        .then((response) => {
+          console.log(response.data.error)
+          if (response.data.error == null) {
+            localStorage.setItem('accessToken', response.data.accessToken);
+            window.location.href = "/";
+          } else {
+            alert("로그인 실패: " + (response.data.message || "서버 오류"));
+          }
+        })
+        .catch((error) => {
+          console.error("서버 에러 ", error);
+          alert("로그인 요청 중 에러 발생!");
+        });
+    };
 
   return (
     <div className="auth-wrapper">
@@ -55,9 +67,10 @@ const Login = () => {
             <LoginTextField isLoginTextField={true} placeholder="이메일을 입력하세요." onChange={handleChangeEmail}/>
           </div>
           <div className="input-group">
-            <LoginTextField placeholder="비밀번호를 입력하세요." onChange={handleChangePassword} type="password"/>
+            <LoginTextField placeholder="비밀번호를 입력하세요." togglePassword={() => setShowPassword(!showPassword)} showPassword={showPassword} onChange={handleChangePassword} type="password"/>
+            
           </div>
-          <button className="auth-btn" onClick={handleLogin}>로그인</button>
+          <button className="auth-btn" onClick={handleSubmit}>로그인</button>
           <p className="signup-link">
             계정이 없으신가요?{" "}
             <a href="/signup" className="to-signup">

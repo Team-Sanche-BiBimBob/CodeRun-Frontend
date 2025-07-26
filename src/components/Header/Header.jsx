@@ -1,5 +1,6 @@
 import styles from './Header.module.css';
 import Navigation from './Navigation';
+import logo from '../../assets/logo.svg';
 
 const Header = ({ isLoggedIn }) => {
   return (
@@ -10,7 +11,7 @@ const Header = ({ isLoggedIn }) => {
           <div className={styles.logoContainer}>
             <a href="/">
               <img 
-                src="src/assets/logo.svg" 
+                src={logo}
                 alt="header" 
                 className={styles.logo}
               />
@@ -26,12 +27,12 @@ const Header = ({ isLoggedIn }) => {
           <div className={styles.userMenu}>
             {isLoggedIn ? (
               <div className={styles.userInfo}>
+                <span className={styles.username}>사용자이름</span>
                 <img 
                   src="src/assets/user.jpg" 
                   alt="user" 
                   className={styles.userAvatar}
                 />
-                <span className={styles.username}>사용자이름</span>
               </div>
             ) : (
               <>

@@ -1,15 +1,6 @@
-import { Routes, Route, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 import './App.css'
 import Header from './components/Header/Header.jsx'
-import LanguageSelection from './pages/LanguageSelection'
-import Fullcode from './pages/Fullcode'
-import Home from './pages/Home'
-import WordPage from './pages/WordPage'
-import SentencePage from './pages/SentencePage'
-import CodingPlatform from './pages/CodingPlatform.jsx';
-import TeacherView from './pages/TeacherView.jsx'
-import Login from './pages/Login.jsx';
-import Signup from './pages/Signup.jsx';
 import { useState, useEffect } from 'react';
 import Routers from './components/Routers.jsx';
 
@@ -23,13 +14,13 @@ const App = () => {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher"];
+  const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/choice"];
 
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
   return (
-    <div style={{ paddingTop: '80px' }}>
-      <Header isLoggedIn={isLoggedIn} />
+    <div style={{ paddingTop: showHeader ? '80px' : '0' }}>
+      {showHeader && <Header isLoggedIn={isLoggedIn} />}
       <Routers />
     </div>
   );
