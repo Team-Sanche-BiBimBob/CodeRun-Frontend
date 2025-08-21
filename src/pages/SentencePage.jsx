@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import KeyBoard from '../components/KeyBoard';
 
 const sentences = [
@@ -34,110 +34,42 @@ const sentences = [
   'def func():'
 ];
 
-function SentencePage() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [typedChars, setTypedChars] = useState([]);
-  const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [isComplete, setIsComplete] = useState(false);
-  const [startTime, setStartTime] = useState(() => new Date());
-
-  const currentSentence = sentences[currentIndex];
-
-  const handleKeyDown = useCallback((e) => {
-    if (isComplete) return;
-
-    if (e.key === 'Backspace') {
-      setTypedChars((prev) => prev.slice(0, -1));
-      setSpaceErrorIndices((prev) => prev.slice(0, -1));
-    } else if (e.key.length === 1) {
-      const expectedChar = currentSentence[typedChars.length];
-
-      if (e.key === ' ') {
-        if (expectedChar === ' ') {
-          setTypedChars((prev) => [...prev, ' ']);
-          setSpaceErrorIndices((prev) => [...prev, false]);
-        } else {
-          setTypedChars((prev) => [...prev, '']);
-          setSpaceErrorIndices((prev) => [...prev, true]);
-        }
-      } else {
-        setTypedChars((prev) => [...prev, e.key]);
-        setSpaceErrorIndices((prev) => [...prev, false]);
-      }
-    } else if (e.key === 'Enter') {
-      if (typedChars.length === 0) return;
-
-      const userTyped = typedChars.map((c, i) =>
-        spaceErrorIndices[i] ? '' : c
-      ).join('');
-
-      const isIncomplete = userTyped !== currentSentence;
-
-      setHistory((prev) => [
-        ...prev,
-        {
-          sentence: currentSentence,
-          typed: userTyped,
-          isIncomplete,
-        },
-      ]);
-
-      if (currentIndex === sentences.length - 1) {
-        setIsComplete(true);
-      } else {
-        setCurrentIndex((prev) => prev + 1);
-      }
-
-      setTypedChars([]);
-      setSpaceErrorIndices([]);
-    }
-  }, [typedChars, spaceErrorIndices, currentSentence, currentIndex, isComplete]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  const getBoxStyle = (index) => {
-    if (index === currentIndex - 1) return 'bg-gray-300';
-    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
-    if (index === currentIndex + 1) return 'bg-gray-100';
-    if (index === currentIndex + 2) return 'bg-gray-300';
-    return 'hidden';
-  };
-
-  // 사용자가 입력한 내용을 정확/틀린 글자별로 렌더링하는 함수
-  const renderUserTypedText = ({ sentence, typed }) => {
+// 메모화된 렌더링 컴포넌트들
+const MemoizedUserTypedText = React.memo(({ sentence, typed }) => {
+  const renderedText = useMemo(() => {
     const sentenceChars = sentence.split('');
     const typedChars = typed.split('');
     const maxLength = Math.max(sentenceChars.length, typedChars.length);
 
-    return (
-      <span className="whitespace-pre font-mono">
-        {Array.from({ length: maxLength }, (_, i) => {
-          const originalChar = sentenceChars[i];
-          const typedChar = typedChars[i];
-          
-          if (typedChar === undefined) {
-            // 사용자가 입력하지 않은 부분은 표시하지 않음
-            return null;
-          }
+    return Array.from({ length: maxLength }, (_, i) => {
+      const originalChar = sentenceChars[i];
+      const typedChar = typedChars[i];
+      
+      if (typedChar === undefined) {
+        return null;
+      }
 
-          const colorClass = typedChar === originalChar ? 'text-teal-600' : 'text-red-500';
-          const displayChar = typedChar === ' ' ? '\u00A0' : typedChar;
+      const colorClass = typedChar === originalChar ? 'text-teal-600' : 'text-red-500';
+      const displayChar = typedChar === ' ' ? '\u00A0' : typedChar;
 
-          return (
-            <span key={i} className={colorClass}>
-              {displayChar}
-            </span>
-          );
-        })}
-      </span>
-    );
-  };
+      return (
+        <span key={i} className={colorClass}>
+          {displayChar}
+        </span>
+      );
+    });
+  }, [sentence, typed]);
 
-  const renderComparedTextWithCursor = (original, typedArr, isActive) => {
+  return <span className="whitespace-pre font-mono">{renderedText}</span>;
+});
+
+const MemoizedComparedTextWithCursor = React.memo(({ 
+  original, 
+  typedArr, 
+  spaceErrorIndices, 
+  isActive 
+}) => {
+  const renderedText = useMemo(() => {
     const elements = [];
 
     for (let i = 0; i < original.length; i++) {
@@ -183,24 +115,104 @@ function SentencePage() {
       );
     }
 
-    return <span className="whitespace-pre">{elements}</span>;
-  };
+    return elements;
+  }, [original, typedArr, spaceErrorIndices, isActive]);
 
-  const getTotalTyped = useCallback(() => {
-    return history.reduce((acc, cur) => acc + cur.typed.length, 0);
-  }, [history]);
+  return <span className="whitespace-pre">{renderedText}</span>;
+});
 
-  const getCorrectTyped = useCallback(() => {
-    return history.reduce((acc, cur) => {
+function SentencePage() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [typedChars, setTypedChars] = useState([]);
+  const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [isComplete, setIsComplete] = useState(false);
+  const [startTime] = useState(() => new Date());
+
+  // 현재 문장을 메모화
+  const currentSentence = useMemo(() => sentences[currentIndex], [currentIndex]);
+
+  // 키보드 이벤트 핸들러 최적화
+  const handleKeyDown = useCallback((e) => {
+    if (isComplete) return;
+
+    const key = e.key;
+
+    if (key === 'Backspace') {
+      setTypedChars((prev) => prev.slice(0, -1));
+      setSpaceErrorIndices((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if (key === 'Enter') {
+      if (typedChars.length === 0) return;
+
+      const userTyped = typedChars.map((c, i) =>
+        spaceErrorIndices[i] ? '' : c
+      ).join('');
+
+      const isIncomplete = userTyped !== currentSentence;
+
+      setHistory((prev) => [
+        ...prev,
+        {
+          sentence: currentSentence,
+          typed: userTyped,
+          isIncomplete,
+        },
+      ]);
+
+      if (currentIndex === sentences.length - 1) {
+        setIsComplete(true);
+      } else {
+        setCurrentIndex((prev) => prev + 1);
+      }
+
+      setTypedChars([]);
+      setSpaceErrorIndices([]);
+      return;
+    }
+
+    if (key.length === 1) {
+      const expectedChar = currentSentence[typedChars.length];
+
+      if (key === ' ') {
+        if (expectedChar === ' ') {
+          setTypedChars((prev) => [...prev, ' ']);
+          setSpaceErrorIndices((prev) => [...prev, false]);
+        } else {
+          setTypedChars((prev) => [...prev, '']);
+          setSpaceErrorIndices((prev) => [...prev, true]);
+        }
+      } else {
+        setTypedChars((prev) => [...prev, key]);
+        setSpaceErrorIndices((prev) => [...prev, false]);
+      }
+    }
+  }, [typedChars.length, spaceErrorIndices, currentSentence, currentIndex, isComplete]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Box 스타일을 메모화
+  const getBoxStyle = useCallback((index) => {
+    if (index === currentIndex - 1) return 'bg-gray-300';
+    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
+    if (index === currentIndex + 1) return 'bg-gray-100';
+    if (index === currentIndex + 2) return 'bg-gray-300';
+    return 'hidden';
+  }, [currentIndex]);
+
+  // 통계 계산 함수들을 메모화
+  const stats = useMemo(() => {
+    const totalTyped = history.reduce((acc, cur) => acc + cur.typed.length, 0);
+    const correctTyped = history.reduce((acc, cur) => {
       const correctCount = cur.typed.split('').filter((char, i) => char === cur.sentence[i]).length;
       return acc + correctCount;
     }, 0);
-  }, [history]);
 
-  const getAccuracy = useCallback(() => {
-    const totalTyped = getTotalTyped();
-    const correctTyped = getCorrectTyped();
-    
     // 현재 입력 중인 문장도 포함하여 계산
     const currentTypedCount = typedChars.length;
     const currentCorrectCount = typedChars.filter((char, i) => 
@@ -210,57 +222,81 @@ function SentencePage() {
     const finalTotalTyped = totalTyped + currentTypedCount;
     const finalCorrectTyped = correctTyped + currentCorrectCount;
     
-    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
-  }, [getTotalTyped, getCorrectTyped, typedChars, spaceErrorIndices, currentSentence]);
+    const accuracy = finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+    
+    return {
+      totalTyped: finalTotalTyped,
+      correctTyped: finalCorrectTyped,
+      accuracy
+    };
+  }, [history, typedChars, spaceErrorIndices, currentSentence]);
 
-  const getElapsedTimeSec = useCallback(() => {
+  const elapsedTimeSec = useMemo(() => {
     return Math.floor((new Date() - startTime) / 1000);
   }, [startTime]);
 
-  const getElapsedTime = useCallback(() => {
-    const diff = getElapsedTimeSec();
-    const minutes = String(Math.floor(diff / 60)).padStart(2, '0');
-    const seconds = String(diff % 60).padStart(2, '0');
+  const elapsedTimeFormatted = useMemo(() => {
+    const minutes = String(Math.floor(elapsedTimeSec / 60)).padStart(2, '0');
+    const seconds = String(elapsedTimeSec % 60).padStart(2, '0');
     return `${minutes}:${seconds}`;
-  }, [getElapsedTimeSec]);
+  }, [elapsedTimeSec]);
 
-  const getTypingSpeed = useCallback(() => {
-    const elapsedSeconds = getElapsedTimeSec();
-    const totalTyped = getTotalTyped();
-    return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
-  }, [getElapsedTimeSec, getTotalTyped]);  
+  const typingSpeed = useMemo(() => {
+    return elapsedTimeSec === 0 ? 0 : (stats.totalTyped / elapsedTimeSec) * 60;
+  }, [elapsedTimeSec, stats.totalTyped]);
 
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     setCurrentIndex(0);
     setTypedChars([]);
     setSpaceErrorIndices([]);
     setHistory([]);
     setIsComplete(false);
-    setStartTime(new Date()); // 시작 시간 초기화
-  };
+  }, []);
+
+  const handleQuit = useCallback(() => {
+    setIsComplete(false);
+  }, []);
+
+  // 이전 문장, 다음 문장들을 메모화
+  const previousSentence = useMemo(() => {
+    return history.length > 0 && currentIndex > 0 ? history[history.length - 1] : null;
+  }, [history, currentIndex]);
+
+  const nextSentence = useMemo(() => sentences[currentIndex + 1] || '', [currentIndex]);
+  const nextNextSentence = useMemo(() => sentences[currentIndex + 2] || '', [currentIndex]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-4 bg-[#F0FDFA] font-[Pretendard-Regular]">
-      {/* 이전 문장 - 사용자가 입력한 내용으로 렌더링 */}
+      {/* 이전 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
-        {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}
+        {previousSentence && (
+          <MemoizedUserTypedText 
+            sentence={previousSentence.sentence} 
+            typed={previousSentence.typed} 
+          />
+        )}
       </div>
 
       {/* 현재 문장 */}
       <div className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
         <div className="relative font-mono text-2xl leading-[1.75rem] min-h-[1.75rem] w-full">
-          {renderComparedTextWithCursor(currentSentence, typedChars, true)}
+          <MemoizedComparedTextWithCursor
+            original={currentSentence}
+            typedArr={typedChars}
+            spaceErrorIndices={spaceErrorIndices}
+            isActive={true}
+          />
         </div>
       </div>
 
       {/* 다음 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 1)}`}>
-        {sentences[currentIndex + 1] || ''}
+        {nextSentence}
       </div>
 
       {/* 다다음 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex + 2)}`}>
-        {sentences[currentIndex + 2] || ''}
+        {nextNextSentence}
       </div>
 
       {!isComplete && <KeyBoard />}
@@ -303,7 +339,7 @@ function SentencePage() {
                   <div className="w-32 h-3 bg-gray-200 rounded-full mr-3 relative">
                     <div 
                       className="h-full bg-teal-400 rounded-full relative"
-                      style={{ width: `${getAccuracy()}%` }}
+                      style={{ width: `${stats.accuracy}%` }}
                     >
                       <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-teal-400 rounded-full flex items-center justify-center">
                         <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
@@ -314,9 +350,9 @@ function SentencePage() {
               </div>
               
               <div className="text-right">
-                <div className="text-sm text-gray-600 mb-1">타수 {getTypingSpeed().toFixed(0)}타</div>
+                <div className="text-sm text-gray-600 mb-1">타수 {typingSpeed.toFixed(0)}타</div>
                 <div className="text-3xl font-bold text-teal-400">
-                  {getAccuracy().toFixed(2)}%
+                  {stats.accuracy.toFixed(2)}%
                 </div>
               </div>
             </div>
@@ -324,13 +360,13 @@ function SentencePage() {
             {/* 소요시간 */}
             <div className="relative z-10 text-left mb-8">
               <div className="text-sm text-gray-600 mb-1">소요시간</div>
-              <div className="text-lg font-semibold text-gray-800">{getElapsedTime()}</div>
+              <div className="text-lg font-semibold text-gray-800">{elapsedTimeFormatted}</div>
             </div>
             
             {/* 버튼들 */}
             <div className="relative z-10 flex justify-center gap-4 mt-8">
               <button 
-                onClick={() => setIsComplete(false)} 
+                onClick={handleQuit} 
                 className="px-8 py-3 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 font-medium"
               >
                 그만 하기
