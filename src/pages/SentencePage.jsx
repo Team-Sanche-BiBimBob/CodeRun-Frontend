@@ -114,7 +114,7 @@ function SentencePage() {
             return null;
           }
 
-          const colorClass = typedChar === originalChar ? 'text-teal-600' : 'text-red-500';
+          const colorClass = typedChar === originalChar ? 'text-black' : 'text-red-500';
           const displayChar = typedChar === ' ' ? '\u00A0' : typedChar;
 
           return (
@@ -142,7 +142,7 @@ function SentencePage() {
 
       if (typedChar !== '') {
         if (typedChar === originalChar && !isError) {
-          colorClass = 'text-teal-600';
+          colorClass = 'text-white';
           displayChar = typedChar;
         } else {
           colorClass = 'text-red-500';
@@ -241,9 +241,9 @@ function SentencePage() {
   };
 
   const getBoxStyle = (index) => {
-    if (index === currentIndex - 1) return 'bg-gray-300';
-    if (index === currentIndex) return 'bg-white border border-gray-300 text-2xl font-semibold';
-    if (index === currentIndex + 1) return 'bg-gray-100';
+    if (index === currentIndex - 1) return 'bg-white ';
+    if (index === currentIndex) return 'bg-teal-600 border border-gray-300 text-2xl font-semibold';
+    if (index === currentIndex + 1) return 'bg-gray-300';
     if (index === currentIndex + 2) return 'bg-gray-300';
     return 'hidden';
   };
