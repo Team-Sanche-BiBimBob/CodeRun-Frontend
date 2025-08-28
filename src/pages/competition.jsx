@@ -57,10 +57,10 @@ const Competition = () => {
           <div className="space-y-6">
             <div className="space-y-4">
               {[
-                { time: '1시간 전', difficulty: '차동규', record: '00:36:21' },
-                { time: '1일 전', difficulty: '차동규', record: '00:36:21' },
-                { time: '1일 전', difficulty: '차동규', record: '00:36:21' },
-                { time: '2일 전', difficulty: '차동규', record: '00:36:21' },
+                { time: '1', difficulty: '차동규', record: '00:36:21' },
+                { time: '2', difficulty: '차동규', record: '00:36:21' },
+                { time: '3', difficulty: '차동규', record: '00:36:21' },
+                { time: '4', difficulty: '차동규', record: '00:36:21' },
               ].map((item, index) => (
                 <div key={index} className="bg-gray-100 rounded-2xl p-6 flex items-center justify-between">
                   <div className="flex items-center space-x-4">
