@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock } from 'lucide-react';
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ 추가
 
 const Competition = () => {
   const [type, setType] = useState("단어");
+  const navigate = useNavigate();
 
-  const handleChange = (type)=>{
+  const handleChange = (type) => { 
     setType(type);
-  }
-
+  };
 
   const handleStartGame = () => {
-    alert(`${type} 게임 시작!`);
+    navigate("/selectLanguage"); 
   };
 
   return (
@@ -36,30 +36,31 @@ const Competition = () => {
               <hr className="border-gray-200 mb-8" />
               
               <div className="flex justify-center items-center space-x-4 mb-12 text-xl">
-                <span className={`${type==='단어'? 'text-teal-600':'text-gray-600'}  cursor-pointer hover:text-teal-600 transition-colors`}
+                <span 
+                  className={`${type==='단어'? 'text-teal-600':'text-gray-600'} cursor-pointer hover:text-teal-600 transition-colors`}
                   onClick={()=>handleChange("단어")}
                 >단어</span>
                 <span className="text-gray-400">|</span>
-                <span className={`${type==='문장'? 'text-teal-600':'text-gray-600'}  cursor-pointer hover:text-teal-600 transition-colors`}
+                <span 
+                  className={`${type==='문장'? 'text-teal-600':'text-gray-600'} cursor-pointer hover:text-teal-600 transition-colors`}
                   onClick={()=>handleChange("문장")}
                 >문장</span>
                 <span className="text-gray-400">|</span>
-                <span className={`${type==='풀코드'? 'text-teal-600':'text-gray-600'}  cursor-pointer hover:text-teal-600 transition-colors`}
-                onClick={()=>handleChange("풀코드")}
+                <span 
+                  className={`${type==='풀코드'? 'text-teal-600':'text-gray-600'} cursor-pointer hover:text-teal-600 transition-colors`}
+                  onClick={()=>handleChange("풀코드")}
                 >풀코드</span>
               </div>
             </div>
           </div>
 
-          {/* 오른쪽 - 기록 리스트와 시작하기 버튼 */}
           <div className="space-y-6">
-            {/* 기록 리스트 */}
             <div className="space-y-4">
               {[
-                { time: '1시간 전', difficulty: '자동구', record: '00:36:21' },
-                { time: '1일 전', difficulty: '자동구', record: '00:36:21' },
-                { time: '1일 전', difficulty: '자동구', record: '00:36:21' },
-                { time: '2일 전', difficulty: '자동구', record: '00:36:21' },
+                { time: '1시간 전', difficulty: '차동규', record: '00:36:21' },
+                { time: '1일 전', difficulty: '차동규', record: '00:36:21' },
+                { time: '1일 전', difficulty: '차동규', record: '00:36:21' },
+                { time: '2일 전', difficulty: '차동규', record: '00:36:21' },
               ].map((item, index) => (
                 <div key={index} className="bg-gray-100 rounded-2xl p-6 flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -77,13 +78,12 @@ const Competition = () => {
               ))}
             </div>
 
-            {/* 시작하기 버튼 */}
             <div className="flex justify-end pt-8">
               <button 
                 onClick={handleStartGame}
                 className="bg-teal-600 text-white py-4 px-12 rounded-2xl text-lg font-semibold hover:bg-teal-700 transition-colors"
               >
-                시작하기
+                언어 선택하기
               </button>
             </div>
           </div>
