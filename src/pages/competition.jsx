@@ -1,92 +1,96 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Clock } from 'lucide-react';
+import { useState } from 'react';
 
-export default function Competition() {
-  const [selectedCategory, setSelectedCategory] = useState('단독 대결');
+const Competition = () => {
+  const [type, setType] = useState("단어");
 
-  const categories = [
-    { id: 'solo', name: '단독 대결', active: true },
-    { id: 'multi', name: '다수 대결', active: false },
-    { id: 'friends', name: '친구와 플레이하기', active: false },
-    { id: 'ranking', name: '공식 유튜브', active: false },
-  ];
+  const handleChange = (type)=>{
+    setType(type);
+  }
+
+
+  const handleStartGame = () => {
+    alert(`${type} 게임 시작!`);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="w-full">
-        <div className="bg-gray-100">
-          
-          {/* Header */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 py-6 px-6">
-            <div className="flex items-center space-x-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl"></div>
-              <span className="text-2xl font-bold text-gray-800 tracking-wide">hs080401</span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* 서브 헤더 */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3">
+        <div className="max-w-6xl mx-auto flex items-center space-x-8">
+          <span className="text-teal-600 font-medium">타임 어택</span>
+          <span className="text-gray-600">1대1 경쟁대전</span>
+        </div>
+      </div>
 
-          <div className="py-6 px-6">
-            <div className="flex">
-              {/* Left Side - Categories */}
-              <div className="w-1/3 pr-6">
-                <div className="space-y-4">
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.name)}
-                      className={`w-full py-4 px-6 rounded-xl text-left text-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-                        selectedCategory === category.name
-                          ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white border-2 border-teal-400'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
-                      }`}
-                    >
-                      {category.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Side - Stats and Actions */}
-              <div className="w-2/3 pl-6 border-l border-gray-300">
-                {/* Stats */}
-                <div className="grid grid-cols-4 gap-6 mb-8">
-                  <div className="text-center bg-white p-6 rounded-xl border border-gray-200">
-                    <div className="text-base font-medium text-gray-600 mb-2">플레이</div>
-                    <div className="text-2xl font-bold text-gray-900">300</div>
-                  </div>
-                  <div className="text-center bg-white p-6 rounded-xl border border-gray-200">
-                    <div className="text-base font-medium text-gray-600 mb-2">승률</div>
-                    <div className="text-2xl font-bold text-gray-900">54%</div>
-                  </div>
-                  <div className="text-center bg-white p-6 rounded-xl border border-gray-200">
-                    <div className="text-base font-medium text-gray-600 mb-2">순위</div>
-                    <div className="text-2xl font-bold text-gray-900">120등</div>
-                  </div>
-                  <div className="text-center bg-white p-6 rounded-xl border border-gray-200">
-                    <div className="text-base font-medium text-gray-600 mb-2">친구</div>
-                    <div className="text-2xl font-bold text-gray-900">17명</div>
-                  </div>
-                </div>
-
-                {/* Selected Category Display */}
-                <div className="mb-8">
-                  <div className="bg-gradient-to-r from-teal-500 to-teal-600 text-white py-8 px-6 rounded-xl border-2 border-teal-400">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{selectedCategory}</div>
-                      <div className="text-teal-100 text-base mt-1">여길 눌러서 시작하세요</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Advertisement Section */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 text-center border-2 border-dashed border-gray-300">
-                  <div className="text-gray-500 text-lg font-medium mb-1">haesung3308@gmail.com</div>
-                  <div className="text-gray-400 text-sm">오류가 있다면 여기로 연락 해주세요</div>
-                </div>
+      {/* 메인 컨텐츠 */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 왼쪽 - 게임 정보 */}
+          <div className="flex justify-center">
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center w-full max-w-md">
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">{type}</h2>
+              <div className="text-gray-500 mb-8">내 최고기록: 00:36:21</div>
+              
+              <hr className="border-gray-200 mb-8" />
+              
+              <div className="flex justify-center items-center space-x-4 mb-12 text-xl">
+                <span className={`${type==='단어'? 'text-teal-600':'text-gray-600'}  cursor-pointer hover:text-teal-600 transition-colors`}
+                  onClick={()=>handleChange("단어")}
+                >단어</span>
+                <span className="text-gray-400">|</span>
+                <span className={`${type==='문장'? 'text-teal-600':'text-gray-600'}  cursor-pointer hover:text-teal-600 transition-colors`}
+                  onClick={()=>handleChange("문장")}
+                >문장</span>
+                <span className="text-gray-400">|</span>
+                <span className={`${type==='풀코드'? 'text-teal-600':'text-gray-600'}  cursor-pointer hover:text-teal-600 transition-colors`}
+                onClick={()=>handleChange("풀코드")}
+                >풀코드</span>
               </div>
             </div>
           </div>
 
+          {/* 오른쪽 - 기록 리스트와 시작하기 버튼 */}
+          <div className="space-y-6">
+            {/* 기록 리스트 */}
+            <div className="space-y-4">
+              {[
+                { time: '1시간 전', difficulty: '자동구', record: '00:36:21' },
+                { time: '1일 전', difficulty: '자동구', record: '00:36:21' },
+                { time: '1일 전', difficulty: '자동구', record: '00:36:21' },
+                { time: '2일 전', difficulty: '자동구', record: '00:36:21' },
+              ].map((item, index) => (
+                <div key={index} className="bg-gray-100 rounded-2xl p-6 flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-gray-600">{item.time}</span>
+                    <span className="text-gray-400">|</span>
+                    <span className="text-gray-600">{item.difficulty}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Clock className="w-5 h-5 text-gray-500" />
+                    <span className="font-mono text-lg font-semibold text-gray-800">
+                      {item.record}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 시작하기 버튼 */}
+            <div className="flex justify-end pt-8">
+              <button 
+                onClick={handleStartGame}
+                className="bg-teal-600 text-white py-4 px-12 rounded-2xl text-lg font-semibold hover:bg-teal-700 transition-colors"
+              >
+                시작하기
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Competition;
