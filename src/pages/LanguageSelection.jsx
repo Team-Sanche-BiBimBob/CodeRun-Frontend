@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LanguageCard from "../components/LanguageCard/LanguageCard";
-
-const programmingLanguages = [
+/*const programmingLanguages = [
   {
     id: 'python',
     name: 'Python',
@@ -60,44 +59,58 @@ const programmingLanguages = [
     difficulty: '중간',
     popularity: 3,
   },
-];
-
+];*/
 const LanguageSelection = () => {
+  const [languages, setLanguages] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const navigate = useNavigate();
-
+  useEffect(()=>{
+    const getData = async ()=>{
+      const response = await fetch('/api/languages', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        console.log(response.status)
+        throw new Error(`서버 오류: ${response.status}`);
+      }
+      const data =  await response.json();
+      console.log(data);
+      setLanguages(data);
+    }
+    getData();
+  },[]);
   const handleLanguageSelect = (languageId) => {
     setSelectedLanguage(languageId);
   };
-
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
       navigate('/choice', { state: { language: selectedLanguage } });
     }
   };
-
   const handleSelectLater = () => {
     console.log('Select later clicked');
   };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-6xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-center mb-12">
           학습할 프로그래밍 언어를 선택하세요
         </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {programmingLanguages.map((language) => (
+        <div className="flex justify-center mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-48 max-w-4xl">
+          {languages.map((language) => (
             <LanguageCard
               key={language.id}
               language={language}
               selectedLanguage={selectedLanguage}
               onSelect={handleLanguageSelect}
             />
-          ))}
+                      ))}
+          </div>
         </div>
-
         <div className="flex flex-col items-center">
           <button
             className={`w-64 py-3 px-6 rounded-md text-center border-none cursor-pointer transition-colors ${
@@ -110,7 +123,6 @@ const LanguageSelection = () => {
           >
             선택 완료
           </button>
-
           <button
             className="mt-4 text-sm text-gray-600 bg-transparent border-none cursor-pointer hover:text-gray-800"
             onClick={handleSelectLater}
@@ -122,5 +134,4 @@ const LanguageSelection = () => {
     </div>
   );
 };
-
 export default LanguageSelection;
