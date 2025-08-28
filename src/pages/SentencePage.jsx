@@ -21,7 +21,7 @@ function SentencePage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/v1/problems', {
+      const response = await fetch('/api/problems', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
