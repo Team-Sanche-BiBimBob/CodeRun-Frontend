@@ -2,7 +2,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Home from '../../pages/main/Home';
 import LanguageSelection from '../../pages/PracticeSelect/LanguageSelection';
-import Choice from '../../pages/PracticeSelect/PracticeSelect'; 
+import PracticeSelect from '../../pages/PracticeSelect/PracticeSelect'; 
 import Competition from '../../pages/arcade/arcadeSelect/Competition';
 import WordPage from '../../pages/practice/word/WordPage';
 import SentencePage from '../../pages/practice/sentence/SentencePage';
@@ -17,7 +17,7 @@ const Routers = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/selectLanguage" element={<LanguageSelection />} />
-      <Route path="/choice" element={<Choice />} />
+      <Route path="/PracticeSelect" element={<PracticeSelect />} />
       <Route path='/competition' element={<Competition />} />
       <Route path="/word" element={<WordPage />} />
       <Route path="/sentence" element={<SentencePage />} />

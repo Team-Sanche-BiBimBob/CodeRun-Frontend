@@ -72,7 +72,7 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
-      navigate('/choice', { state: { language: selectedLanguage } });
+      navigate('/PracticeSelect', { state: { language: selectedLanguage } });
     }
   };
 
