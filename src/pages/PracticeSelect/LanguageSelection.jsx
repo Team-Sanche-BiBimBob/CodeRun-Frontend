@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LanguageCard from "../components/LanguageCard/LanguageCard";
+import LanguageCard from "../../components/LanguageCard/LanguageCard";
 
 const programmingLanguages = [
   {

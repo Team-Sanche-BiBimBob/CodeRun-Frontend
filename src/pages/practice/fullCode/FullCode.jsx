@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import CompletionModal from '../components/CompletionModal';
+import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import './Fullcode.css';
 
 const Fullcode = () => {

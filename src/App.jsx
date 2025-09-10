@@ -1,6 +1,6 @@
-import { useLocation } from 'react-router';
+import { useLocation } from 'react-router-dom';
 import './App.css'
-import Header from './components/Header/Header.jsx'
+import Header from './components/common/header/Header.jsx'
 import { useState, useEffect } from 'react';
 import Routers from './components/Routers/Routers.jsx';
 

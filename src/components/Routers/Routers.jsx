@@ -1,16 +1,16 @@
 // components/Routers.jsx
 import { Routes, Route } from 'react-router-dom';
-import Home from '../../pages/Home';
-import LanguageSelection from '../../pages/LanguageSelection';
-import Choice from '../../pages/choice'; 
-import Competition from '../../pages/competition';
-import WordPage from '../../pages/WordPage';
-import SentencePage from '../../pages/SentencePage';
-import Fullcode from '../../pages/Fullcode';
-import CodingPlatform from '../../pages/CodingPlatform';
-import TeacherView from '../../pages/TeacherView';
-import Login from '../../pages/Login';
-import Signup from '../../pages/Signup';
+import Home from '../../pages/main/Home';
+import LanguageSelection from '../../pages/PracticeSelect/LanguageSelection';
+import Choice from '../../pages/PracticeSelect/PracticeSelect'; 
+import Competition from '../../pages/arcade/arcadeSelect/Competition';
+import WordPage from '../../pages/practice/word/WordPage';
+import SentencePage from '../../pages/practice/sentence/SentencePage';
+import Fullcode from '../../pages/practice/fullCode/FullCode';
+import CodingPlatform from '../../pages/workbook/CodingPlatform';
+import TeacherView from '../../pages/teacherView/TeacherView';
+import Login from '../../pages/auth/Signin/Login';
+import Signup from '../../pages/auth/Signup/Signup';
 
 const Routers = () => {
   return (

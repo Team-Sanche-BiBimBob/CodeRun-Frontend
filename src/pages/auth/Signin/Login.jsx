@@ -1,11 +1,13 @@
 import React from "react";
-import "./Auth.css";
-import { LoginTextField } from "../components/Auth/TextField/LoginTextField";
+import "../Auth.css";
+import { LoginTextField } from "../../../components/Auth/TextField/LoginTextField";
 
 import { useState } from "react";
-import { api } from "../server";
+import { api } from "../../../server";
 import axios from "axios";
-import { href } from "react-router";
+// react-router-dom에서는 href 훅이 없으며, 링크 이동은 useNavigate 또는 Link를 사용합니다.
+import { useNavigate } from "react-router-dom";
+import loginBanner from "../../../assets/authIcon/loginBanner.png";
 
 
 const Login = () => {
@@ -55,7 +57,7 @@ const Login = () => {
         <div
           className="auth-left"
           style={{
-            backgroundImage: "url('/src/assets/authIcon/loginBanner.png')",
+            backgroundImage: `url(${loginBanner})`,
           }}
         >
           <span className="logo-title">CodeRun{"{ }"}</span>

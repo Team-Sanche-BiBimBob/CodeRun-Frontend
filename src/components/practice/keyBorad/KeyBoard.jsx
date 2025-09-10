@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import StatusBar from './StatusBar'; // StatusBar 컴포넌트 import
+import StatusBar from '../statusBar/StatusBar'; // StatusBar 컴포넌트 import
 
 const KoreanKeyboard = () => {
   // 진행 시간(초)
