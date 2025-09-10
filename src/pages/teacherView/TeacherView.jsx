@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './TeacherView.css';
 
 const TeacherView = () => {
   const [showMore, setShowMore] = useState(false);
@@ -62,43 +61,50 @@ const TeacherView = () => {
   };
 
   return (
-    <div className="teacher-view">
-      <div className="sidebar">
-        <button className="class-management-btn" onClick={openModal}>
+    <div className="flex h-screen bg-gray-100 font-sans">
+      {/* Sidebar */}
+      <div className="w-70 bg-white border-r border-gray-200 p-5 flex flex-col gap-6">
+        <button 
+          className="flex items-center gap-3 px-4 py-3 bg-teal-600 text-white border-none rounded-lg text-sm font-medium cursor-pointer hover:bg-teal-700 transition-colors"
+          onClick={openModal}
+        >
           <UsersIcon />
           클래스만들기
         </button>
 
-        <div className="section">
-          <div className="section-header">
+        {/* 나의 폴더 섹션 */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between text-sm font-medium text-gray-700">
             <span>나의 폴더</span>
-            <div className="section-actions">
-              <PlusIcon />
-              <SettingsIcon />
+            <div className="flex items-center gap-2 text-gray-400">
+              <PlusIcon className="cursor-pointer hover:text-gray-600 transition-colors" />
+              <SettingsIcon className="cursor-pointer hover:text-gray-600 transition-colors" />
             </div>
           </div>
 
-          <div className="folder-list">
+          <div className="flex flex-col gap-1">
             {folders.map((folder, index) => (
-              <div key={index} className="folder-item">
+              <div key={index} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 cursor-pointer rounded-md hover:bg-gray-100 transition-colors">
                 {folder.icon}
                 <span>{folder.name}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="section">
-          <div className="section-header">
+
+        {/* 나의 클래스 섹션 */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between text-sm font-medium text-gray-700">
             <span>나의 클래스</span>
-            <div className="section-actions">
-              <PlusIcon />
-              <SettingsIcon />
+            <div className="flex items-center gap-2 text-gray-400">
+              <PlusIcon className="cursor-pointer hover:text-gray-600 transition-colors" />
+              <SettingsIcon className="cursor-pointer hover:text-gray-600 transition-colors" />
             </div>
           </div>
 
-          <div className="class-list">
+          <div className="flex flex-col gap-1">
             {classes.map((classItem, index) => (
-              <div key={index} className="class-item">
+              <div key={index} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 cursor-pointer rounded-md hover:bg-gray-100 transition-colors">
                 {classItem.icon}
                 <span>{classItem.name}</span>
               </div>
@@ -106,7 +112,7 @@ const TeacherView = () => {
           </div>
 
           <button
-            className="more-btn"
+            className="flex items-center gap-2 px-3 py-2 bg-transparent border-none text-sm text-gray-500 cursor-pointer rounded-md hover:bg-gray-100 transition-colors"
             onClick={() => setShowMore(!showMore)}
           >
             더보기 <ChevronDownIcon />
@@ -114,69 +120,103 @@ const TeacherView = () => {
         </div>
       </div>
 
-      <div className="main-content">
-        <div className="Teacherhero-section">
-          <div className="Teacherhero-content">
-            <h1 className="Teacherhero-title">CodeRun{'{}'}</h1>
-            <p className="Teacherhero-subtitle">어제보다 한글자 더 빠르게</p>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Hero Section */}
+        <div className="bg-teal-500 text-white px-10 py-15 flex items-center justify-start h-56 relative">
+          <div className="text-left ml-10">
+            <h1 className="text-5xl font-semibold m-0 mb-3 tracking-tight">CodeRun{'{}'}</h1>
+            <p className="text-lg m-0 opacity-90 font-normal">어제보다 한글자 더 빠르게</p>
           </div>
         </div>
-        <div className="content-section">
-          <div className="content-tabs">
-            <span className="tab-link">그룹 코드 생성</span>
-            <span className="tab-divider">|</span>
-            <span className="tab-link">학생 관리</span>
-            <span className="tab-spacer"></span>
-            <span className="tab-link">클래스에 추가</span>
-            <span className="tab-divider">|</span>
-            <span className="tab-link">폴더에 추가</span>
+
+        {/* Content Section */}
+        <div className="flex-1 p-10 bg-gray-50">
+          <div className="flex items-center gap-4 mb-8 text-sm">
+            <span className="text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">그룹 코드 생성</span>
+            <span className="text-gray-300">|</span>
+            <span className="text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">학생 관리</span>
+            <span className="flex-1"></span>
+            <span className="text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">클래스에 추가</span>
+            <span className="text-gray-300">|</span>
+            <span className="text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">폴더에 추가</span>
           </div>
 
-          <div className="action-buttons">
-            <button className="action-btn submit-btn">
+          <div className="flex items-center gap-6 mb-6">
+            <button className="px-6 py-3 border-none rounded-lg text-sm font-medium cursor-pointer transition-all min-w-20 bg-teal-600 text-white hover:bg-teal-700">
               단어
             </button>
-            <div className="lesson-info">
+            <div className="text-sm text-gray-500 bg-white px-5 py-3 rounded-lg border border-gray-200">
               Python 예약어 레벨 1- 20까지
             </div>
           </div>
 
-          <div className="action-buttons">
-            <button className="action-btn problem-btn">
+          <div className="flex items-center gap-6 mb-6">
+            <button className="px-6 py-3 border-none rounded-lg text-sm font-medium cursor-pointer transition-all min-w-20 bg-teal-600 text-white hover:bg-teal-700">
               문장
             </button>
           </div>
 
-          <div className="action-buttons">
-            <button className="action-btn upload-btn">
+          <div className="flex items-center gap-6 mb-6">
+            <button className="px-6 py-3 border-none rounded-lg text-sm font-medium cursor-pointer transition-all min-w-20 bg-teal-600 text-white hover:bg-teal-700">
               플코딩
             </button>
           </div>
         </div>
       </div>
 
+      {/* Modal */}
       {showModal && (
-        <div className="new-modal-overlay">
-          <div className="new-modal-content">
-            <div className="new-modal-logo">
-              <h2>
-                <span className="code-text">Code</span>
-                <span className="run-text">Run</span>
-                <span className="brackets-text">{'{}'}</span>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in">
+          <div className="bg-white px-10 py-12 rounded-3xl shadow-2xl max-w-sm w-full text-center animate-slide-up">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold m-0 text-gray-800">
+                <span className="text-gray-800">Code</span>
+                <span className="text-teal-500">Run</span>
+                <span className="text-yellow-400">{'{}'}</span>
               </h2>
-              <p className="new-modal-subtitle">수업 코드 공유</p>
+              <p className="text-sm text-gray-600 mt-2 mb-0">수업 코드 공유</p>
             </div>
             
-            <div className="new-modal-code">
+            <div className="text-4xl font-bold text-gray-800 my-8 tracking-wider font-mono">
               {randomCode}
             </div>
             
-            <button className="new-modal-btn" onClick={closeModal}>
+            <button 
+              className="w-full bg-teal-500 text-white border-none px-8 py-4 rounded-2xl text-lg font-semibold cursor-pointer hover:bg-teal-600 transition-colors"
+              onClick={closeModal}
+            >
               닫기
             </button>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.25s ease forwards;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.3s ease forwards;
+        }
+      `}</style>
     </div>
   );
 };
