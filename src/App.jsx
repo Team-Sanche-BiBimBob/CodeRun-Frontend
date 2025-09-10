@@ -2,7 +2,7 @@ import { useLocation } from 'react-router';
 import './App.css'
 import Header from './components/Header/Header.jsx'
 import { useState, useEffect } from 'react';
-import Routers from './components/Routers.jsx';
+import Routers from './components/Routers/Routers.jsx';
 
 const App = () => {
   const location = useLocation();
@@ -12,7 +12,7 @@ const App = () => {
     const onStorage = () => setIsLoggedIn(!!localStorage.getItem('token'));
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  }, []); 
 
   const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/choice" , "/competition"];
 
