@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../components/KeyBoard';
-import CompletionModal from '../components/CompletionModal';
+import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
+import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [

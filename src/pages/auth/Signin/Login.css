@@ -24,7 +24,7 @@
     width: 40%;
     height: 85vh;
     background-color: #14B8A6;
-    background-image: url('/Users/duk1/Documents/GitHub/CodeRun-Frontend/src/assets/authIcon/loginBanner.png'); /* 이미지 경로 */
+    /* 배경 이미지는 JSX에서 inline style로 import하여 설정합니다. */
     background-size: cover; 
     background-position: center; 
     background-repeat: no-repeat;

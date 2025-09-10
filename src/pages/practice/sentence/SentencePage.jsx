@@ -1,23 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../components/KeyBoard';
-import CompletionModal from '../components/CompletionModal';
-
-const sentences = [
-  'print("Hello world!")',
-  'for i in range(10):',
-  'console.log("Hello world!");',
-  'function greet(name) {',
-  'System.out.println("Hello world!");',
-  'public class Person {',
-  'SELECT * FROM users;',
-  'let message: string = "Hello world!";',
-  'println("Hello world!")',
-  'func greet(name: String) -> String {'
-];
+import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
+import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 
 function SentencePage() {
   const navigate = useNavigate();
+  const [sentences, setSentences] = useState([]); // 서버에서 받아올 문장들
+  const [loading, setLoading] = useState(true); // 로딩 상태
+  const [error, setError] = useState(null); // 에러 상태
   const [currentIndex, setCurrentIndex] = useState(0);
   const [typedChars, setTypedChars] = useState([]);
   const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
@@ -25,7 +15,58 @@ function SentencePage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  const currentSentence = sentences[currentIndex];
+  // 서버에서 타자연습 문장 리스트 가져오기
+  const fetchSentences = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/problems', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`서버 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // 서버 응답 형태에 따라 조정 필요
+      // 예: data가 배열이면 setSentences(data)
+      // 예: data가 {sentences: [...]} 형태면 setSentences(data.sentences)
+      setSentences(data.sentences || data || []);
+      
+    } catch (err) {
+      console.error('타자연습 리스트 가져오기 실패:', err);
+      setError(err.message);
+      
+      // 에러 발생 시 기본 더미 데이터 사용
+      setSentences([
+        'print("Hello world!")',
+        'for i in range(10):',
+        'console.log("Hello world!");',
+        'function greet(name) {',
+        'System.out.println("Hello world!");',
+        'public class Person {',
+        'SELECT * FROM users;',
+        'let message: string = "Hello world!";',
+        'println("Hello world!")',
+        'func greet(name: String) -> String {'
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 컴포넌트 마운트 시 문장 리스트 가져오기
+  useEffect(() => {
+    fetchSentences();
+  }, [fetchSentences]);
+
+  const currentSentence = sentences[currentIndex] || '';
 
   // 한글 입력 차단용 정규식
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
@@ -43,7 +84,7 @@ function SentencePage() {
       return;
     }
 
-    if (isComplete) return;
+    if (isComplete || sentences.length === 0) return;
 
     if (e.key === 'Backspace') {
       setTypedChars((prev) => prev.slice(0, -1));
@@ -90,7 +131,7 @@ function SentencePage() {
       setTypedChars([]);
       setSpaceErrorIndices([]);
     }
-  }, [typedChars, spaceErrorIndices, currentSentence, currentIndex, isComplete]);
+  }, [typedChars, spaceErrorIndices, currentSentence, currentIndex, isComplete, sentences.length]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -110,7 +151,6 @@ function SentencePage() {
           const typedChar = typedChars[i];
           
           if (typedChar === undefined) {
-            // 사용자가 입력하지 않은 부분은 표시하지 않음
             return null;
           }
 
@@ -233,6 +273,8 @@ function SentencePage() {
     setHistory([]);
     setIsComplete(false);
     setStartTime(new Date());
+    // 서버에서 새로운 문장 리스트를 다시 가져올 수도 있음
+    // fetchSentences();
   };
 
   // 홈 이동
@@ -248,8 +290,57 @@ function SentencePage() {
     return 'hidden';
   };
 
+  // 로딩 중일 때
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
+        <div className="text-center">
+          <div className="text-xl font-semibold text-gray-700 mb-4">
+            타자연습 문장을 불러오는 중...
+          </div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 발생 시 (더미 데이터로 대체되므로 에러만 표시)
+  if (error && sentences.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
+        <div className="text-center">
+          <div className="text-xl font-semibold text-red-600 mb-4">
+            서버 연결에 실패했습니다
+          </div>
+          <div className="text-gray-600 mb-6">{error}</div>
+          <button
+            onClick={fetchSentences}
+            className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
+      {/* 서버 연결 에러가 있을 때 알림 표시 (더미 데이터 사용 중) */}
+      {error && (
+        <div className="fixed top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded z-50">
+          <div className="flex items-center">
+            <span className="text-sm">서버 연결 실패 - 기본 문장으로 연습 중</span>
+            <button
+              onClick={fetchSentences}
+              className="ml-3 text-yellow-800 hover:text-yellow-900 font-medium"
+            >
+              재시도
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 이전 문장 - 사용자가 입력한 내용으로 렌더링 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}

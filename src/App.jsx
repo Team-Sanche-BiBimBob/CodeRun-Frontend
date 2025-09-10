@@ -1,8 +1,8 @@
-import { useLocation } from 'react-router';
+import { useLocation } from 'react-router-dom';
 import './App.css'
-import Header from './components/Header/Header.jsx'
+import Header from './components/common/header/Header.jsx'
 import { useState, useEffect } from 'react';
-import Routers from './components/Routers.jsx';
+import Routers from './components/Routers/Routers.jsx';
 
 const App = () => {
   const location = useLocation();
@@ -12,9 +12,9 @@ const App = () => {
     const onStorage = () => setIsLoggedIn(!!localStorage.getItem('token'));
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  }, []); 
 
-  const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/choice"];
+  const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/PracticeSelect" , "/competition"];
 
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
