@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import "./Auth.css";
-import { LoginTextField } from "../components/Auth/TextField/LoginTextField";
-import { api } from "../server";
+import "../Auth.css";
+import { LoginTextField } from "../../../components/Auth/TextField/LoginTextField";
+import { api } from "../../../server";
 import { useNavigate } from "react-router-dom";
+import loginBanner from "../../../assets/authIcon/loginBanner.png";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -48,7 +49,7 @@ const Signup = () => {
         <div
           className="auth-left"
           style={{
-            backgroundImage: "url('/src/assets/authIcon/loginBanner.png')",
+            backgroundImage: `url(${loginBanner})`,
           }}
         >
           <span className="logo-title">CodeRun{"{ }"}</span>

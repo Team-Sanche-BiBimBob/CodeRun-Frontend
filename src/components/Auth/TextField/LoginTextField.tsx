@@ -2,6 +2,8 @@ import './LoginTextField.css';
 import { IoEye } from "react-icons/io5";
 import { IoMdEyeOff } from "react-icons/io";
 import React from 'react';
+import mailIcon from '../../../assets/authIcon/loginMailIcon.svg';
+import keyIcon from '../../../assets/authIcon/loginKeyIcon.svg';
 
 export const LoginTextField = (props) => {
   const isPassword = props.type === 'password';
@@ -9,9 +11,9 @@ export const LoginTextField = (props) => {
   return (
     <div className="container">
       {props.isLoginTextField ? (
-        <img src='src/assets/authIcon/loginMailIcon.svg' className='login-icon' />
+        <img src={mailIcon} className='login-icon' />
       ) : (
-        <img src='src/assets/authIcon/loginKeyIcon.svg' className='login-icon' />
+        <img src={keyIcon} className='login-icon' />
       )}
       <input
         className='login-input'

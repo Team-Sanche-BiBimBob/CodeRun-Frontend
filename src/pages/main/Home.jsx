@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
-import Footer from '../components/Footer.jsx';
+import Footer from '../../components/common/footer/Footer.jsx';
 import { useNavigate } from 'react-router-dom'; // ✅ 추가
 
 const Home = () => {

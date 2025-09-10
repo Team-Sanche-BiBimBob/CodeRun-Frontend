@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Choice = () => {
+const PracticeSelect = () => {
   const navigate = useNavigate();
 
   return (
@@ -53,4 +53,4 @@ const Choice = () => {
   );
 };
 
-export default Choice;
+export default PracticeSelect;
