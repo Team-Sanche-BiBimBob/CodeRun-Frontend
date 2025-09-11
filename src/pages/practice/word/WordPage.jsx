@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
-import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
+import KeyBoard from '../components/KeyBoard';
+import CompletionModal from '../components/CompletionModal';
+import RealTimeStats from '../components/RealTimeStats';
 
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [
@@ -111,8 +112,16 @@ function WordPage() {
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
-    return totalTyped === 0 ? 0 : (correctTyped / totalTyped) * 100;
-  }, [getTotalTyped, getCorrectTyped]);
+    
+    // 현재 입력 중인 단어도 포함하여 계산
+    const currentWord = wordList[currentIndex] || '';
+    const currentCorrectCount = userInput.split('').filter((char, i) => char === currentWord[i]).length;
+    
+    const finalTotalTyped = totalTyped + userInput.length;
+    const finalCorrectTyped = correctTyped + currentCorrectCount;
+    
+    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+  }, [getTotalTyped, getCorrectTyped, userInput, wordList, currentIndex]);
 
   const getElapsedTimeSec = useCallback(() => {
     return Math.floor((new Date() - startTime) / 1000);
@@ -223,10 +232,26 @@ function WordPage() {
           <div className="w-[200px] h-[2px] bg-[#37A998] mb-7" />
         </div>
       )}
-  
-      <div className="mt-10 w-full flex justify-center min-h-[200px]">
-        <KeyBoard />
-      </div>
+
+      {!isComplete && (
+        <div className="mt-10 w-full flex flex-col items-center">
+          {/* 키보드 위에 실시간 통계 표시 */}
+          <RealTimeStats
+            accuracy={getAccuracy()}
+            typingSpeed={getTypingSpeed()}
+            elapsedTime={getElapsedTime()}
+            currentIndex={currentIndex}
+            totalSentences={wordList.length}
+            startTime={startTime}              // 추가
+            getTotalTyped={getTotalTyped}
+          />
+          
+          {/* 키보드 */}
+          
+            <KeyBoard />
+    
+        </div>
+      )}
   
       <CompletionModal
         isOpen={isComplete}
