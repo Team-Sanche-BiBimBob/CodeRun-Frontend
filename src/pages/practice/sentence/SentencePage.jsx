@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../components/KeyBoard';
-import CompletionModal from '../components/CompletionModal';
-import RealTimeStats from '../components/RealTimeStats'; // ✅ 추가
+import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
+import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
+import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function SentencePage() {
   const navigate = useNavigate();
