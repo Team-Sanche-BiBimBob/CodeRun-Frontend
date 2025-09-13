@@ -22,7 +22,6 @@ const Login = () => {
       return;
     }
 
-
     api
       .post("/auth/signin", {
         email,
