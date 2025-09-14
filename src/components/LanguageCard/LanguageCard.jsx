@@ -4,7 +4,7 @@ import StarRating from './StarRating';
 const LanguageCard = ({ language, selectedLanguage, onSelect }) => {
   return (
     <div
-      className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md bg-white ${
+      className={`p-5 border rounded-lg cursor-pointer transition-all hover:shadow-md bg-white w-60 h-52 flex flex-col ${
         selectedLanguage === language.id ? 'border-green-500 shadow-md' : 'border-gray-200'
       }`}
       onClick={() => onSelect(language.id)}
@@ -17,11 +17,10 @@ const LanguageCard = ({ language, selectedLanguage, onSelect }) => {
           </span>
         )}
       </div>
-      <p className="text-sm text-gray-600 mb-4 h-16 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-3 flex-grow leading-relaxed">
         {language.description}
       </p>
-      <div className="flex justify-between text-sm text-gray-600">
-        <div>난이도: {language.difficulty}</div>
+      <div className="flex justify-between text-sm text-gray-600 mt-auto">
         <div className="flex items-center gap-1">
           인기: <StarRating rating={language.popularity} />
         </div>
