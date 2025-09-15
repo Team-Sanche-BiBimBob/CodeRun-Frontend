@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 
 const Fullcode = () => {
+  const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -255,37 +257,40 @@ const Fullcode = () => {
     );
   };
 
-  // 현재 라인 정확도 계산 함수
-  const calculateCurrentLineAccuracy = (input) => {
+  // 전체 정확도 계산 함수
+  const calculateOverallAccuracy = (input) => {
     if (!input) return 100;
     
-    const currentLineIndex = (input.match(/\n/g) || []).length;
-    const exampleLines = exampleCode.split('\n');
     const inputLines = input.split('\n');
+    const exampleLines = exampleCode.split('\n');
     
-    if (currentLineIndex >= exampleLines.length) return 0;
+    let incorrectChars = 0;
+    let totalInputChars = 0;
     
-    const currentExampleLine = exampleLines[currentLineIndex];
-    const currentInputLine = inputLines[currentLineIndex] || '';
-    
-    let correctChars = 0;
-    
-    for (let i = 0; i < currentInputLine.length; i++) {
-      if (i < currentExampleLine.length && currentInputLine[i] === currentExampleLine[i]) {
-        correctChars++;
+    // 모든 라인에 대해 정확도 계산
+    inputLines.forEach((inputLine, lineIndex) => {
+      const exampleLine = exampleLines[lineIndex] || '';
+      
+      for (let i = 0; i < inputLine.length; i++) {
+        totalInputChars++;
+        if (i >= exampleLine.length || inputLine[i] !== exampleLine[i]) {
+          incorrectChars++;
+        }
       }
-    }
+    });
     
-    return currentInputLine.length > 0 
-      ? Math.round((correctChars / currentInputLine.length) * 100)
+    return totalInputChars > 0 
+      ? Math.round(((totalInputChars - incorrectChars) / totalInputChars) * 100)
       : 100;
   };
 
-  // 분당 타수(Keystrokes Per Minute) 계산
-  const calculateKPM = useCallback(() => {
+  // 분당 타수(Words Per Minute) 계산
+  const calculateWPM = useCallback(() => {
     if (elapsedTime === 0) return 0;
-    return Math.round(keystrokes / (elapsedTime / 60));
-  }, [keystrokes, elapsedTime]);
+    const totalChars = code.length;
+    const timeInMinutes = elapsedTime / 60;
+    return Math.round((totalChars / 5) / timeInMinutes);
+  }, [code, elapsedTime]);
 
   // 타이머 정지
   const stopTimer = useCallback(() => {
@@ -322,7 +327,7 @@ const Fullcode = () => {
       
       setKeystrokes(prev => prev + 1);
       
-      const currentAccuracy = calculateCurrentLineAccuracy(value);
+      const currentAccuracy = calculateOverallAccuracy(value);
       setAccuracy(currentAccuracy);
       
       if (!isComposingRef.current) {
@@ -356,7 +361,7 @@ const Fullcode = () => {
               
               setCompletionStats({
                 accuracy: finalAccuracy,
-                typingSpeed: calculateKPM(),
+                typingSpeed: calculateWPM(),
                 elapsedTime: elapsedTime
               });
               setShowCompletionModal(true);
@@ -415,6 +420,25 @@ const Fullcode = () => {
 
   const handleRestart = () => {
     setShowCompletionModal(false);
+    
+    // 모든 상태 초기화
+    setCode('');
+    setKeystrokes(0);
+    setAccuracy(100);
+    setElapsedTime(0);
+    setStartTime(null);
+    setIsTyping(false);
+    lastValueRef.current = '';
+    
+    // 타이머 정리
+    stopTimer();
+    
+    // 데코레이션 초기화
+    if (editorRef.current && decorationsRef.current) {
+      decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
+    }
+    
+    // 새로운 예제 코드 선택
     const randomIndex = Math.floor(Math.random() * exampleCodes.length);
     const selectedExample = exampleCodes[randomIndex];
     setExampleCode(selectedExample);
@@ -423,8 +447,7 @@ const Fullcode = () => {
 
   const handleGoHome = () => {
     setShowCompletionModal(false);
-    // Navigate to home - replace with your navigation logic
-    console.log('Navigate to home');
+    navigate('/');
   };
 
   return (
@@ -438,8 +461,13 @@ const Fullcode = () => {
         onGoHome={handleGoHome}
       />
       
+      {/* Modal Overlay to prevent interactions */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-0 z-40" />
+      )}
+      
       {/* Statistics Container */}
-      <div className="flex justify-around items-center bg-gray-900 rounded-lg px-1.5 py-1 mb-2 shadow-sm">
+      <div className={`flex justify-around items-center bg-gray-900 rounded-lg px-1.5 py-1 mb-2 shadow-sm ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
         <div className="flex items-center gap-1 text-gray-200 px-1 py-0.5">
           <div className="text-xs text-gray-400 whitespace-nowrap mr-0.5">정확도</div>
           <div className="text-sm font-semibold text-white min-w-[28px] text-right">{accuracy}%</div>
@@ -451,13 +479,13 @@ const Fullcode = () => {
         <div className="flex items-center gap-1 text-gray-200 px-1 py-0.5">
           <div className="text-xs text-gray-400 whitespace-nowrap mr-0.5">타수</div>
           <div className="text-sm font-semibold text-white min-w-[28px] text-right">
-            {calculateKPM()} <span className="text-xs text-gray-400">타수</span>
+            {calculateWPM()} <span className="text-xs text-gray-400">타수</span>
           </div>
         </div>
       </div>
       
       {/* Code Editors Container */}
-      <div className="grid grid-cols-2 gap-8 flex-1 min-h-0">
+      <div className={`grid grid-cols-2 gap-8 flex-1 min-h-0 ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
         {/* Example Code Display */}
         <div className="flex flex-col bg-gray-900 rounded-md overflow-hidden shadow-lg h-full">
           <div className="bg-gray-800 text-gray-200 px-4 py-2 text-sm border-b border-gray-700 font-semibold">
