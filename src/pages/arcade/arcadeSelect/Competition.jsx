@@ -198,20 +198,27 @@ const CodeRunTimeAttack = () => {
         
         <div className="flex gap-6">
           <div className="flex-1">
-            {/* 태그 추가하기 버튼 - 밖으로 이동 */}
-            <div className="mb-4">
-              <button
-                onClick={handleAddTag}
-                className="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 transition-colors"
-              >
-                추가하기
-              </button>
-            </div>
-
             {/* 태그 섹션 */}
             <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
-              <div className="mb-5">
+              <div className="mb-5 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">태그</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAddTag}
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#14B8A6' }}
+                  >
+                    추가하기
+                  </button>
+                  {!isTagAdded && (
+                    <button 
+                      onClick={handleReset}
+                      className="w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-center"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* 완료된 태그들 표시 */}
@@ -221,7 +228,8 @@ const CodeRunTimeAttack = () => {
                     {completedTags.map(tag => (
                       <span
                         key={tag}
-                        className="px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium"
+                        className="px-3 py-1.5 text-sm font-medium rounded-full"
+                        style={{ backgroundColor: '#14B8A6', color: 'white' }}
                       >
                         {tag}
                       </span>
@@ -240,9 +248,10 @@ const CodeRunTimeAttack = () => {
                         onClick={() => handleTagSelect('모든선택')}
                         className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                           selectedTags.모든선택
-                            ? 'bg-teal-500 text-white'
+                            ? 'text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
+                        style={selectedTags.모든선택 ? { backgroundColor: '#14B8A6' } : {}}
                       >
                         모든선택
                       </button>
@@ -258,9 +267,10 @@ const CodeRunTimeAttack = () => {
                           onClick={() => handleTagSelect(tag)}
                           className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                             selectedTags[tag]
-                              ? 'bg-teal-500 text-white'
+                              ? 'text-white'
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                           }`}
+                          style={selectedTags[tag] ? { backgroundColor: '#14B8A6' } : {}}
                         >
                           {tag}
                         </button>
@@ -277,9 +287,10 @@ const CodeRunTimeAttack = () => {
                           onClick={() => handleTagSelect(tag)}
                           className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                             selectedTags[tag]
-                              ? 'bg-teal-500 text-white'
+                              ? 'text-white'
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                           }`}
+                          style={selectedTags[tag] ? { backgroundColor: '#14B8A6' } : {}}
                         >
                           {tag}
                         </button>
@@ -289,21 +300,12 @@ const CodeRunTimeAttack = () => {
 
                   <button 
                     onClick={handleCompleteTag}
-                    className="w-full bg-teal-500 text-white py-3 rounded-lg font-medium text-base hover:bg-teal-600 transition-colors"
+                    className="w-full text-white py-3 rounded-lg font-medium text-base hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#14B8A6' }}
                   >
                     완료
                   </button>
                 </div>
-              )}
-
-              {/* 초기화 버튼 */}
-              {!isTagAdded && (
-                <button 
-                  onClick={handleReset}
-                  className="bg-gray-500 text-white px-4 py-3 rounded-lg font-medium text-base hover:bg-gray-600 transition-colors"
-                >
-                  초기화
-                </button>
               )}
             </div>
 
@@ -332,7 +334,10 @@ const CodeRunTimeAttack = () => {
                       <span>{problem.difficulty}</span>
                       <span>⏱️ {problem.time}</span>
                     </div>
-                    <button className="w-full mt-3 bg-teal-500 text-white py-2 rounded-md text-sm hover:bg-teal-600 transition-colors">
+                    <button 
+                      className="w-full mt-3 text-white py-2 rounded-md text-sm hover:opacity-90 transition-colors"
+                      style={{ backgroundColor: '#2DD4BF' }}
+                    >
                       도전하기
                     </button>
                   </div>
@@ -341,7 +346,10 @@ const CodeRunTimeAttack = () => {
               
               {isLoading && (
                 <div className="text-center py-4">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-teal-500"></div>
+                  <div 
+                    className="inline-block animate-spin rounded-full h-6 w-6 border-b-2"
+                    style={{ borderColor: '#14B8A6' }}
+                  ></div>
                 </div>
               )}
               
@@ -366,9 +374,10 @@ const CodeRunTimeAttack = () => {
                   onClick={() => handleRankingTabChange('오늘')}
                   className={`flex-1 py-2 rounded-l-lg text-sm font-medium ${
                     activeRankingTab === '오늘' 
-                      ? 'bg-teal-500 text-white' 
+                      ? 'text-white' 
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
+                  style={activeRankingTab === '오늘' ? { backgroundColor: '#14B8A6' } : {}}
                 >
                   오늘
                 </button>
@@ -376,9 +385,10 @@ const CodeRunTimeAttack = () => {
                   onClick={() => handleRankingTabChange('이번주')}
                   className={`flex-1 py-2 text-sm font-medium ${
                     activeRankingTab === '이번주' 
-                      ? 'bg-teal-500 text-white' 
+                      ? 'text-white' 
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
+                  style={activeRankingTab === '이번주' ? { backgroundColor: '#14B8A6' } : {}}
                 >
                   이번주
                 </button>
@@ -386,48 +396,56 @@ const CodeRunTimeAttack = () => {
                   onClick={() => handleRankingTabChange('이번달')}
                   className={`flex-1 py-2 rounded-r-lg text-sm font-medium ${
                     activeRankingTab === '이번달' 
-                      ? 'bg-teal-500 text-white' 
+                      ? 'text-white' 
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
+                  style={activeRankingTab === '이번달' ? { backgroundColor: '#14B8A6' } : {}}
                 >
                   이번달
                 </button>
               </div>
 
               <div className="space-y-3">
-                {rankings.map((rank, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-3 p-3 rounded-lg ${
-                      rank.name === 'me' 
-                        ? 'bg-teal-50 border border-teal-200' 
-                        : 'bg-gray-50'
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
-                        rank.rank <= 3 ? 'bg-teal-500' : 'bg-gray-400'
-                      }`}
-                    >
-                      {rank.rank}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-800">{rank.name}</div>
-                      <div className="text-sm text-gray-600">⏱️ {rank.time}</div>
-                    </div>
-                  </div>
-                ))}
-                
-                {rankings.length > 5 && (
-                  <div className="text-center py-2">
-                    <span className="text-gray-400 text-lg">⋮</span>
-                  </div>
-                )}
+                {rankings.map((rank, index) => {
+                  // 'me' 항목 바로 전에 점 3개 표시
+                  const showDots = rank.name === 'me' && rank.rank > 6;
+                  
+                  return (
+                    <React.Fragment key={index}>
+                      {showDots && (
+                        <div className="text-center py-2">
+                          <span className="text-gray-400 text-lg">⋮</span>
+                        </div>
+                      )}
+                      <div
+                        className={`flex items-center gap-3 p-3 rounded-lg ${
+                          rank.name === 'me' 
+                            ? 'border' 
+                            : 'bg-gray-50'
+                        }`}
+                        style={rank.name === 'me' ? { backgroundColor: '#F0FDFA', borderColor: '#14B8A6' } : {}}
+                      >
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
+                            rank.rank <= 3 ? '' : 'bg-gray-400'
+                          }`}
+                          style={rank.rank <= 3 ? { backgroundColor: '#14B8A6' } : {}}
+                        >
+                          {rank.rank}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-800">{rank.name}</div>
+                          <div className="text-sm text-gray-600">⏱️ {rank.time}</div>
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  );
+                })}
               </div>
 
               {selectedProblemSet && (
-                <div className="mt-4 p-3 bg-teal-50 rounded-lg border border-teal-200">
-                  <div className="text-sm text-teal-700">
+                <div className="mt-4 p-3 rounded-lg border" style={{ backgroundColor: '#F0FDFA', borderColor: '#14B8A6' }}>
+                  <div className="text-sm" style={{ color: '#065F46' }}>
                     선택된 문제집: <strong>{selectedProblemSet}</strong>
                   </div>
                 </div>
