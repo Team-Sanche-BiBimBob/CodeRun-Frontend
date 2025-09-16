@@ -313,53 +313,55 @@ const KoreanKeyboard = () => {
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-gray-100 rounded-xl shadow-lg overflow-hidden relative">
-      {/* <StatusBar
-        typingSpeed={typingSpeed}
-        accuracy={accuracy}
-        currentTime={elapsedSeconds} // 진행 시간(초) 전달
-      /> */}
-      {/* Keyboard */}
-      <div className="p-8 bg-gray-100">
-        <div
-          className="keyboard grid gap-x-3 gap-y-2"
-          style={{
-            gridTemplateColumns: 'repeat(60, 1fr)',
-          }}
-        >
-          {keyboardLayout.map((row, rowIndex) => (
-            <React.Fragment key={rowIndex}>
-              {row.map((key, keyIndex) => (
-                <div
-                  key={`${rowIndex}-${keyIndex}`}
-                  className={`key bg-white border border-gray-300 rounded-lg shadow-sm
-                              hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150
-                              flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
-                              ${key.isFunctional ? 'text-xs' : ''}
-                              ${key.code === highlightedKey ? 'highlighted-key' : ''}
-                            `}
-                  style={{
-                    gridColumn: `span ${key.span}`,
-                  }}
-                >
-                  <div className="flex flex-col items-center">
-                    {key.shift && <span className="text-xs text-gray-400">{key.shift}</span>}
-                    <span className="text-sm">{key.main}</span>
+    <div className="w-full flex justify-center">
+      <div className="w-[1024px] bg-gray-100 rounded-b-xl shadow-lg overflow-hidden relative">
+        {/* <StatusBar
+          typingSpeed={typingSpeed}
+          accuracy={accuracy}
+          currentTime={elapsedSeconds} // 진행 시간(초) 전달
+        /> */}
+        {/* Keyboard */}
+        <div className="p-6 bg-gray-100">
+          <div
+            className="keyboard grid gap-x-2 gap-y-2"
+            style={{
+              gridTemplateColumns: 'repeat(60, 1fr)',
+            }}
+          >
+            {keyboardLayout.map((row, rowIndex) => (
+              <React.Fragment key={rowIndex}>
+                {row.map((key, keyIndex) => (
+                  <div
+                    key={`${rowIndex}-${keyIndex}`}
+                    className={`key bg-white border border-gray-300 rounded-lg shadow-sm
+                                hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150
+                                flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
+                                ${key.isFunctional ? 'text-xs' : ''}
+                                ${key.code === highlightedKey ? 'highlighted-key' : ''}
+                              `}
+                    style={{
+                      gridColumn: `span ${key.span}`,
+                    }}
+                  >
+                    <div className="flex flex-col items-center">
+                      {key.shift && <span className="text-xs text-gray-400">{key.shift}</span>}
+                      <span className="text-sm">{key.main}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <style jsx>{`
-        .highlighted-key {
-          background-color: #fca5a5;
-          border-color: #ef4444;
-          box-shadow: 0 0 0 3px #f87171;
-        }
-      `}</style>
+        <style jsx>{`
+          .highlighted-key {
+            background-color: #fca5a5;
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px #f87171;
+          }
+        `}</style>
+      </div>
     </div>
   );
 };

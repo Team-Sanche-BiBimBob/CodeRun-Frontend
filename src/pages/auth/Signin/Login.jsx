@@ -1,20 +1,12 @@
-import React from "react";
-import "../Auth.css";
-import { LoginTextField } from "../../../components/Auth/TextField/LoginTextField";
-
 import { useState } from "react";
 import { api } from "../../../server";
-import axios from "axios";
-// react-router-dom에서는 href 훅이 없으며, 링크 이동은 useNavigate 또는 Link를 사용합니다.
-import { useNavigate } from "react-router-dom";
-import loginBanner from "../../../assets/authIcon/loginBanner.png";
 
+import backgroundImage from "../../../assets/login-background.png";
+import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  
 
   const handleChangeEmail = (e)=>{
     setEmail(e.target.value);
@@ -25,64 +17,49 @@ const Login = () => {
   }
 
   const handleSubmit = () => {
-      if (!email || !password) {
-        alert("모든 항목을 입력해주세요.");
-        return;
-      }
-  
-  
-      api
-        .post("/api/auth/signin", {
-          email,
-          password,
-        })
-        .then((response) => {
-          console.log(response.data.error)
-          if (response.data.error == null) {
-            localStorage.setItem('accessToken', response.data.accessToken);
-            window.location.href = "/";
-          } else {
-            alert("로그인 실패: " + (response.data.message || "서버 오류"));
-          }
-        })
-        .catch((error) => {
-          console.error("서버 에러 ", error);
-          alert("로그인 요청 중 에러 발생!");
-        });
-    };
+    if (!email || !password) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
 
-  return (
-    <div className="auth-wrapper">
-      <div className="auth-container">
-        <div
-          className="auth-left"
-          style={{
-            backgroundImage: `url(${loginBanner})`,
-          }}
-        >
-          <span className="logo-title">CodeRun{"{ }"}</span>
-          <span className="sublogo-title">어제보다 한글자 더 빠르게</span>
-        </div>
+    api
+      .post("/auth/signin", {
+        email,
+        password,
+      })
+      .then((response) => {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        window.location.href = "/";
+      })
+      .catch((error) => {
+        console.error("서버 에러 ", error);
+        alert(error.response.data.error);
+      });
+  };
 
-        <div className="auth-right">
-          <div className="input-group">
-            <LoginTextField isLoginTextField={true} placeholder="이메일을 입력하세요." onChange={handleChangeEmail}/>
+  return <div className="fixed w-full h-full bg-[#E6E6E6] flex justify-center items-center flex-row">
+    <div className="w-[70%] h-[80%] bg-white flex flex-row justify-between rounded-[30px] min-w-[1100px]">
+      <ArrowLeft onClick={()=>{window.history.back()}} className="absolute m-[23px] w-[35px] h-[35px] text-white hover:cursor-pointer"/>
+      <img src={backgroundImage} className="h-[100%] rounded-l-[30px]"/>
+      <div className=" flex flex-col justify-center w-[100%] p-[65px]"> 
+        <div className="flex justify-between h-[85%] flex-col mb-[20px]">
+          <p className="font-bold mb-[10px] text-[30px]">로그인</p>
+          <div>
+            <p className="text-[24px] mb-[11px]">이메일</p>
+            <input onKeyUp={handleChangeEmail} type="text" placeholder="아이디를 입력해주세요" className="w-full h-[56px] border border-[rgba(146,146,146,60)] rounded-[10px] mb-[20px] pl-[20px] text-[20px] focus:outline-none"/>
+            <p className="text-[24px] mb-[11px]">비밀번호</p>
+            <input onKeyUp={handleChangePassword} type="password" placeholder="비밀번호를 입력해주세요" className="w-full h-[56px] border border-[rgba(146,146,146,60)] rounded-[10px] mb-[20px] pl-[20px] text-[20px] focus:outline-none"/>
           </div>
-          <div className="input-group">
-            <LoginTextField placeholder="비밀번호를 입력하세요." togglePassword={() => setShowPassword(!showPassword)} showPassword={showPassword} onChange={handleChangePassword} type="password"/>
-            
+          <div>
+            <button onClick={handleSubmit} className="w-full h-[58px] bg-[#14C5B1] rounded-[10px] text-[18px] font-bold hover:bg-[#16AC9B] transition-colors text-white">로그인</button>
+            <p className="mt-[20px] text-[16px] text-center text-gray-600">계정이 없으신가요? <a href="/signup" className="text-[#14C5B1] hover:underline">계정 생성하기</a></p>  
           </div>
-          <button className="auth-btn" onClick={handleSubmit}>로그인</button>
-          <p className="signup-link">
-            계정이 없으신가요?{" "}
-            <a href="/signup" className="to-signup">
-              회원가입
-            </a>
-          </p>
+          
         </div>
       </div>
     </div>
-  );
+
+  </div>;
 };
 
 export default Login;

@@ -1,20 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
+import KeyBoard from '../../../components/practice/keyBorad/KeyBoard'
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
-
-// 타자 연습용 단어 목록 (Java 키워드 등)
-const words = [
-  'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
-  'extends', 'final', 'for', 'if', 'import', 'interface', 'new', 'null', 'private', 'public',
-  'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function'
-];
+import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function WordPage() {
   const navigate = useNavigate();
   
-  // 단어 리스트 상태 (랜덤 섞인 단어)
+  // 단어 리스트 상태
   const [wordList, setWordList] = useState([]);
+  const [loading, setLoading] = useState(true);
   // 현재 타이핑 중인 단어 인덱스 상태
   const [currentIndex, setCurrentIndex] = useState(0);
   // 사용자가 입력한 텍스트 상태
@@ -26,16 +21,46 @@ function WordPage() {
   // 시작 시간
   const [startTime, setStartTime] = useState(() => new Date());
 
-  // 컴포넌트가 처음 마운트될 때 단어 목록을 랜덤 섞어서 초기화
+  // 서버에서 단어 가져오기
+  const fetchWords = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/words', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
+      const data = await response.json();
+      const words = data.words || data || [];
+      
+      // 단어 리스트 랜덤 섞기
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      setWordList(shuffled);
+    } catch (err) {
+      console.error('타자연습 단어 가져오기 실패:', err);
+      // 더미 데이터로 fallback
+      const defaultWords = [
+        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
+        'extends', 'final', 'for', 'if', 'import', 'interface', 'new', 'null', 'private', 'public',
+        'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function'
+      ];
+      const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
+      setWordList(shuffled);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 컴포넌트가 처음 마운트될 때 단어 목록 가져오기
   useEffect(() => {
-    const shuffled = [...words].sort(() => Math.random() - 0.5);
-    setWordList(shuffled);
+    fetchWords();
     setCurrentIndex(0);
     setUserInput('');
     setHistory([]);
     setIsComplete(false);
     setStartTime(new Date());
-  }, []);
+  }, [fetchWords]);
 
   // 한글 포함 여부 체크 정규식
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
@@ -111,8 +136,16 @@ function WordPage() {
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
-    return totalTyped === 0 ? 0 : (correctTyped / totalTyped) * 100;
-  }, [getTotalTyped, getCorrectTyped]);
+    
+    // 현재 입력 중인 단어도 포함하여 계산
+    const currentWord = wordList[currentIndex] || '';
+    const currentCorrectCount = userInput.split('').filter((char, i) => char === currentWord[i]).length;
+    
+    const finalTotalTyped = totalTyped + userInput.length;
+    const finalCorrectTyped = correctTyped + currentCorrectCount;
+    
+    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+  }, [getTotalTyped, getCorrectTyped, userInput, wordList, currentIndex]);
 
   const getElapsedTimeSec = useCallback(() => {
     return Math.floor((new Date() - startTime) / 1000);
@@ -127,13 +160,14 @@ function WordPage() {
 
   const getTypingSpeed = useCallback(() => {
     const elapsedSeconds = getElapsedTimeSec();
-    const totalTyped = getTotalTyped();
+    const completedTyped = getTotalTyped();
+    const currentTyped = userInput.length; // 현재 타이핑 중인 글자 추가
+    const totalTyped = completedTyped + currentTyped;
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
-  }, [getElapsedTimeSec, getTotalTyped]);
+  }, [getElapsedTimeSec, getTotalTyped, userInput.length]);
 
   const handleRestart = () => {
-    const shuffled = [...words].sort(() => Math.random() - 0.5);
-    setWordList(shuffled);
+    fetchWords(); // 서버에서 새로운 단어 가져오기
     setCurrentIndex(0);
     setUserInput('');
     setHistory([]);
@@ -160,6 +194,16 @@ function WordPage() {
       );
     });
   };
+
+  // 로딩 상태
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
+      <div className="text-center">
+        <div className="text-xl font-semibold text-gray-700 mb-4">타자연습 단어를 불러오는 중...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+      </div>
+    </div>
+  );
 
   // 다음 단어 미리보기 (currentIndex + 1)
   const previewNext = wordList[currentIndex + 1] || '';
@@ -223,10 +267,23 @@ function WordPage() {
           <div className="w-[200px] h-[2px] bg-[#37A998] mb-7" />
         </div>
       )}
-  
-      <div className="mt-10 w-full flex justify-center min-h-[200px]">
-        <KeyBoard />
-      </div>
+
+      {!isComplete && (
+        <div className="mt-10 w-full flex flex-col items-center">
+          {/* 키보드 위에 실시간 통계 표시 */}
+          <RealTimeStats
+            accuracy={getAccuracy()}
+            typingSpeed={getTypingSpeed()}
+            elapsedTime={getElapsedTime()}
+            currentIndex={currentIndex}
+            totalSentences={wordList.length}
+            startTime={startTime}
+          />
+          
+          {/* 키보드 */}
+          <KeyBoard />
+        </div>
+      )}
   
       <CompletionModal
         isOpen={isComplete}
