@@ -4,6 +4,7 @@ import KeyBoard from '../../../components/practice/keyBorad/KeyBoard'
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
+
 // 타자 연습용 단어 목록 (Java 키워드 등)
 const words = [
   'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
