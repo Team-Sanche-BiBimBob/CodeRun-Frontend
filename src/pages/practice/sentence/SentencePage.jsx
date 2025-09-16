@@ -8,7 +8,6 @@ function SentencePage() {
   const navigate = useNavigate();
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [typedChars, setTypedChars] = useState([]);
   const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
@@ -20,7 +19,6 @@ function SentencePage() {
   const fetchSentences = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await fetch('/api/problems', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -31,7 +29,6 @@ function SentencePage() {
       setSentences(data.sentences || data || []);
     } catch (err) {
       console.error('타자연습 리스트 가져오기 실패:', err);
-      setError(err.message);
       // 더미 데이터
       setSentences([
         'print("Hello world!")',
@@ -177,8 +174,11 @@ function SentencePage() {
 
   const getTypingSpeed = useCallback(() => {
     const elapsedSeconds = getElapsedTimeSec();
-    return elapsedSeconds === 0 ? 0 : (getTotalTyped() / elapsedSeconds) * 60;
-  }, [getElapsedTimeSec, getTotalTyped]);
+    const completedTyped = getTotalTyped();
+    const currentTyped = typedChars.length; // 현재 타이핑 중인 글자 추가
+    const totalTyped = completedTyped + currentTyped;
+    return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
+  }, [getElapsedTimeSec, getTotalTyped, typedChars.length]);
 
   // 다시 시작 & 홈
   const handleRestart = () => {
@@ -212,13 +212,6 @@ function SentencePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
 
-      {error && (
-        <div className="fixed top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-          <span className="text-sm">서버 연결 실패 - 기본 문장으로 연습 중</span>
-          <button onClick={fetchSentences} className="ml-3 text-yellow-800 hover:text-yellow-900">재시도</button>
-        </div>
-      )}
-
       {/* 이전 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}
@@ -251,7 +244,6 @@ function SentencePage() {
             currentIndex={currentIndex}
             totalSentences={sentences.length}
             startTime={startTime}
-            getTotalTyped={getTotalTyped}
           />
           {/* 키보드 */}
           <KeyBoard />

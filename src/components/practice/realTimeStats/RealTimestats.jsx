@@ -58,12 +58,12 @@ function RealTimeStats({
       clearInterval(accuracyInterval);
       clearInterval(speedInterval);
     };
-  }, [accuracy, typingSpeed]);
+      }, [accuracy, typingSpeed, startTime]);
 
   return (
     <div className="w-full flex justify-center">
-      {/* 키보드랑 같은 가로 길이 (예: 800px) */}
-      <div className="bg-gray-100 rounded-t-md shadow-sm px-6 py-2 flex justify-between text-sm text-gray-600 w-[800px]">
+      {/* 키보드랑 같은 가로 길이 (예: 1024px) */}
+      <div className="bg-gray-100 rounded-t-md shadow-sm px-6 py-2 flex justify-between text-sm text-gray-600 w-[1024px]">
         
         {/* 진행도 */}
         <div className="flex items-center gap-1 w-[120px]">
