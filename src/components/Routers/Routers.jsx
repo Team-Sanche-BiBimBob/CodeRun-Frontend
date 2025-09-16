@@ -11,6 +11,7 @@ import CodingPlatform from '../../pages/workbook/CodingPlatform';
 import TeacherView from '../../pages/teacherView/TeacherView';
 import Login from '../../pages/auth/Signin/Login';
 import Signup from '../../pages/auth/Signup/Signup';
+import Arcade1V1 from '../../pages/arcade/arcadeSelect/Arcade1V1';
 
 const Routers = () => {
   return (
@@ -19,6 +20,7 @@ const Routers = () => {
       <Route path="/selectLanguage" element={<LanguageSelection />} />
       <Route path="/PracticeSelect" element={<PracticeSelect />} />
       <Route path='/competition' element={<Competition />} />
+      <Route path='/arcade1v1' element={<Arcade1V1 />} />
       <Route path="/word" element={<WordPage />} />
       <Route path="/sentence" element={<SentencePage />} />
       <Route path="/full" element={<Fullcode />} />
