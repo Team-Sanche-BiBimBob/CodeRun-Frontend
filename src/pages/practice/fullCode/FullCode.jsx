@@ -558,7 +558,7 @@ const Fullcode = () => {
                 suggestOnTriggerCharacters: false,
                 acceptSuggestionOnEnter: "off",
                 wordBasedSuggestions: false,
-                lineNumbersMinChars: 4,
+                lineNumbersMinChars: 4,   
                 lineDecorationsWidth: 10,
                 links: false,
                 hover: false,
