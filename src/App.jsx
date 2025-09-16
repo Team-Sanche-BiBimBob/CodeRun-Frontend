@@ -7,7 +7,6 @@ import Routers from './components/Routers/Routers.jsx';
 const App = () => {
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-
   useEffect(() => {
     const onStorage = () => setIsLoggedIn(!!localStorage.getItem('token'));
     window.addEventListener('storage', onStorage);
@@ -15,7 +14,6 @@ const App = () => {
   }, []); 
 
   const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/PracticeSelect" , "/competition"];
-
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
   return (
