@@ -6,12 +6,12 @@ const SimpleKeyboard = () => {
   // 키 눌렀을 때
   const handleKeyDown = useCallback((event) => {
     const pressedKeyCode = event.code;
-    setHighlightedKey(pressedKeyCode);
+    // setHighlightedKey(pressedKeyCode); // 하이라이트 비활성화
   }, []);
 
   // 키 뗐을 때
   const handleKeyUp = useCallback(() => {
-    setHighlightedKey(null);
+    // setHighlightedKey(null); // 하이라이트 비활성화
   }, []);
 
   // 이벤트 리스너 등록
@@ -114,11 +114,13 @@ const SimpleKeyboard = () => {
                               transition-all duration-150
                               flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
                               ${key.isFunctional ? 'text-xs' : ''}
-                              ${key.code === highlightedKey 
-                                ? 'bg-red-400 border-red-600 shadow-red-300 shadow-lg scale-105' 
-                                : 'bg-white hover:bg-gray-50'
-                              }
+                              bg-white hover:bg-gray-50
                             `}
+                  // 하이라이트 조건문 비활성화
+                  // ${key.code === highlightedKey 
+                  //   ? 'bg-red-400 border-red-600 shadow-red-300 shadow-lg scale-105' 
+                  //   : 'bg-white hover:bg-gray-50'
+                  // }
                   style={{
                     gridColumn: `span ${key.span}`,
                   }}
