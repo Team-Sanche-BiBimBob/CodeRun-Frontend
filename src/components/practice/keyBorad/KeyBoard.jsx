@@ -1,236 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import StatusBar from '../statusBar/StatusBar'; // StatusBar 컴포넌트 import
+import React, { useState, useEffect, useCallback } from 'react';
 
-const KoreanKeyboard = () => {
-  // 진행 시간(초)
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [typingSpeed, setTypingSpeed] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
-  const [typedCharacters, setTypedCharacters] = useState(0); // 실제 타이핑한 총 문자수
-  const [correctCharacters, setCorrectCharacters] = useState(0); // 맞게 입력한 문자수
+const SimpleKeyboard = () => {
   const [highlightedKey, setHighlightedKey] = useState(null);
-  const [targetText, setTargetText] = useState(
-    "The quick brown fox jumps over the lazy dog. This is a typing practice sentence."
-  );
-  const [typedTextIndex, setTypedTextIndex] = useState(0);
-  const [isStarted, setIsStarted] = useState(false);
-  const [totalKeystrokes, setTotalKeystrokes] = useState(0); // 백스페이스 포함 총 키 입력수
 
-  const startTimeRef = useRef(null);
-
-  // 타자 연습 시작 시점 저장
-  useEffect(() => {
-    if (isStarted) {
-      startTimeRef.current = Date.now();
-    }
-  }, [isStarted]);
-
-  // 진행 시간 1초마다 업데이트
-  useEffect(() => {
-    if (!isStarted) return;
-
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTimeRef.current) / 1000);
-      setElapsedSeconds(elapsed);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isStarted]);
-
-  // 타수 (WPM) 계산 - 실시간 업데이트
-  useEffect(() => {
-    if (isStarted && startTimeRef.current && totalKeystrokes > 0) {
-      const now = Date.now();
-      const elapsedMinutes = (now - startTimeRef.current) / 1000 / 60;
-      if (elapsedMinutes > 0) {
-        // WPM = (실제 타이핑한 문자수 / 5) / 분
-        const wpm = Math.round((totalKeystrokes / 5) / elapsedMinutes);
-        setTypingSpeed(wpm);
-      }
-    } else {
-      setTypingSpeed(0);
-    }
-  }, [totalKeystrokes, isStarted, elapsedSeconds]); // elapsedSeconds 추가로 실시간 업데이트
-
-  // 정확도 계산 - 실시간 업데이트
-  useEffect(() => {
-    if (totalKeystrokes > 0) {
-      const accuracyPercent = Math.round((correctCharacters / totalKeystrokes) * 100);
-      setAccuracy(accuracyPercent);
-    } else {
-      setAccuracy(100);
-    }
-  }, [correctCharacters, totalKeystrokes]);
-
-  // 입력된 키에 해당하는 문자 반환 (Shift 조합 포함)
-  const getOutputChar = useCallback((pressedKey, isShifted) => {
-    if (pressedKey.length === 1) {
-      if (isShifted) {
-        if (pressedKey === '1') return '!';
-        if (pressedKey === '2') return '@';
-        if (pressedKey === '3') return '#';
-        if (pressedKey === '4') return '$';
-        if (pressedKey === '5') return '%';
-        if (pressedKey === '6') return '^';
-        if (pressedKey === '7') return '&';
-        if (pressedKey === '8') return '*';
-        if (pressedKey === '9') return '(';
-        if (pressedKey === '0') return ')';
-        if (pressedKey === '-') return '_';
-        if (pressedKey === '=') return '+';
-        if (pressedKey === '[') return '{';
-        if (pressedKey === ']') return '}';
-        if (pressedKey === '\\') return '|';
-        if (pressedKey === ';') return ':';
-        if (pressedKey === "'") return '"';
-        if (pressedKey === ',') return '<';
-        if (pressedKey === '.') return '>';
-        if (pressedKey === '/') return '?';
-        return pressedKey.toUpperCase();
-      }
-      return pressedKey.toLowerCase();
-    }
-    return pressedKey;
+  // 키 눌렀을 때
+  const handleKeyDown = useCallback((event) => {
+    const pressedKeyCode = event.code;
+    setHighlightedKey(pressedKeyCode);
   }, []);
 
-  // 다음 입력해야 할 키를 하이라이트하기 위한 함수
-  const getExpectedKeyCode = useCallback(() => {
-    if (typedTextIndex >= targetText.length) return null;
-
-    const char = targetText[typedTextIndex];
-
-    for (const row of keyboardLayout) {
-      for (const key of row) {
-        if (key.main && key.main.toLowerCase() === char.toLowerCase()) {
-          return key.code;
-        }
-        if (key.shift && key.shift === char) {
-          return key.code;
-        }
-        if (char === ' ' && key.code === 'Space') {
-          return 'Space';
-        }
-        if (char === '\n' && key.code === 'Enter') {
-          return 'Enter';
-        }
-      }
-    }
-    return null;
-  }, [targetText, typedTextIndex]);
-
-  // 타겟 문자 변경 시 하이라이트 갱신
-  useEffect(() => {
-    const initialHighlightCode = getExpectedKeyCode();
-    setHighlightedKey(initialHighlightCode);
-  }, [targetText, typedTextIndex, getExpectedKeyCode]);
-
-  // 키 입력 처리
-  const handleKeyDown = useCallback((event) => {
-    const pressedKey = event.key;
-    const pressedKeyCode = event.code;
-    const isShiftPressed = event.shiftKey;
-
-    // 엔터키 눌렀을 때 단어 완성 전이면 넘어가지 않도록 막기
-    if (pressedKeyCode === 'Enter' && typedTextIndex < targetText.length) {
-      event.preventDefault();
-      return;
-    }
-
-    // 스페이스바 등 기본 스크롤 방지
-    if (
-      pressedKey === ' ' ||
-      pressedKeyCode === 'Space' ||
-      ['Tab', 'Shift', 'Control', 'Alt', 'CapsLock'].includes(pressedKey)
-    ) {
-      event.preventDefault();
-    }
-
-    setHighlightedKey(pressedKeyCode);
-
-    if (!isStarted) {
-      setIsStarted(true);
-      startTimeRef.current = Date.now();
-    }
-
-    if (typedTextIndex < targetText.length) {
-      if (['Shift', 'Control', 'Alt', 'Tab', 'CapsLock'].includes(pressedKey)) {
-        return;
-      }
-
-      // 백스페이스 처리
-      if (pressedKeyCode === 'Backspace') {
-        if (typedTextIndex > 0) {
-          setTypedTextIndex((prev) => prev - 1);
-          // 백스페이스도 키 입력으로 카운트하여 실시간 업데이트
-          setTotalKeystrokes((prev) => prev + 1);
-        }
-        return;
-      }
-
-      // 일반 문자 입력 처리
-      let isCorrectInput = false;
-      const expectedChar = targetText[typedTextIndex];
-      let charForComparison = null;
-
-      if (pressedKeyCode === 'Space') {
-        charForComparison = ' ';
-      } else if (pressedKeyCode === 'Enter') {
-        charForComparison = '\n';
-      } else {
-        charForComparison = getOutputChar(pressedKey, isShiftPressed);
-      }
-
-      // 총 키 입력 수 증가 (모든 문자 입력을 즉시 반영)
-      setTotalKeystrokes((prev) => prev + 1);
-
-      if (charForComparison === expectedChar) {
-        // 정확한 입력
-        setCorrectCharacters((prev) => prev + 1);
-        setTypedTextIndex((prev) => prev + 1);
-        isCorrectInput = true;
-      } else {
-        // 틀린 입력 - 위치는 그대로, 오류만 카운트
-        isCorrectInput = false;
-      }
-
-      // 타이핑한 문자수 업데이트
-      setTypedCharacters((prev) => prev + 1);
-    }
-
-    // 마지막 문자 맞게 입력 시 자동 완료 처리
-    if (typedTextIndex >= targetText.length - 1 && targetText.length > 0) {
-      const lastExpectedChar = targetText[targetText.length - 1];
-      let lastTypedChar;
-      
-      if (pressedKeyCode === 'Space') {
-        lastTypedChar = ' ';
-      } else if (pressedKeyCode === 'Enter') {
-        lastTypedChar = '\n';
-      } else {
-        lastTypedChar = getOutputChar(pressedKey, isShiftPressed);
-      }
-
-      if (lastExpectedChar === lastTypedChar) {
-        setTimeout(() => {
-          alert('타자 연습 완료!');
-          setTypedTextIndex(0);
-          setTypedCharacters(0);
-          setCorrectCharacters(0);
-          setTotalKeystrokes(0);
-          setAccuracy(100);
-          setTypingSpeed(0);
-          setElapsedSeconds(0);
-          setIsStarted(false);
-        }, 100);
-      }
-    }
-  }, [typedTextIndex, targetText, getOutputChar, isStarted]);
-
+  // 키 뗐을 때
   const handleKeyUp = useCallback(() => {
     setHighlightedKey(null);
   }, []);
 
+  // 이벤트 리스너 등록
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -306,20 +90,14 @@ const KoreanKeyboard = () => {
     [
       { main: 'Ctrl', span: 5, isFunctional: true, code: 'ControlLeft' },
       { main: 'Alt', span: 5, isFunctional: true, code: 'AltLeft' },
-      { main: '', span: 26, isFunctional: true, code: 'Space' },
+      { main: 'Space', span: 26, isFunctional: true, code: 'Space' },
       { main: 'Alt', span: 5, isFunctional: true, code: 'AltRight' },
       { main: 'Ctrl', span: 5, isFunctional: true, code: 'ControlRight' }
     ]
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-gray-100 rounded-xl shadow-lg overflow-hidden relative">
-      {/* <StatusBar
-        typingSpeed={typingSpeed}
-        accuracy={accuracy}
-        currentTime={elapsedSeconds} // 진행 시간(초) 전달
-      /> */}
-      {/* Keyboard */}
+    <div className="w-full max-w-5xl mx-auto bg-gray-100 rounded-xl shadow-lg overflow-hidden">
       <div className="p-8 bg-gray-100">
         <div
           className="keyboard grid gap-x-3 gap-y-2"
@@ -332,11 +110,14 @@ const KoreanKeyboard = () => {
               {row.map((key, keyIndex) => (
                 <div
                   key={`${rowIndex}-${keyIndex}`}
-                  className={`key bg-white border border-gray-300 rounded-lg shadow-sm
-                              hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150
+                  className={`key border border-gray-300 rounded-lg shadow-sm
+                              transition-all duration-150
                               flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
                               ${key.isFunctional ? 'text-xs' : ''}
-                              ${key.code === highlightedKey ? 'highlighted-key' : ''}
+                              ${key.code === highlightedKey 
+                                ? 'bg-red-400 border-red-600 shadow-red-300 shadow-lg scale-105' 
+                                : 'bg-white hover:bg-gray-50'
+                              }
                             `}
                   style={{
                     gridColumn: `span ${key.span}`,
@@ -351,16 +132,9 @@ const KoreanKeyboard = () => {
             </React.Fragment>
           ))}
         </div>
-
-      <style jsx>{`
-        .highlighted-key {
-          background-color: #fca5a5;
-          border-color: #ef4444;
-          box-shadow: 0 0 0 3px #f87171;
-        }
-      `}</style>
+      </div>
     </div>
   );
 };
 
-export default KoreanKeyboard;
+export default SimpleKeyboard;
