@@ -467,7 +467,7 @@ const Fullcode = () => {
       )}
       
       {/* Statistics Container */}
-      <div className={`flex justify-around items-center bg-gray-900 rounded-lg px-1.5 py-1 mb-2 shadow-sm ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
+      <div className={`flex justify-around items-center bg-[#1E1E1E] rounded-lg px-1.5 py-1 mb-2 shadow-sm ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
         <div className="flex items-center gap-1 text-gray-200 px-1 py-0.5">
           <div className="text-xs text-gray-400 whitespace-nowrap mr-0.5">정확도</div>
           <div className="text-sm font-semibold text-white min-w-[28px] text-right">{accuracy}%</div>
@@ -487,11 +487,11 @@ const Fullcode = () => {
       {/* Code Editors Container */}
       <div className={`grid grid-cols-2 gap-8 flex-1 min-h-0 ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
         {/* Example Code Display */}
-        <div className="flex flex-col bg-gray-900 rounded-md overflow-hidden shadow-lg h-full">
-          <div className="bg-gray-800 text-gray-200 px-4 py-2 text-sm border-b border-gray-700 font-semibold">
+        <div className="flex flex-col bg-[#1E1E1E] rounded-md overflow-hidden shadow-lg h-full">
+          <div className="bg-[#1E1E1E] text-gray-200 px-4 py-2 text-sm border-b border-[#282828] font-semibold">
             예시 코드
           </div>
-          <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-gray-700 rounded bg-gray-900">
+          <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-[#282828] rounded bg-[#1E1E1E]">
             <div className="absolute top-0 left-0 right-0 bottom-0 z-10 cursor-not-allowed" />
             <Editor
               height="100%"
@@ -531,11 +531,11 @@ const Fullcode = () => {
         </div>
         
         {/* Code Input */}  
-        <div className="flex flex-col bg-gray-900 rounded-md overflow-hidden shadow-lg h-full">
-          <div className="bg-gray-800 text-gray-200 px-4 py-2 text-sm border-b border-gray-700 font-semibold">
+        <div className="flex flex-col bg-[#1E1E1E] rounded-md overflow-hidden shadow-lg h-full">
+          <div className="bg-[#1E1E1E] text-gray-200 px-4 py-2 text-sm border-b border-[#282828] font-semibold">
             코드 입력
           </div>
-          <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-gray-700 rounded bg-gray-900">
+          <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-[#282828] rounded bg-[#1E1E1E]">
             <Editor
               height="100%"
               defaultLanguage="javascript"

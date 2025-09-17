@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from '../../pages/main/Home';
 import LanguageSelection from '../../pages/PracticeSelect/LanguageSelection';
 import PracticeSelect from '../../pages/PracticeSelect/PracticeSelect'; 
-import Competition from '../../pages/arcade/arcadeSelect/Competition';
+import Competition from '../../pages/arcade/timeattack/Competition';
 import WordPage from '../../pages/practice/word/WordPage';
 import SentencePage from '../../pages/practice/sentence/SentencePage';
 import Fullcode from '../../pages/practice/fullCode/FullCode';
@@ -11,7 +11,8 @@ import CodingPlatform from '../../pages/workbook/CodingPlatform';
 import TeacherView from '../../pages/teacherView/TeacherView';
 import Signup from '../../pages/auth/Signup/Signup';
 import Login from '../../pages/auth/Login/Login';
-import Arcade1V1 from '../../pages/arcade/arcadeSelect/Arcade1V1';
+import Arcade1V1 from '../../pages/arcade/battle/Arcade1V1';
+import ArcadeSelect from '../../pages/arcade/arcadeSelect/ArcadeSelect';
 
 const Routers = () => {
   return (
@@ -28,6 +29,7 @@ const Routers = () => {
       <Route path="/teacher" element={<TeacherView />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path='/arcadeSelect' element={<ArcadeSelect />} />
     </Routes>
   );
 };

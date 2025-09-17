@@ -18,13 +18,23 @@ const App = () => {
     "/selectLanguage",
     "/practiceSelect",
     "/competition",
+    "/arcadeSelect",
     "/word",
     "/sentence",
     "/full",
     "/problem",
-    "/teacher"
+    "/teacher",
   ];
-  const showHeader = headerVisibleRoutes.includes(location.pathname);
+
+  const normalizePath = (path) => {
+    if (!path) return "/";
+    let p = path.toLowerCase();
+    if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+    return p;
+  };
+
+  const currentPath = normalizePath(location.pathname);
+  const showHeader = headerVisibleRoutes.map(normalizePath).includes(currentPath);
 
   return (
     <div style={{ paddingTop: showHeader ? '80px' : '0' }}>
