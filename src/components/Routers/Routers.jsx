@@ -12,6 +12,7 @@ import TeacherView from '../../pages/teacherView/TeacherView';
 import Signup from '../../pages/auth/Signup/Signup';
 import Login from '../../pages/auth/Login/Login';
 import Arcade1V1 from '../../pages/arcade/arcadeSelect/Arcade1V1';
+import Study from '../../pages/study/study';
 
 const Routers = () => {
   return (
@@ -28,6 +29,7 @@ const Routers = () => {
       <Route path="/teacher" element={<TeacherView />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/study" element={<Study />} />
     </Routes>
   );
 };
