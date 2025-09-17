@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+
 const CodeRunTimeAttack = () => {
   const [selectedProblemSet, setSelectedProblemSet] = useState(null);
   const [isTagAdded, setIsTagAdded] = useState(false);
   const [selectedTags, setSelectedTags] = useState({
-    모든선택: true,
     python: false,
     javascript: false,
     java: false,
     반복문: false,
     출력문: false,
     기초문장: false,
-    실제코드: false
+    실제코드: false,
+    문장: false,
+    풀코드: false
   });
   const [completedTags, setCompletedTags] = useState([]);
   const [rankings, setRankings] = useState([]);
@@ -53,14 +55,14 @@ const CodeRunTimeAttack = () => {
 
   // 초기 문제 데이터
   const initialProblems = [
-    { id: 1, title: "Python 반복문 예제 1", tags: ["python", "반복문", "초급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 2, title: "Python 출력문 예제 1", tags: ["python", "출력문", "초급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 3, title: "JavaScript 반복문 예제 1", tags: ["javascript", "반복문", "초급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 4, title: "Java 기초문장 예제 1", tags: ["java", "기초문장", "초급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 5, title: "Python 실제코드 예제 1", tags: ["python", "실제코드", "중급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 6, title: "JavaScript 출력문 예제 1", tags: ["javascript", "출력문", "초급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 7, title: "Java 반복문 예제 1", tags: ["java", "반복문", "초급"], difficulty: "이전 기록", time: "00:00:00" },
-    { id: 8, title: "Python 기초문장 예제 1", tags: ["python", "기초문장", "초급"], difficulty: "이전 기록", time: "00:00:00" }
+    { id: 1, title: "Python 반복문 예제 1", tags: ["python", "반복문"], difficulty: "문장", time: "00:00:00" },
+    { id: 2, title: "Python 출력문 예제 1", tags: ["python", "출력문"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 3, title: "JavaScript 반복문 예제 1", tags: ["javascript", "반복문"], difficulty: "문장", time: "00:00:00" },
+    { id: 4, title: "Java 기초문장 예제 1", tags: ["java", "기초문장"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 5, title: "Python 실제코드 예제 1", tags: ["python", "실제코드"], difficulty: "문장", time: "00:00:00" },
+    { id: 6, title: "JavaScript 출력문 예제 1", tags: ["javascript", "출력문"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 7, title: "Java 반복문 예제 1", tags: ["java", "반복문"], difficulty: "문장", time: "00:00:00" },
+    { id: 8, title: "Python 기초문장 예제 1", tags: ["python", "기초문장"], difficulty: "풀코드", time: "00:00:00" }
   ];
 
   useEffect(() => {
@@ -91,14 +93,15 @@ const CodeRunTimeAttack = () => {
   // 초기화 함수
   const handleReset = () => {
     setSelectedTags({
-      모든선택: true,
       python: false,
       javascript: false,
       java: false,
       반복문: false,
       출력문: false,
       기초문장: false,
-      실제코드: false
+      실제코드: false,
+      문장: false,
+      풀코드: false
     });
     setCompletedTags([]);
     setIsTagAdded(false);
@@ -107,21 +110,31 @@ const CodeRunTimeAttack = () => {
 
   // 태그 선택 처리
   const handleTagSelect = (tag) => {
-    if (tag === '모든선택') {
-      setSelectedTags({
-        모든선택: true,
-        python: false,
-        javascript: false,
-        java: false,
-        반복문: false,
-        출력문: false,
-        기초문장: false,
-        실제코드: false
+    const languageTags = ['python', 'javascript', 'java'];
+    const typeTags = ['문장', '풀코드'];
+    
+    if (languageTags.includes(tag)) {
+      // 언어는 하나만 선택 가능
+      setSelectedTags(prev => {
+        const newTags = { ...prev };
+        languageTags.forEach(lang => {
+          newTags[lang] = lang === tag ? !prev[tag] : false;
+        });
+        return newTags;
+      });
+    } else if (typeTags.includes(tag)) {
+      // 문장/풀코드는 하나만 선택 가능
+      setSelectedTags(prev => {
+        const newTags = { ...prev };
+        typeTags.forEach(type => {
+          newTags[type] = type === tag ? !prev[tag] : false;
+        });
+        return newTags;
       });
     } else {
+      // 유형 태그들은 다중 선택 가능
       setSelectedTags(prev => ({
         ...prev,
-        모든선택: false,
         [tag]: !prev[tag]
       }));
     }
@@ -150,7 +163,7 @@ const CodeRunTimeAttack = () => {
   // 태그 완료 처리
   const handleCompleteTag = () => {
     const selected = Object.entries(selectedTags)
-      .filter(([key, value]) => value && key !== '모든선택')
+      .filter(([key, value]) => value)
       .map(([key]) => key);
     
     setCompletedTags(selected);
@@ -158,6 +171,17 @@ const CodeRunTimeAttack = () => {
     
     // 태그에 따른 문제 필터링
     filterProblems(selected);
+  };
+
+  // 문제 도전하기 버튼 클릭 처리
+  const handleChallengeClick = (difficulty) => {
+    if (difficulty === '문장') {
+      // sentence 페이지로 이동
+      window.location.href = '/sentence';
+    } else if (difficulty === '풀코드') {
+      // full 페이지로 이동
+      window.location.href = '/full';
+    }
   };
 
   // 스크롤 감지 및 무한 스크롤
@@ -177,8 +201,8 @@ const CodeRunTimeAttack = () => {
       const newProblems = Array.from({ length: 6 }, (_, i) => ({
         id: problems.length + i + 1,
         title: `Python 반복문 예제 ${problems.length + i + 1}`,
-        tags: ["python", "반복문", "초급"],
-        difficulty: "이전 기록",
+        tags: ["python", "반복문"],
+        difficulty: i % 2 === 0 ? "문장" : "풀코드",
         time: "00:00:00"
       }));
       
@@ -242,19 +266,22 @@ const CodeRunTimeAttack = () => {
               {isTagAdded && (
                 <div className="mb-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-sm text-gray-600 font-medium min-w-16">모든 선택</span>
+                    <span className="text-sm text-gray-600 font-medium min-w-16">문제 유형</span>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleTagSelect('모든선택')}
-                        className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
-                          selectedTags.모든선택
-                            ? 'text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                        style={selectedTags.모든선택 ? { backgroundColor: '#14B8A6' } : {}}
-                      >
-                        모든선택
-                      </button>
+                      {['문장', '풀코드'].map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => handleTagSelect(tag)}
+                          className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
+                            selectedTags[tag]
+                              ? 'text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                          style={selectedTags[tag] ? { backgroundColor: '#14B8A6' } : {}}
+                        >
+                          {tag}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -329,14 +356,20 @@ const CodeRunTimeAttack = () => {
                           {tag}
                         </span>
                       ))}
+                      <span className="text-xs bg-gray-200 px-2 py-1 rounded">
+                        {problem.difficulty}
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center text-sm text-gray-600">
-                      <span>{problem.difficulty}</span>
+                    <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
                       <span>⏱️ {problem.time}</span>
                     </div>
                     <button 
                       className="w-full mt-3 text-white py-2 rounded-md text-sm hover:opacity-90 transition-colors"
                       style={{ backgroundColor: '#2DD4BF' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleChallengeClick(problem.difficulty);
+                      }}
                     >
                       도전하기
                     </button>
