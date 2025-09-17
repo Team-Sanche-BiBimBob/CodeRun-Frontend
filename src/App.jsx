@@ -17,7 +17,7 @@ const App = () => {
     "/",
     "/selectLanguage",
     "/practiceSelect",
-    "/timeAttack",
+    "/competition",
     "/word",
     "/sentence",
     "/full",
