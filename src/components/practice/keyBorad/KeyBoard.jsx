@@ -8,7 +8,7 @@ const KoreanKeyboard = () => {
   const [accuracy, setAccuracy] = useState(100);
   const [typedCharacters, setTypedCharacters] = useState(0); // 실제 타이핑한 총 문자수
   const [correctCharacters, setCorrectCharacters] = useState(0); // 맞게 입력한 문자수
-  const [currentlyPressedKey, setCurrentlyPressedKey] = useState(null); // 현재 누르고 있는 키
+  const [highlightedKey, setHighlightedKey] = useState(null); // 현재 누르고 있는 키
   const [nextExpectedKey, setNextExpectedKey] = useState(null); // 다음에 입력해야 할 키
   const [targetText, setTargetText] = useState(
     "The quick brown fox jumps over the lazy dog. This is a typing practice sentence."
@@ -371,6 +371,7 @@ const KoreanKeyboard = () => {
           border-color: #9ca3af !important;
         }
       `}</style>
+    </div>
     </div>
   );
 };
