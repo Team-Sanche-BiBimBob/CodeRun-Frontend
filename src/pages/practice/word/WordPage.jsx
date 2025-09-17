@@ -23,7 +23,7 @@ function WordPage() {
 
       const possibleUrls = [
 
-        '/api/problems',
+        '/api/problems/words',
       ];
 
       let lastError = null;
