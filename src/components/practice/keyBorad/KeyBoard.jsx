@@ -8,8 +8,7 @@ const KoreanKeyboard = () => {
   const [accuracy, setAccuracy] = useState(100);
   const [typedCharacters, setTypedCharacters] = useState(0); // 실제 타이핑한 총 문자수
   const [correctCharacters, setCorrectCharacters] = useState(0); // 맞게 입력한 문자수
-  const [currentlyPressedKey, setCurrentlyPressedKey] = useState(null); // 현재 누르고 있는 키
-  const [nextExpectedKey, setNextExpectedKey] = useState(null); // 다음에 입력해야 할 키
+  const [highlightedKey, setHighlightedKey] = useState(null);
   const [targetText, setTargetText] = useState(
     "The quick brown fox jumps over the lazy dog. This is a typing practice sentence."
   );
@@ -122,8 +121,8 @@ const KoreanKeyboard = () => {
 
   // 타겟 문자 변경 시 하이라이트 갱신
   useEffect(() => {
-    const expectedKey = getExpectedKeyCode();
-    setNextExpectedKey(expectedKey);
+    const initialHighlightCode = getExpectedKeyCode();
+    setHighlightedKey(initialHighlightCode);
   }, [targetText, typedTextIndex, getExpectedKeyCode]);
 
   // 키 입력 처리
@@ -147,7 +146,6 @@ const KoreanKeyboard = () => {
       event.preventDefault();
     }
 
-    // 현재 누르고 있는 키 표시
     setHighlightedKey(pressedKeyCode);
 
     if (!isStarted) {
@@ -331,44 +329,34 @@ const KoreanKeyboard = () => {
         >
           {keyboardLayout.map((row, rowIndex) => (
             <React.Fragment key={rowIndex}>
-              {row.map((key, keyIndex) => {
-                const isNextKey = key.code === nextExpectedKey;
-                const isPressed = key.code === highlightedKey;
-                
-                return (
-                  <div
-                    key={`${rowIndex}-${keyIndex}`}
-                    className={`key bg-white border border-gray-300 rounded-lg shadow-sm
-                                hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150
-                                flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
-                                ${key.isFunctional ? 'text-xs' : ''}
-                                ${isNextKey ? 'next-expected-key' : ''}
-                                ${isPressed ? 'pressed-key' : ''}
-                              `}
-                    style={{
-                      gridColumn: `span ${key.span}`,
-                    }}
-                  >
-                    <div className="flex flex-col items-center">
-                      {key.shift && <span className="text-xs text-gray-400">{key.shift}</span>}
-                      <span className="text-sm">{key.main}</span>
-                    </div>
+              {row.map((key, keyIndex) => (
+                <div
+                  key={`${rowIndex}-${keyIndex}`}
+                  className={`key bg-white border border-gray-300 rounded-lg shadow-sm
+                              hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150
+                              flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
+                              ${key.isFunctional ? 'text-xs' : ''}
+                              ${key.code === highlightedKey ? 'highlighted-key' : ''}
+                            `}
+                  style={{
+                    gridColumn: `span ${key.span}`,
+                  }}
+                >
+                  <div className="flex flex-col items-center">
+                    {key.shift && <span className="text-xs text-gray-400">{key.shift}</span>}
+                    <span className="text-sm">{key.main}</span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </React.Fragment>
           ))}
         </div>
 
       <style jsx>{`
-        .next-expected-key {
-          background-color: #fca5a5 !important;
-          border-color: #ef4444 !important;
-          box-shadow: 0 0 0 3px #f87171 !important;
-        }
-        .pressed-key {
-          background-color: #d1d5db !important;
-          border-color: #9ca3af !important;
+        .highlighted-key {
+          background-color: #fca5a5;
+          border-color: #ef4444;
+          box-shadow: 0 0 0 3px #f87171;
         }
       `}</style>
     </div>

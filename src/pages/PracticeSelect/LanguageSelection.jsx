@@ -71,7 +71,8 @@ const LanguageSelection = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },      
+        },
+      
       });
       if (!response.ok) {
         console.log(response.status)
