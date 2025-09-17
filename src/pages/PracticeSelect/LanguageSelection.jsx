@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LanguageCard from "../components/LanguageCard/LanguageCard";
+import LanguageCard from '../../components/LanguageCard/LanguageCard';
 /*const programmingLanguages = [
   {
     id: 'python',
@@ -66,11 +66,11 @@ const LanguageSelection = () => {
   const navigate = useNavigate();
   useEffect(()=>{
     const getData = async ()=>{
-      const response = await fetch('/api/languages', {
+      const response = await fetch('http://15.165.206.113/api/languages', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
+        },      
       });
       if (!response.ok) {
         console.log(response.status)
