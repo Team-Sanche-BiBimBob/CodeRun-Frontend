@@ -22,7 +22,7 @@ const fetchSentences = useCallback(async () => {
     console.log('문장 가져오기 시도 중...');
 
     const possibleUrls = [
-      '/api/problems',
+      '/api/problems/sentences',
     ];
 
     let lastError = null;
