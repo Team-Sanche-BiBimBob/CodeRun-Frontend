@@ -17,7 +17,7 @@ const Signup = () => {
     if (step < 4) setStep(step + 1);
     else {
       console.log("회원가입 최종 제출", { email, password, nickname });
-      api.post("/auth/signup", {
+      api.post("/api/auth/signup", {
         email,
         password,
         username: nickname,
