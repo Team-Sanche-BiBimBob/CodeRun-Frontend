@@ -13,7 +13,17 @@ const App = () => {
     return () => window.removeEventListener('storage', onStorage);
   }, []); 
 
-  const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/PracticeSelect" , "/competition"];
+  const headerVisibleRoutes = [
+    "/",
+    "/selectLanguage",
+    "/practiceSelect",
+    "/competition",
+    "/word",
+    "/sentence",
+    "/full",
+    "/problem",
+    "/teacher"
+  ];
   const showHeader = headerVisibleRoutes.includes(location.pathname);
 
   return (
@@ -26,3 +36,4 @@ const App = () => {
 
 export default App;
 
+              

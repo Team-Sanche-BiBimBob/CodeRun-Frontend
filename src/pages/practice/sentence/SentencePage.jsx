@@ -15,37 +15,106 @@ function SentencePage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  // 서버에서 문장 가져오기
-  const fetchSentences = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/problems', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+  // 서버에서 문장 가져오기 (개선된 버전)
+const fetchSentences = useCallback(async () => {
+  try {
+    setLoading(true);
+    console.log('문장 가져오기 시도 중...');
 
-      if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
-      const data = await response.json();
-      setSentences(data.sentences || data || []);
-    } catch (err) {
-      console.error('타자연습 리스트 가져오기 실패:', err);
-      // 더미 데이터
-      setSentences([
-        'print("Hello world!")',
-        'for i in range(10):',
-        'console.log("Hello world!");',
-        'function greet(name) {',
-        'System.out.println("Hello world!");',
-        'public class Person {',
-        'SELECT * FROM users;',
-        'let message: string = "Hello world!";',
-        'println("Hello world!")',
-        'func greet(name: String) -> String {'
-      ]);
-    } finally {
-      setLoading(false);
+    const possibleUrls = [
+      '/api/problems/sentences',
+    ];
+
+    let lastError = null;
+
+    for (const apiUrl of possibleUrls) {
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('응답이 JSON 형식이 아닙니다');
+        }
+
+        const data = await response.json();
+        console.log('받은 데이터:', data);
+
+        let sentences = data.sentences || data || [];
+
+        // ✅ 객체 배열일 경우 content나 sentence 필드 추출
+        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+        }
+
+        if (!Array.isArray(sentences) || sentences.length === 0) {
+          throw new Error('문장 데이터가 비어있습니다');
+        }
+
+        const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+        setSentences(shuffled);
+        console.log('문장 로드 성공:', shuffled.length + '개');
+        return;
+      } catch (err) {
+        console.log(`${apiUrl} 실패:`, err.message);
+        lastError = err;
+        continue;
+      }
     }
-  }, []);
+
+    throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
+  } catch (err) {
+    console.error('타자연습 문장 가져오기 최종 실패:', err);
+
+    // fallback 문장들 (더 많은 프로그래밍 관련 문장들)
+    const defaultSentences = [
+      'print("Hello world!")',
+      'for i in range(10):',
+      'console.log("Hello world!");',
+      'function greet(name) {',
+      'System.out.println("Hello world!");',
+      'public class Person {',
+      'SELECT * FROM users;',
+      'let message: string = "Hello world!";',
+      'println("Hello world!")',
+      'func greet(name: String) -> String {',
+      'const express = require("express");',
+      'import React from "react";',
+      'def calculate_sum(a, b):',
+      'try { connection.close(); }',
+      'UPDATE users SET name = ?',
+      'while (condition === true) {',
+      'async function fetchData() {',
+      'class Calculator extends Component {',
+      'catch (error) { console.error(error); }',
+      'const [state, setState] = useState();',
+      'public static void main(String[] args) {',
+      'from django.http import HttpResponse',
+      'npm install express mongoose',
+      'git add . && git commit -m "Initial commit"',
+      'docker run -d -p 3000:3000 myapp',
+      'const result = await api.getData();',
+      'if (user.isAuthenticated()) {',
+      'return res.status(200).json(data);',
+      'CREATE TABLE users (id INT PRIMARY KEY);',
+      'const handleSubmit = (e) => { e.preventDefault(); }'
+    ];
+    
+    const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+    setSentences(shuffled);
+    console.log('기본 문장으로 시작:', shuffled.length + '개');
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 
