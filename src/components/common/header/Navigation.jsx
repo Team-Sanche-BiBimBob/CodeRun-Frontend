@@ -9,7 +9,7 @@ const Navigation = () => {
     { name: '홈', href: '/', current: false },
     { name: '타자연습', href: '/selectLanguage', current: false },
     { name: '문제집', href: '/problem', current: false },
-    { name: '아케이드', href: '/competition', current: false },
+    { name: '아케이드', href: '/arcadeSelect', current: false },
     { name: '학습방', href: '/study', current: false },
   ];
   navigation.forEach(it=> {
