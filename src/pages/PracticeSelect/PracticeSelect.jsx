@@ -5,7 +5,7 @@ const PracticeSelect = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center px-4 py-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-8">
       <div className="w-full max-w-6xl">
         <h1 className="text-2xl font-bold text-center mb-16 text-black mt-12">
           학습할 타자 유형을 선택하세요.

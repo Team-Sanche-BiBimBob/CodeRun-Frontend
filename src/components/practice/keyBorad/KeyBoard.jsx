@@ -359,7 +359,6 @@ const KoreanKeyboard = () => {
             </React.Fragment>
           ))}
         </div>
-      </div>
 
       <style jsx>{`
         .next-expected-key {
