@@ -13,8 +13,28 @@ const App = () => {
     return () => window.removeEventListener('storage', onStorage);
   }, []); 
 
-  const headerVisibleRoutes = ["/", "/selectLanguage", "/full", "/word", "/sentence", "/teacher", "/problem", "/PracticeSelect" , "/competition"];
-  const showHeader = headerVisibleRoutes.includes(location.pathname);
+  const headerVisibleRoutes = [
+    "/",
+    "/selectLanguage",
+    "/practiceSelect",
+    "/competition",
+    "/arcadeSelect",
+    "/word",
+    "/sentence",
+    "/full",
+    "/problem",
+    "/teacher",
+  ];
+
+  const normalizePath = (path) => {
+    if (!path) return "/";
+    let p = path.toLowerCase();
+    if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+    return p;
+  };
+
+  const currentPath = normalizePath(location.pathname);
+  const showHeader = headerVisibleRoutes.map(normalizePath).includes(currentPath);
 
   return (
     <div style={{ paddingTop: showHeader ? '80px' : '0' }}>
@@ -26,3 +46,4 @@ const App = () => {
 
 export default App;
 
+              
