@@ -1,58 +1,97 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../../../components/practice/keyBorad/KeyBoard'
+import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function WordPage() {
   const navigate = useNavigate();
-  
-  // 단어 리스트 상태
+
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
-  // 현재 타이핑 중인 단어 인덱스 상태
   const [currentIndex, setCurrentIndex] = useState(0);
-  // 사용자가 입력한 텍스트 상태
   const [userInput, setUserInput] = useState('');
-  // 최근 타이핑 기록 배열 (정확도 포함)
   const [history, setHistory] = useState([]);
-  // 완료 상태
   const [isComplete, setIsComplete] = useState(false);
-  // 시작 시간
   const [startTime, setStartTime] = useState(() => new Date());
 
   // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/words', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      console.log('단어 가져오기 시도 중...');
 
-      if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
-      const data = await response.json();
-      const words = data.words || data || [];
-      
-      // 단어 리스트 랜덤 섞기
-      const shuffled = [...words].sort(() => Math.random() - 0.5);
-      setWordList(shuffled);
+      const possibleUrls = [
+
+        '/api/problems',
+      ];
+
+      let lastError = null;
+
+      for (const apiUrl of possibleUrls) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            signal: AbortSignal.timeout(5000),
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('응답이 JSON 형식이 아닙니다');
+          }
+
+          const data = await response.json();
+          console.log('받은 데이터:', data);
+
+          let words = data.words || data || [];
+
+          // ✅ 객체 배열일 경우 title만 추출
+          if (Array.isArray(words) && typeof words[0] === 'object') {
+            words = words.map((w) => w.title || '');
+          }
+
+          if (!Array.isArray(words) || words.length === 0) {
+            throw new Error('단어 데이터가 비어있습니다');
+          }
+
+          const shuffled = [...words].sort(() => Math.random() - 0.5);
+          setWordList(shuffled);
+          console.log('단어 로드 성공:', shuffled.length + '개');
+          return;
+        } catch (err) {
+          console.log(`${apiUrl} 실패:`, err.message);
+          lastError = err;
+          continue;
+        }
+      }
+
+      throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
     } catch (err) {
-      console.error('타자연습 단어 가져오기 실패:', err);
-      // 더미 데이터로 fallback
+      console.error('타자연습 단어 가져오기 최종 실패:', err);
+
+      // fallback 단어
       const defaultWords = [
-        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue', 'default', 'else', 'enum',
-        'extends', 'final', 'for', 'if', 'import', 'interface', 'new', 'null', 'private', 'public',
-        'return', 'static', 'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function'
+        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
+        'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
+        'interface', 'new', 'null', 'private', 'public', 'return', 'static',
+        'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
+        'variable', 'object', 'array', 'string', 'number', 'boolean', 'undefined',
+        'console', 'document', 'window',
       ];
       const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
       setWordList(shuffled);
+      console.log('기본 단어로 시작:', shuffled.length + '개');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 컴포넌트가 처음 마운트될 때 단어 목록 가져오기
   useEffect(() => {
     fetchWords();
     setCurrentIndex(0);
@@ -62,94 +101,81 @@ function WordPage() {
     setStartTime(new Date());
   }, [fetchWords]);
 
-  // 한글 포함 여부 체크 정규식
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
-  // 입력창에 타이핑할 때 상태 업데이트
   const handleChange = (e) => {
     const value = e.target.value;
-
-    // 한글 포함되면 무시
     if (hangulRegex.test(value)) return;
 
     const currentWord = wordList[currentIndex] || '';
     setUserInput(value);
 
-    // 정답이 완전히 입력되었을 경우 자동으로 다음 단어로 이동
     if (value === currentWord) {
       const newEntry = { word: currentWord, isCorrect: true };
-      setHistory(prev => [newEntry, ...prev]);
-      
-      // 모든 단어를 완료했는지 확인
-      if (currentIndex === wordList.length - 1) {
-        setIsComplete(true);
-      } else {
-        setCurrentIndex(prev => prev + 1);
-      }
+      setHistory((prev) => [newEntry, ...prev]);
+      if (currentIndex === wordList.length - 1) setIsComplete(true);
+      else setCurrentIndex((prev) => prev + 1);
       setUserInput('');
     }
   };
 
-  // 엔터 키를 누르면 입력 유효성 검사 후만 처리
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      if (userInput.trim() === '') return; // 빈 입력 무시
+      if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
-      // 한글 포함 시 무시
-      if (hangulRegex.test(userInput)) return;
-
-      const currentWord = wordList[currentIndex]; // 현재 단어
+      const currentWord = wordList[currentIndex];
       const isCorrect = userInput === currentWord;
 
       const newEntry = isCorrect
         ? { word: currentWord, isCorrect: true }
         : { word: userInput, correctWord: currentWord, isCorrect: false };
 
-      setHistory(prev => [newEntry, ...prev]);
-      
-      // 모든 단어를 완료했는지 확인
-      if (currentIndex === wordList.length - 1) {
-        setIsComplete(true);
-      } else {
-        setCurrentIndex(prev => prev + 1);
-      }
+      setHistory((prev) => [newEntry, ...prev]);
+
+      if (currentIndex === wordList.length - 1) setIsComplete(true);
+      else setCurrentIndex((prev) => prev + 1);
+
       setUserInput('');
     }
   };
 
-  // 통계 계산 함수들
-  const getTotalTyped = useCallback(() => {
-    return history.reduce((acc, cur) => acc + cur.word.length, 0);
-  }, [history]);
+  const getTotalTyped = useCallback(
+    () => history.reduce((acc, cur) => acc + cur.word.length, 0),
+    [history]
+  );
 
-  const getCorrectTyped = useCallback(() => {
-    return history.reduce((acc, cur) => {
-      if (cur.isCorrect) {
-        return acc + cur.word.length;
-      } else {
-        const correctCount = cur.word.split('').filter((char, i) => char === cur.correctWord[i]).length;
+  const getCorrectTyped = useCallback(
+    () =>
+      history.reduce((acc, cur) => {
+        if (cur.isCorrect) return acc + cur.word.length;
+        const correctCount = cur.word
+          .split('')
+          .filter((char, i) => char === cur.correctWord[i]).length;
         return acc + correctCount;
-      }
-    }, 0);
-  }, [history]);
+      }, 0),
+    [history]
+  );
 
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
-    
-    // 현재 입력 중인 단어도 포함하여 계산
     const currentWord = wordList[currentIndex] || '';
-    const currentCorrectCount = userInput.split('').filter((char, i) => char === currentWord[i]).length;
-    
+    const currentCorrectCount = userInput
+      .split('')
+      .filter((char, i) => char === currentWord[i]).length;
+
     const finalTotalTyped = totalTyped + userInput.length;
     const finalCorrectTyped = correctTyped + currentCorrectCount;
-    
-    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+
+    return finalTotalTyped === 0
+      ? 0
+      : (finalCorrectTyped / finalTotalTyped) * 100;
   }, [getTotalTyped, getCorrectTyped, userInput, wordList, currentIndex]);
 
-  const getElapsedTimeSec = useCallback(() => {
-    return Math.floor((new Date() - startTime) / 1000);
-  }, [startTime]);
+  const getElapsedTimeSec = useCallback(
+    () => Math.floor((new Date() - startTime) / 1000),
+    [startTime]
+  );
 
   const getElapsedTime = useCallback(() => {
     const diff = getElapsedTimeSec();
@@ -161,13 +187,13 @@ function WordPage() {
   const getTypingSpeed = useCallback(() => {
     const elapsedSeconds = getElapsedTimeSec();
     const completedTyped = getTotalTyped();
-    const currentTyped = userInput.length; // 현재 타이핑 중인 글자 추가
+    const currentTyped = userInput.length;
     const totalTyped = completedTyped + currentTyped;
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
   }, [getElapsedTimeSec, getTotalTyped, userInput.length]);
 
   const handleRestart = () => {
-    fetchWords(); // 서버에서 새로운 단어 가져오기
+    fetchWords();
     setCurrentIndex(0);
     setUserInput('');
     setHistory([]);
@@ -175,84 +201,74 @@ function WordPage() {
     setStartTime(new Date());
   };
 
-  const handleGoHome = () => {
-    navigate('/');
-  };
+  const handleGoHome = () => navigate('/');
 
-  // 현재 단어를 글자별로 렌더링, 입력과 비교해 맞으면 검정, 틀리면 빨간색 글자 표시
   const renderWord = () => {
     const currentWord = wordList[currentIndex] || '';
     return currentWord.split('').map((char, index) => {
-      let color = 'text-white'; // 기본 흰색 (아직 입력 안된 글자)
+      let color = 'text-white';
       if (index < userInput.length) {
         color = userInput[index] === char ? 'text-black' : 'text-red-500';
       }
       return (
-        <span key={index} className={`${color}`}>
+        <span key={index} className={color}>
           {char}
         </span>
       );
     });
   };
 
-  // 로딩 상태
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
-      <div className="text-center">
-        <div className="text-xl font-semibold text-gray-700 mb-4">타자연습 단어를 불러오는 중...</div>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
+        <div className="text-center">
+          <div className="text-xl font-semibold text-gray-700 mb-4">
+            타자연습 단어를 불러오는 중...
+          </div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  // 다음 단어 미리보기 (currentIndex + 1)
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
     <div className="relative min-h-screen flex flex-col items-center bg-teal-50 font-sans pt-16 pb-32">
       <div className="grid grid-cols-3 items-end mb-6">
-        {/* 왼쪽 - 최근 타이핑한 단어들 (최신 단어가 중앙 박스 가까이 오도록 순서 반전) */}
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
-          {history.slice(0, 2).reverse().map((entry, index) => {
-            if (entry.isCorrect) {
-              return (
-                <div key={index} className="text-[#6BCABD] whitespace-nowrap">
-                  {entry.word}
-                </div>
-              );
-            } else {
-              return (
-                <div key={index} className="flex whitespace-nowrap tracking-normal">
-                  {entry.word.split('').map((char, idx) => {
-                    const correctChar = entry.correctWord[idx];
-                    const isCorrectChar = char === correctChar;
-                    return (
-                      <span
-                        key={idx}
-                        className={isCorrectChar ? 'text-black' : 'text-red-500'}
-                      >
-                        {char}
-                      </span>
-                    );
-                  })}
-                </div>
-              );
-            }
-          })}
+          {history.slice(0, 2).reverse().map((entry, index) =>
+            entry.isCorrect ? (
+              <div key={index} className="text-[#6BCABD] whitespace-nowrap">
+                {entry.word}
+              </div>
+            ) : (
+              <div key={index} className="flex whitespace-nowrap tracking-normal">
+                {entry.word.split('').map((char, idx) => {
+                  const correctChar = entry.correctWord[idx];
+                  const isCorrectChar = char === correctChar;
+                  return (
+                    <span
+                      key={idx}
+                      className={isCorrectChar ? 'text-black' : 'text-red-500'}
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
+              </div>
+            )
+          )}
         </div>
-  
-        {/* 가운데 - 현재 단어 박스 */}
+
         <div className="bg-teal-500 w-[349px] h-[122px] rounded-xl shadow-md flex justify-center items-center text-5xl font-medium tracking-wider text-white z-10">
           {renderWord()}
         </div>
-  
-        {/* 오른쪽 - 다음 단어 미리보기 */}
+
         <div className="text-[#BCCCD0] text-5xl whitespace-nowrap flex justify-start pl-6 mb-10">
           {previewNext}
         </div>
       </div>
-  
-      {/* 입력창 영역 */}
+
       {!isComplete && (
         <div className="flex flex-col items-center">
           <input
@@ -270,7 +286,6 @@ function WordPage() {
 
       {!isComplete && (
         <div className="mt-10 w-full flex flex-col items-center">
-          {/* 키보드 위에 실시간 통계 표시 */}
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
@@ -279,12 +294,10 @@ function WordPage() {
             totalSentences={wordList.length}
             startTime={startTime}
           />
-          
-          {/* 키보드 */}
           <KeyBoard />
         </div>
       )}
-  
+
       <CompletionModal
         isOpen={isComplete}
         accuracy={getAccuracy().toFixed(2)}
@@ -294,7 +307,7 @@ function WordPage() {
         onGoHome={handleGoHome}
       />
     </div>
-  );  
+  );
 }
 
 export default WordPage;

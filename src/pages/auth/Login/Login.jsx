@@ -23,7 +23,7 @@ const Login = () => {
     }
 
     api
-      .post("/auth/signin", {
+      .post("/api/auth/signin", {
         email,
         password,
       })
