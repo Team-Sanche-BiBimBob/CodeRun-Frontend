@@ -9,8 +9,8 @@ import SentencePage from '../../pages/practice/sentence/SentencePage';
 import Fullcode from '../../pages/practice/fullCode/FullCode';
 import CodingPlatform from '../../pages/workbook/CodingPlatform';
 import TeacherView from '../../pages/teacherView/TeacherView';
-import Login from '../../pages/auth/Signin/Login';
 import Signup from '../../pages/auth/Signup/Signup';
+import Login from '../../pages/auth/Login/Login';
 
 const Routers = () => {
   return (

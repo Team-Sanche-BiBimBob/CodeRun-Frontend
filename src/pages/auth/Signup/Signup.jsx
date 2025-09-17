@@ -11,21 +11,26 @@ const Signup = () => {
   const [nickname, setNickname] = useState("");
   const [step, setStep] = useState(1);
 
-  const [plan, setPlan] = useState("free"); 
+  const [plan, setPlan] = useState("free");
 
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
     else {
-      console.log("회원가입 최종 제출", { email,  password, nickname });
+      console.log("회원가입 최종 제출", { email, password, nickname });
       api.post("/auth/signup", {
         email,
         password,
         username: nickname,
       })
-      .then((response) => {
-        alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
-        window.location.href = "/login";
-      })
+        .then((response) => {
+          console.log("회원가입 성공", response);
+          alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
+          window.location.href = "/login";
+        })
+        .catch((error) => {
+          console.error("서버 에러 ", error);
+          alert(error.response.data.error);
+        });
     }
   };
 
@@ -103,9 +108,8 @@ const Signup = () => {
               <div
                 key={p.key}
                 onClick={() => setPlan(p.key)}
-                className={`w-full border rounded-[10px] p-4 cursor-pointer transition ${
-                  plan === p.key ? "border-[#14C5B1] bg-[#E6FFFA]" : "border-gray-300"
-                }`}
+                className={`w-full border rounded-[10px] p-4 cursor-pointer transition ${plan === p.key ? "border-[#14C5B1] bg-[#E6FFFA]" : "border-gray-300"
+                  }`}
               >
                 <p className="font-bold text-[20px] mb-1">{p.label}</p>
                 <p className="text-gray-500 text-[16px]">{p.desc}</p>
@@ -128,17 +132,27 @@ const Signup = () => {
 
   return (
     <div className="fixed w-full h-full bg-[#E6E6E6] flex justify-center items-center flex-row">
-      <div className="w-[70%] h-[80%] bg-white flex flex-row justify-between rounded-[30px] min-w-[1100px]">
+      <div className="w-[70%] h-[80%] bg-white flex flex-row rounded-[30px] min-w-[1100px] relative overflow-hidden">
         <ArrowLeft
           onClick={() => {
             window.history.back();
           }}
-          className="absolute m-[23px] w-[35px] h-[35px] text-white hover:cursor-pointer"
+          className="absolute m-[23px] w-[35px] h-[35px] text-white hover:cursor-pointer z-10"
         />
-        <img src={backgroundImage} className="h-[100%] rounded-l-[30px]" />
-        <div className="flex flex-col justify-center w-[100%] p-[65px] pb-[10px] pt-[10px]">
+
+        {/* 왼쪽 이미지 영역 */}
+        <div className="w-1/2 h-full">
+          <img
+            src={backgroundImage}
+            className="w-full h-full object-cover rounded-l-[30px]"
+          />
+        </div>
+
+        {/* 오른쪽 폼 영역 */}
+        <div className="w-1/2 flex flex-col justify-center p-[65px] pb-[10px] pt-[10px]">
           <div className="flex justify-between h-[85%] flex-col mb-[20px]">
             <div>
+              {/* 진행바 */}
               <div className="relative w-full bg-[#E0E0E0] h-[12px] rounded-full">
                 <div
                   className="absolute top-0 left-0 h-[12px] bg-[#14C5B1] rounded-full transition-all duration-300"
@@ -148,25 +162,23 @@ const Signup = () => {
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className={`w-[28px] h-[28px] rounded-full text-center leading-[28px] font-bold transition-all duration-300 ${
-                        i <= step
-                          ? "bg-[#14C5B1]"
-                          : "bg-[#E0E0E0]"
-                      }`}
-                    /> 
+                      className={`w-[28px] h-[28px] rounded-full text-center leading-[28px] font-bold transition-all duration-300 ${i <= step ? "bg-[#14C5B1]" : "bg-[#E0E0E0]"
+                        }`}
+                    />
                   ))}
                 </div>
               </div>
 
               <div>{renderStepContent()}</div>
             </div>
+
+            {/* 버튼 */}
             <button
               disabled={!isStepValid()}
-              className={`w-full h-[58px] rounded-[10px] text-[18px] font-bold transition-colors text-white ${
-                isStepValid()
-                  ? "bg-[#14C5B1] hover:bg-[#16AC9B] cursor-pointer"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+              className={`w-full h-[58px] rounded-[10px] text-[18px] font-bold transition-colors text-white ${isStepValid()
+                ? "bg-[#14C5B1] hover:bg-[#16AC9B] cursor-pointer"
+                : "bg-gray-400 cursor-not-allowed"
+                }`}
               onClick={handleNext}
             >
               {step < 4 ? "다음" : "회원가입"}
@@ -176,6 +188,7 @@ const Signup = () => {
       </div>
     </div>
   );
+
 };
 
 export default Signup;
