@@ -121,10 +121,10 @@ function Battle() {
                     {/* 승패 및 승률 정보 */}
                     <div className="text-center mb-8">
                       <p className="text-lg font-medium text-gray-800 mb-2">
-                        {userInfo?.wins || '10'}승 {userInfo?.losses || '30'}패
+                        {userInfo?.wins || '0'}승 {userInfo?.losses || '0'}패
                       </p>
                       <p className="text-base text-gray-600">
-                        {userInfo?.winRate || '25'}%
+                        {userInfo?.winRate || '0'}%
                       </p>
                     </div>
 
@@ -171,7 +171,7 @@ function Battle() {
                           <span className="text-sm text-gray-600">{room.players}</span>
                           {room.status === 'locked' && (
                             <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 616 0z" clipRule="evenodd" />
                             </svg>
                           )}
                         </div>
@@ -216,7 +216,10 @@ function Battle() {
 
       {/* 매칭 모달 */}
       {isMatchingModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-5 flex items-center justify-center z-50">
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50" 
+          style={{backgroundColor: 'rgba(0, 0, 0, 0.5)'}}
+        >
           <div className="bg-white rounded-lg p-8 w-96 relative shadow-2xl border-2 border-gray-100">
             {/* 오른쪽 상단 버퍼링 스피너 */}
             <div className="absolute top-4 right-4">
