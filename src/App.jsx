@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import './App.css'
 import Header from './components/common/header/Header.jsx'
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Routers from './components/Routers/Routers.jsx';
 
 const App = () => {
@@ -14,9 +14,10 @@ const App = () => {
     return () => window.removeEventListener('storage', onStorage);
   }, []); 
 
-  // 헤더 표시 경로들을 메모이제이션
+  // 헤더 표시 경로들을 메모이제이션 (/home 경로 추가)
   const headerVisibleRoutes = useMemo(() => [
     "/",
+    "/home",  // 홈 경로 추가
     "/selectLanguage",
     "/practiceSelect",
     "/competition",
@@ -52,4 +53,4 @@ const App = () => {
   );
 };
 
-export default App; 
+export default App;

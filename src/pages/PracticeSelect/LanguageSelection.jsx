@@ -67,7 +67,7 @@ const LanguageSelection = () => {
   const navigate = useNavigate();
   useEffect(()=>{
     const getData = async ()=>{
-      const response = await fetch('/api/languages', {
+      const response = await fetch('api/languages', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
