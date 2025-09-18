@@ -64,14 +64,14 @@ const ArcadeSelect = () => {
             icon={<ClockIcon />}
             title="타임어택"
             subtitle="시간과 싸우세요"
-            onClick={() => handleModeClick('타임어택', '/competition')}
+            onClick={() => handleModeClick('타임어택', '/timeattack')}
           />
           
           <ModeCard
             icon={<VSIcon />}
             title="대결전"
             subtitle="1 대 1 대결을 통해 승리하세요"
-            onClick={() => handleModeClick('대결전', '/arcade1v1')}
+            onClick={() => handleModeClick('대결전', '/battle')}
           />
           
           <ModeCard

@@ -121,11 +121,14 @@ const fetchSentences = useCallback(async () => {
   const currentSentence = sentences[currentIndex] || '';
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
-  // 키 입력 처리
+  // 키 입력 처리 - 모든 기본 동작 방지
   const handleKeyDown = useCallback((e) => {
     if (e.isComposing || e.keyCode === 229) { e.preventDefault(); return; }
     if (hangulRegex.test(e.key)) { e.preventDefault(); return; }
     if (isComplete || sentences.length === 0) return;
+
+    // ✅ 모든 키 입력에 대해 기본 동작 방지
+    e.preventDefault();
 
     if (e.key === 'Backspace') {
       setTypedChars((prev) => prev.slice(0, -1));

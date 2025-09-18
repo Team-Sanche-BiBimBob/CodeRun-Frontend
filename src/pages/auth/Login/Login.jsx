@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../../server";
 
 import backgroundImage from "../../../assets/login-background.png";
 import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -29,7 +31,15 @@ const Login = () => {
       })
       .then((response) => {
         localStorage.setItem('accessToken', response.data.accessToken);
-        window.location.href = "/";
+        // 사용자 정보 저장 (실제 API 응답에 따라 조정 필요)
+        const userInfo = {
+          name: response.data.name || response.data.username || email.split('@')[0],
+          email: email
+        };
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        
+        // 페이지 새로고침하여 상태 업데이트
+        window.location.reload();
       })
       .catch((error) => {
         console.error("서버 에러 ", error);
