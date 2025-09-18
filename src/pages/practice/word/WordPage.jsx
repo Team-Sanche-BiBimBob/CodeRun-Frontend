@@ -22,7 +22,6 @@ function WordPage() {
       console.log('단어 가져오기 시도 중...');
 
       const possibleUrls = [
-
         '/api/problems/words',
       ];
 
@@ -103,6 +102,50 @@ function WordPage() {
 
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
+  // 키보드에 전달할 정보 계산
+  const getNextCharInfo = useCallback(() => {
+    const currentWord = wordList[currentIndex] || '';
+    
+    if (!currentWord || userInput.length >= currentWord.length) {
+      return {
+        nextChar: null,
+        nextWord: wordList[currentIndex + 1] || null,
+        currentPosition: userInput.length,
+        totalLength: currentWord.length,
+        remainingText: '',
+        currentWord: currentWord
+      };
+    }
+
+    const nextCharIndex = userInput.length;
+    const nextChar = currentWord[nextCharIndex];
+    const remainingText = currentWord.slice(nextCharIndex);
+
+    return {
+      nextChar: nextChar,
+      nextWord: remainingText, // 단어 연습에서는 현재 단어의 나머지 부분
+      currentPosition: nextCharIndex,
+      totalLength: currentWord.length,
+      remainingText: remainingText,
+      currentWord: currentWord
+    };
+  }, [wordList, currentIndex, userInput]);
+
+  // 전역 키보드 이벤트 처리 - 기본 동작 차단
+  const handleGlobalKeyDown = useCallback((e) => {
+    if (isComplete) return;
+    
+    // ✅ 모든 키 입력에 대해 기본 동작 방지 (단, input 이벤트는 제외)
+    if (e.target.tagName !== 'INPUT') {
+      e.preventDefault();
+    }
+  }, [isComplete]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [handleGlobalKeyDown]);
+
   const handleChange = (e) => {
     const value = e.target.value;
     if (hangulRegex.test(value)) return;
@@ -120,7 +163,14 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
+    // ✅ 스페이스바와 백스페이스 기본동작 방지
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
+
     if (e.key === 'Enter') {
+      e.preventDefault(); // Enter 기본 동작 방지
+      
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];
@@ -294,7 +344,10 @@ function WordPage() {
             totalSentences={wordList.length}
             startTime={startTime}
           />
-          <KeyBoard />
+          <KeyBoard 
+            nextCharInfo={getNextCharInfo()}
+            isTypingActive={!isComplete}
+          />
         </div>
       )}
 
