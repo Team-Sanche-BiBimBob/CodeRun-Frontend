@@ -84,25 +84,30 @@ const LanguageSelection = () => {
     }
     getData();
   },[]);
+
   const handleLanguageSelect = (languageId) => {
     setSelectedLanguage(languageId);
   };
+
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
       navigate('/PracticeSelect', { state: { language: selectedLanguage } });
     }
   };
+
   const handleSelectLater = () => {
     console.log('Select later clicked');
   };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-center mb-12">
-          학습할 프로그래밍 언어를 선택하세요
-        </h2>
+      <h2 className="text-2xl font-bold text-center mt-12 mb-20">
+        학습할 프로그래밍 언어를 선택하세요
+      </h2>
+        
         <div className="flex justify-center mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-48 max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl w-full px-4">
           {languages.map((language) => (
             <LanguageCard
               key={language.id}
@@ -113,6 +118,7 @@ const LanguageSelection = () => {
                       ))}
           </div>
         </div>
+
         <div className="flex flex-col items-center">
           <button
             className={`w-64 py-3 px-6 rounded-md text-center border-none cursor-pointer transition-colors ${
@@ -136,4 +142,5 @@ const LanguageSelection = () => {
     </div>
   );
 };
+
 export default LanguageSelection;
