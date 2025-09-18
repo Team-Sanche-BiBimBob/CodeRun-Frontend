@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Footer from '../../components/common/footer/Footer.jsx';
-import { useNavigate } from 'react-router-dom'; // ✅ 추가
+import { useNavigate } from 'react-router-dom'; 
 
 const Home = () => {
   const [items, setItems] = useState([]);
-  const navigate = useNavigate(); // ✅ 추가
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     const dummyData = [
@@ -51,7 +51,7 @@ const Home = () => {
                   <p className="language-description">{language.description}</p>
                   <button
                     className="language-button"
-                    onClick={() => navigate('/choice')}
+                    onClick={() => navigate('/PracticeSelect')}
                   >
                     이동하기
                   </button>
