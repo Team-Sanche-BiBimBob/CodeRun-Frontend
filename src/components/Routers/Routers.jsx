@@ -13,6 +13,7 @@ import Signup from '../../pages/auth/Signup/Signup';
 import Login from '../../pages/auth/Login/Login';
 import Battle from '../../pages/arcade/battle/Battle';
 import ArcadeSelect from '../../pages/arcade/arcadeSelect/ArcadeSelect';
+import NotFound from '../../pages/NotFound/NotFound';
 
 const Routers = () => {
   return (
@@ -30,6 +31,7 @@ const Routers = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path='/arcadeSelect' element={<ArcadeSelect />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

@@ -1,23 +1,46 @@
 import { useLocation } from 'react-router-dom';
+import { memo, useMemo, useState, useEffect } from 'react';
 import logo from '../../../assets/logo.svg';
 import userImg from '../../../assets/user.jpg';
 
-const Header = ({ isLoggedIn }) => {
+const Header = memo(({ isLoggedIn }) => {
   const location = useLocation();
+  const [userName, setUserName] = useState('사용자');
 
-  const navigation = [
-    { name: '홈', href: '/', current: false },
-    { name: '타자연습', href: '/selectLanguage', current: false },
-    { name: '문제집', href: '/problem', current: false },
-    { name: '아케이드', href: '/arcadeSelect', current: false },
-    { name: '학습방', href: '/study', current: false },
-  ];
-  
-  navigation.forEach(item => {
-    if(item.href === location.pathname) {
-      item.current = true;
+  // 사용자 정보 가져오기
+  useEffect(() => {
+    if (isLoggedIn) {
+      // localStorage에서 사용자 정보 가져오기 (실제 구현에서는 API 호출)
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo) {
+        try {
+          const user = JSON.parse(userInfo);
+          setUserName(user.name || user.username || '사용자');
+        } catch (error) {
+          console.error('사용자 정보 파싱 오류:', error);
+        }
+      }
     }
-  });
+  }, [isLoggedIn]);
+
+  // 네비게이션 아이템들을 메모이제이션하여 성능 최적화
+  const navigation = useMemo(() => {
+    const navItems = [
+      { name: '홈', href: '/', current: false },
+      { name: '타자연습', href: '/selectLanguage', current: false },
+      { name: '문제집', href: '/problem', current: false },
+      { name: '아케이드', href: '/arcadeSelect', current: false },
+      { name: '학습방', href: '/study', current: false },
+    ];
+    
+    navItems.forEach(item => {
+      if(item.href === location.pathname) {
+        item.current = true;
+      }
+    });
+    
+    return navItems;
+  }, [location.pathname]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-sm">
@@ -28,8 +51,10 @@ const Header = ({ isLoggedIn }) => {
             <a href="/">
               <img 
                 src={logo}
-                alt="header" 
+                alt="CodeRun 로고" 
                 className="max-w-full max-h-full object-contain"
+                loading="eager"
+                decoding="async"
               />
             </a>
           </div>
@@ -55,13 +80,25 @@ const Header = ({ isLoggedIn }) => {
           {/*사용자 정보*/}
           <div className="flex items-center">
             {isLoggedIn ? (
-              <div className="flex items-center gap-4 text-gray-700">
-                <span className="hidden sm:block text-sm font-medium">사용자이름</span>
+              <div className="flex items-center gap-3 text-gray-700">
+                <span className="hidden sm:block text-sm font-medium">{userName}</span>
                 <img 
                   src={userImg} 
-                  alt="user" 
-                  className="w-8 h-8 rounded-full"
+                  alt="사용자 프로필" 
+                  className="w-8 h-8 rounded-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('userInfo');
+                    window.location.reload();
+                  }}
+                  className="ml-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                >
+                  로그아웃
+                </button>
               </div>
             ) : (
               <>
@@ -84,6 +121,8 @@ const Header = ({ isLoggedIn }) => {
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;
