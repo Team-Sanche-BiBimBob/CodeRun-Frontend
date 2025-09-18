@@ -24,6 +24,8 @@ const App = () => {
     "/full",
     "/problem",
     "/teacher",
+    "/timeattack",
+    "/battle",
   ];
 
   const normalizePath = (path) => {
