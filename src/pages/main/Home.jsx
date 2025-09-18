@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './Home.css';
 import Footer from '../../components/common/footer/Footer.jsx';
 import { useNavigate } from 'react-router-dom'; 
 
@@ -26,31 +25,66 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="home-container">
-      <header className="header-placeholder"></header>
+    <div className="flex flex-col min-h-screen w-screen mx-auto bg-gray-100 relative">
+      {/* Hero Section */}
+      <section className="relative w-full h-96 overflow-hidden bg-white">
+        {/* Hero Left */}
+        <div 
+          className="absolute top-0 h-full w-full z-10"
+          style={{ 
+            backgroundColor: '#14b8a6',
+            clipPath: 'polygon(0 0, 70% 0, 50% 100%, 0% 100%)' 
+          }}
+        ></div>
+        
+        {/* Hero Right */}
+        <div 
+          className="absolute top-0 h-full w-full z-0"
+          style={{ 
+            background: '#1fa799',
+            clipPath: 'polygon(70% 0, 100% 0, 100% 100%, 50% 100%)'
+          }}
+        ></div>
 
-      <section className="hero-section">
-        <div className="hero-left"></div>
-        <div className="hero-right"></div>
-        <div className="hero-content">
-          <h1 className="hero-title">CodeRun{"{}"}</h1>
-          <p className="hero-subtitle">어제보다 한 글자 더 빠르게</p>
+        {/* Background Gradient */}
+        <div 
+          className="absolute top-0 left-0 w-full h-full z-0"
+          style={{ 
+            background: 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
+            clipPath: 'polygon(0 0, 60% 0, 40% 100%, 0% 100%)'
+          }}
+        ></div>
+
+        {/* Hero Content */}
+        <div className="relative z-20 p-25 text-white max-w-1/2">
+          <h1 className="text-4xl font-bold mb-3">CodeRun{"{}"}</h1>
+          <p className="text-lg font-normal">어제보다 한 글자 더 빠르게</p>
         </div>
       </section>
 
-      <div className="content-wrapper">
-        <section className="languages-section">
-          <h2 className="section-title">최근 인기 있는 언어</h2>
-          <div className="languages-grid">
+      {/* Content Wrapper */}
+      <div className="max-w-4xl mx-auto py-15 px-5 flex flex-col gap-15">
+        {/* Languages Section */}
+        <section className="w-full">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">최근 인기 있는 언어</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.slice(0, 3).map((language, index) => (
-              <div key={index} className="language-card">
-                <div className="language-header">
-                  <h3 className="language-name">{language.name}</h3>
+              <div 
+                key={index} 
+                className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                {/* Language Header */}
+                <div className="text-white py-4 px-5 text-center" style={{ backgroundColor: '#17b6a2' }}>
+                  <h3 className="text-xl font-semibold m-0">{language.name}</h3>
                 </div>
-                <div className="language-body">
-                  <p className="language-description">{language.description}</p>
+                
+                {/* Language Body */}
+                <div className="p-5">
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    {language.description}
+                  </p>
                   <button
-                    className="language-button"
+                    className="bg-teal-50 text-teal-700 border-none rounded-lg py-2 px-4 text-sm cursor-pointer transition-colors duration-200 w-full hover:bg-teal-100"
                     onClick={() => navigate('/PracticeSelect')}
                   >
                     이동하기
