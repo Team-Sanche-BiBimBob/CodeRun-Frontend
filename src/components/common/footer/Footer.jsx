@@ -19,10 +19,10 @@ const Footer = () => {
           <h3 className="text-lg font-semibold mb-4">메뉴</h3>
           <ul className="space-y-2 text-gray-300">
             <li><Link to="/">홈</Link></li>
-            <li><Link to="/competition">경쟁전</Link></li>
             <li><Link to="/selectLanguage">타자연습</Link></li>
-            <li><Link to="/study">학습방</Link></li>
             <li><Link to="/problem">문제집</Link></li>
+            <li><Link to="/arcadeSelect">아케이드</Link></li>
+            <li><Link to="/study">학습방</Link></li>
           </ul>
         </div>
 
