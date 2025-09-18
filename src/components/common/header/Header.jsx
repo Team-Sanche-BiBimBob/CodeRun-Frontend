@@ -24,7 +24,7 @@ const Header = ({ isLoggedIn }) => {
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/*로고*/}
-          <div className="flex-shrink-0 flex items-center justify-center w-24 h-5">
+          <div className="flex-shrink-0 flex items-center justify-center w-24 h-5 pt-1">
             <a href="/">
               <img 
                 src={logo}
@@ -40,7 +40,7 @@ const Header = ({ isLoggedIn }) => {
               <a
                 key={item.name}
                 href={item.href}
-                className={`inline-flex items-center py-1 px-1 text-sm font-medium border-b-2 transition-all duration-200 ${
+                className={`inline-flex items-center pt-2 pb-1 px-1 text-sm font-medium border-b-2 transition-all duration-200 ${
                   item.current 
                     ? 'border-teal-500 text-gray-900' 
                     : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900'
