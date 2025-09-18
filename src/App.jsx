@@ -1,19 +1,21 @@
 import { useLocation } from 'react-router-dom';
 import './App.css'
 import Header from './components/common/header/Header.jsx'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import Routers from './components/Routers/Routers.jsx';
 
 const App = () => {
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
+  
   useEffect(() => {
-    const onStorage = () => setIsLoggedIn(!!localStorage.getItem('token'));
+    const onStorage = () => setIsLoggedIn(!!localStorage.getItem('accessToken'));
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, []); 
 
-  const headerVisibleRoutes = [
+  // 헤더 표시 경로들을 메모이제이션
+  const headerVisibleRoutes = useMemo(() => [
     "/",
     "/selectLanguage",
     "/practiceSelect",
@@ -26,24 +28,28 @@ const App = () => {
     "/teacher",
     "/timeattack",
     "/battle",
-  ];
+  ], []);
 
-  const normalizePath = (path) => {
+  const normalizePath = useMemo(() => (path) => {
     if (!path) return "/";
     let p = path.toLowerCase();
     if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
     return p;
-  };
+  }, []);
 
-  const currentPath = normalizePath(location.pathname);
-  const showHeader = headerVisibleRoutes.map(normalizePath).includes(currentPath);
+  // 현재 경로와 헤더 표시 여부를 메모이제이션
+  const { currentPath, showHeader } = useMemo(() => {
+    const currentPath = normalizePath(location.pathname);
+    const showHeader = headerVisibleRoutes.map(normalizePath).includes(currentPath);
+    return { currentPath, showHeader };
+  }, [location.pathname, headerVisibleRoutes, normalizePath]);
 
   return (
-    <div style={{ paddingTop: showHeader ? '80px' : '0' }}>
+    <div style={{ paddingTop: showHeader ? '64px' : '0' }}>
       {showHeader && <Header isLoggedIn={isLoggedIn} />}
       <Routers />
     </div>
   );
 };
 
-export default App;
+export default App; 
