@@ -15,6 +15,7 @@ import Battle from '../../pages/arcade/battle/Battle';
 import ArcadeSelect from '../../pages/arcade/arcadeSelect/ArcadeSelect';
 import NotFound from '../../pages/NotFound/NotFound';
 import Study from '../../pages/study/study';
+import MyPage from '../../pages/Mypage';
 
 const Routers = () => {
   return (
@@ -34,6 +35,7 @@ const Routers = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path='/arcadeSelect' element={<ArcadeSelect />} />
       <Route path='/study' element={<Study />} />
+      <Route path='/mypage' element={<MyPage />} />
       <Route path="*" element={<NotFound />} />  {/* 404 라우트는 맨 마지막에 */}
     </Routes>
   );

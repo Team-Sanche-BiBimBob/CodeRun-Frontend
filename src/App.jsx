@@ -29,6 +29,7 @@ const App = () => {
     "/teacher",
     "/timeattack",
     "/battle",
+    "/mypage",
   ], []);
 
   const normalizePath = useMemo(() => (path) => {
