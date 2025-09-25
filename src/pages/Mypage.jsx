@@ -86,7 +86,7 @@ const MyPage = () => {
             </section>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-4">가장 많이 학습한 언어</h3>
-            <section className="bg-white rounded-2xl shadow p-8 border-2 border-blue-500">
+            <section className="bg-white rounded-2xl shadow p-8 border border-gray-200">
               <div className="flex items-start justify-between">
                 <div className="pr-6 max-w-2xl">
                   <h4 className="text-2xl font-semibold text-gray-900 mb-2">Java</h4>
