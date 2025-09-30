@@ -18,6 +18,13 @@ const Login = () => {
     setPassword(e.target.value);
   }
 
+  // onKeyPress 대신 onKeyDown 사용
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
+  }
+
   const handleSubmit = () => {
     if (!email || !password) {
       alert("모든 항목을 입력해주세요.");
@@ -38,12 +45,15 @@ const Login = () => {
         };
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
         
-        // 페이지 새로고침하여 상태 업데이트
-        window.location.reload();
+        // storage 이벤트를 수동으로 트리거하여 App.js의 상태 업데이트
+        window.dispatchEvent(new Event('storage'));
+        
+        // home.jsx로 이동
+        navigate('/home');
       })
       .catch((error) => {
         console.error("서버 에러 ", error);
-        alert(error.response.data.error);
+        alert(error.response?.data?.error || "로그인에 실패했습니다.");
       });
   };
 
@@ -68,17 +78,21 @@ const Login = () => {
             <div>
               <p className="text-[24px] mb-[11px]">이메일</p>
               <input
-                onKeyUp={handleChangeEmail}
+                onChange={handleChangeEmail}
+                onKeyDown={handleKeyDown}  // onKeyPress → onKeyDown으로 변경
                 type="text"
                 placeholder="아이디를 입력해주세요"
                 className="w-full h-[56px] border border-[rgba(146,146,146,0.6)] rounded-[10px] mb-[20px] pl-[20px] text-[20px] focus:outline-none"
+                value={email}
               />
               <p className="text-[24px] mb-[11px]">비밀번호</p>
               <input
-                onKeyUp={handleChangePassword}
+                onChange={handleChangePassword}
+                onKeyDown={handleKeyDown}  // onKeyPress → onKeyDown으로 변경
                 type="password"
                 placeholder="비밀번호를 입력해주세요"
                 className="w-full h-[56px] border border-[rgba(146,146,146,0.6)] rounded-[10px] mb-[20px] pl-[20px] text-[20px] focus:outline-none"
+                value={password}
               />
             </div>
             <div>
