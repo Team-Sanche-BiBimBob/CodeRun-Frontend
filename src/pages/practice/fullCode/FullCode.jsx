@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
@@ -11,134 +11,124 @@ const Fullcode = () => {
   const [keystrokes, setKeystrokes] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [error, setError] = useState(null);
   const editorRef = useRef(null);
   const decorationsRef = useRef([]);
   const isComposingRef = useRef(false);
   const lastValueRef = useRef('');
   const timerRef = useRef(null);
+  const isInitializedRef = useRef(false);
 
-  // 여러 예제 코드들 (JavaScript)
-  const exampleCodes = [
-    // 예제 1: 배열 처리와 고차 함수
-    [
-      'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];',
-      'const result = numbers',
-      '  .filter(num => num % 2 === 0)',
-      '  .map(num => num * num);',
-      'console.log(result);',
-      '',
-      'const people = [',
-      '  { name: "Alice", age: 25, city: "New York" },',
-      '  { name: "Bob", age: 30, city: "Chicago" },',
-      '  { name: "Charlie", age: 25, city: "New York" }',
-      '];',
-      '',
-      'const groupBy = (array, key) => {',
-      '  return array.reduce((acc, obj) => {',
-      '    const groupKey = obj[key];',
-      '    if (!acc[groupKey]) {',
-      '      acc[groupKey] = [];',
-      '    }',
-      '    acc[groupKey].push(obj);',
-      '    return acc;',
-      '  }, {});',
-      '};',
-      '',
-      'console.log(groupBy(people, "city"));',
-    ].join('\n'),
+  // 풀코드 데이터 가져오기 (서버 API 시도 후 폴백)
+  const fetchFullCodes = async () => {
+    // 이미 로딩 중이면 중복 호출 방지
+    if (loading) return;
     
-    // 예제 2: 비동기 처리와 프로미스
-    [
-      'async function fetchUserData(userId) {',
-      '  try {',
-      '    const response = await fetch(`/api/users/${userId}`);',
-      '    if (!response.ok) {',
-      '      throw new Error(`HTTP error! status: ${response.status}`);',
-      '    }',
-      '    const data = await response.json();',
-      '    return data;',
-      '  } catch (error) {',
-      '    console.error("Error fetching user data:", error);',
-      '    return null;',
-      '  }',
-      '}',
-      '',
-      'async function fetchMultipleUsers(userIds) {',
-      '  const promises = userIds.map(id => fetchUserData(id));',
-      '  const results = await Promise.allSettled(promises);',
-      '  return results',
-      '    .filter(result => result.status === "fulfilled" && result.value)',
-      '    .map(result => result.value);',
-      '}',
-      '',
-      'const userIds = [1, 2, 3];',
-      'fetchMultipleUsers(userIds).then(users => {',
-      '  console.log("Fetched users:", users);',
-      '});',
-    ].join('\n'),
+    setLoading(true);
+    setLoadingMessage('서버에서 문제를 가져오고 있습니다...');
+    setError(null);
     
-    // 예제 3: 클래스와 상속
-    [
-      'class Animal {',
-      '  constructor(name) {',
-      '    this.name = name;',
-      '  }',
-      '',
-      '  speak() {',
-      '    return `${this.name} makes a noise.`;',
-      '  }',
-      '}',
-      '',
-      'class Dog extends Animal {',
-      '  speak() {',
-      '    return `${this.name} says Woof!`;',
-      '  }',
-      '',
-      '  fetch() {',
-      '    return `${this.name} fetches the ball!`;',
-      '  }',
-      '}',
-      '',
-      'const animals = [new Dog("Buddy"), new Animal("Generic")];',
-      'animals.forEach(animal => {',
-      '  console.log(animal.speak());',
-      '  if (animal instanceof Dog) {',
-      '    console.log(animal.fetch());',
-      '  }',
-      '});',
-    ].join('\n'),
-    
-    // 예제 4: 모듈 패턴과 클로저
-    [
-      'const counter = (() => {',
-      '  let count = 0;',
-      '',
-      '  return {',
-      '    increment() {',
-      '      count += 1;',
-      '      return count;',
-      '    },',
-      '    decrement() {',
-      '      count -= 1;',
-      '      return count;',
-      '    },',
-      '    getCount() {',
-      '      return count;',
-      '    },',
-      '    reset() {',
-      '      count = 0;',
-      '      return count;',
-      '    }',
-      '  };',
-      '})();',
-      '',
-      'console.log(counter.increment());',
-      'console.log(counter.increment());',
-      'console.log(counter.decrement());',
-      'console.log(counter.getCount());',
-      'console.log(counter.reset());',
-    ].join('\n')
-  ];
+    // 폴백 데이터 (서버 API가 준비되지 않은 경우 사용)
+    const fallbackCodes = [
+      'const numbers = [1, 2, 3, 4, 5];\nconst result = numbers.filter(num => num % 2 === 0);\nconsole.log(result);',
+      'function greet(name) {\n  return `Hello, ${name}!`;\n}\nconsole.log(greet("World"));',
+      'const users = [\n  { name: "Alice", age: 25 },\n  { name: "Bob", age: 30 }\n];\nconst adults = users.filter(user => user.age >= 18);\nconsole.log(adults);',
+      'class Calculator {\n  add(a, b) {\n    return a + b;\n  }\n  multiply(a, b) {\n    return a * b;\n  }\n}\n\nconst calc = new Calculator();\nconsole.log(calc.add(5, 3));',
+      'const fetchData = async () => {\n  try {\n    const response = await fetch("/api/data");\n    const data = await response.json();\n    return data;\n  } catch (error) {\n    console.error("Error:", error);\n  }\n};',
+      'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\nconst evenSquares = numbers\n  .filter(num => num % 2 === 0)\n  .map(num => num * num);\nconsole.log(evenSquares);'
+    ];
+
+    try {
+      console.log('풀코드 가져오기 시도 중...');
+
+      const possibleUrls = [
+        '/api/problems/full-code'
+      ];
+
+      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
+      const apiUrl = possibleUrls[0];
+      try {
+        console.log(`시도 중: ${apiUrl}`);
+        // 직접 서버에 요청 (프록시 우회)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const fullUrl = baseUrl + apiUrl;
+        console.log(`API 요청 URL: ${fullUrl}`);
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(2000),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
+
+        let codes = data.codes || data.fullcodes || data || [];
+
+        if (Array.isArray(codes) && typeof codes[0] === 'object') {
+          codes = codes.map((c) => c.content || c.code || c.title || '');
+        }
+
+        if (Array.isArray(codes) && codes.length > 0) {
+          // Fisher-Yates 셔플 알고리즘을 사용하여 완전히 랜덤하게 섞기
+          const shuffledCodes = [...codes];
+          for (let i = shuffledCodes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledCodes[i], shuffledCodes[j]] = [shuffledCodes[j], shuffledCodes[i]];
+          }
+          const randomIndex = Math.floor(Math.random() * shuffledCodes.length);
+          const selectedCode = shuffledCodes[randomIndex];
+          setExampleCode(selectedCode);
+          setExampleLines(selectedCode.split('\n'));
+          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 랜덤 선택됨');
+          setLoading(false);
+          setLoadingMessage('');
+          return;
+        }
+      } catch (err) {
+        const errorMessage = err.message;
+        // AbortError (타임아웃)은 정상적인 동작이므로 에러 로그를 표시하지 않음
+        if (err.name !== 'AbortError') {
+          console.log(`${apiUrl} 실패:`, errorMessage);
+        } else {
+          console.log(`${apiUrl} 타임아웃 (2초), 폴백 데이터를 사용합니다.`);
+        }
+      }
+
+      // API 시도 실패 시 폴백 데이터 사용
+      setLoadingMessage('기본 예제 코드를 준비하고 있습니다...');
+      console.log('서버 API를 사용할 수 없어 기본 예제 코드를 사용합니다.');
+      
+    } catch (err) {
+      // AbortError (타임아웃)은 정상적인 동작이므로 에러 로그를 표시하지 않음
+      if (err.name !== 'AbortError') {
+        console.log('API 호출 중 오류 발생, 폴백 데이터 사용:', err.message);
+      }
+    }
+
+    // 폴백 데이터 사용 (Fisher-Yates 셔플 알고리즘으로 완전히 랜덤하게 섞어서 선택)
+    setLoadingMessage('문제를 준비하고 있습니다...');
+    const shuffledFallbackCodes = [...fallbackCodes];
+    for (let i = shuffledFallbackCodes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledFallbackCodes[i], shuffledFallbackCodes[j]] = [shuffledFallbackCodes[j], shuffledFallbackCodes[i]];
+    }
+    const randomIndex = Math.floor(Math.random() * shuffledFallbackCodes.length);
+    const selectedCode = shuffledFallbackCodes[randomIndex];
+    setExampleCode(selectedCode);
+    setExampleLines(selectedCode.split('\n'));
+    console.log('폴백 데이터 사용:', fallbackCodes.length + '개 중 랜덤 선택됨');
+    setLoading(false);
+    setLoadingMessage('');
+  };
   
   // 랜덤으로 예제 코드 선택
   const [exampleCode, setExampleCode] = useState('');
@@ -285,23 +275,23 @@ const Fullcode = () => {
   };
 
   // 분당 타수(Words Per Minute) 계산
-  const calculateWPM = useCallback(() => {
+  const calculateWPM = () => {
     if (elapsedTime === 0) return 0;
     const totalChars = code.length;
     const timeInMinutes = elapsedTime / 60;
     return Math.round((totalChars / 5) / timeInMinutes);
-  }, [code, elapsedTime]);
+  };
 
   // 타이머 정지
-  const stopTimer = useCallback(() => {
+  const stopTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  }, []);
+  };
 
   // Start timer when typing begins
-  const startTypingTimer = useCallback(() => {
+  const startTypingTimer = () => {
     if (timerRef.current) return;
     
     const now = Date.now();
@@ -314,7 +304,7 @@ const Fullcode = () => {
         return Math.max(0, elapsedSeconds);
       });
     }, 100);
-  }, []);
+  };
 
   const handleEditorChange = (value, event) => {
     if (!value) value = '';
@@ -373,10 +363,8 @@ const Fullcode = () => {
               setStartTime(null);
               lastValueRef.current = '';
               
-              const randomIndex = Math.floor(Math.random() * exampleCodes.length);
-              const selectedExample = exampleCodes[randomIndex];
-              setExampleCode(selectedExample);
-              setExampleLines(selectedExample.split('\n'));
+              // 새로운 풀코드 가져오기
+              fetchFullCodes();
               return;
             }
           }
@@ -388,25 +376,26 @@ const Fullcode = () => {
     }
   };
   
-  // 컴포넌트 마운트 시 랜덤 예제 선택
+  // 컴포넌트 마운트 시 서버에서 풀코드 데이터 가져오기
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * exampleCodes.length);
-    const selectedExample = exampleCodes[randomIndex];
-    setExampleCode(selectedExample);
-    setExampleLines(selectedExample.split('\n'));
+    // 중복 호출 방지
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+    
+    fetchFullCodes();
     
     setCode('');
     setKeystrokes(0);
     setAccuracy(100);
     setElapsedTime(0);
     setStartTime(null);
-  }, []);
+  }, []); // fetchFullCodes 의존성 제거
 
   useEffect(() => {
     return () => {
       stopTimer();
     };
-  }, [stopTimer]);
+  }, []);
   
   // 시간 포맷팅 (초를 MM:SS 형식으로 변환)
   const formatTime = (totalSeconds) => {
@@ -438,17 +427,32 @@ const Fullcode = () => {
       decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
     }
     
-    // 새로운 예제 코드 선택
-    const randomIndex = Math.floor(Math.random() * exampleCodes.length);
-    const selectedExample = exampleCodes[randomIndex];
-    setExampleCode(selectedExample);
-    setExampleLines(selectedExample.split('\n'));
+    // 로딩 상태 초기화 후 새로운 풀코드 가져오기
+    setLoading(false);
+    setTimeout(() => {
+      fetchFullCodes();
+    }, 100);
   };
 
   const handleGoHome = () => {
     setShowCompletionModal(false);
     navigate('/');
   };
+
+  // 로딩 상태 표시
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-white">
+        <div className="text-center">
+          <div className="mb-4 text-xl font-semibold text-gray-700">
+            {loadingMessage || '풀코드를 불러오는 중...'}
+          </div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex flex-col gap-1 max-w-[1350px] mx-auto p-5 pt-2.5 min-h-[80vh] h-[calc(90vh-40px)]">
@@ -463,7 +467,7 @@ const Fullcode = () => {
       
       {/* Modal Overlay to prevent interactions */}
       {showCompletionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-0 z-40" />
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-0" />
       )}
       
       {/* Statistics Container */}
@@ -485,14 +489,13 @@ const Fullcode = () => {
       </div>
       
       {/* Code Editors Container */}
-      <div className={`grid grid-cols-2 gap-8 flex-1 min-h-0 ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
+      <div className={`grid grid-cols-2 gap-8 flex-1 min-h-0 ${showCompletionModal ? 'opacity-50 pointer-events-none' : ''}`}>
         {/* Example Code Display */}
         <div className="flex flex-col bg-[#1E1E1E] rounded-md overflow-hidden shadow-lg h-full">
           <div className="bg-[#1E1E1E] text-gray-200 px-4 py-2 text-sm border-b border-[#282828] font-semibold">
             예시 코드
           </div>
           <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-[#282828] rounded bg-[#1E1E1E]">
-            <div className="absolute top-0 left-0 right-0 bottom-0 z-10 cursor-not-allowed" />
             <Editor
               height="100%"
               defaultLanguage="javascript"
@@ -517,14 +520,22 @@ const Fullcode = () => {
                 hideCursorInOverviewRuler: true,
                 overviewRulerBorder: false,
                 scrollbar: {
-                  vertical: 'hidden',
-                  horizontal: 'hidden',
-                  useShadows: false,
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  useShadows: true,
                   verticalHasArrows: false,
                   horizontalHasArrows: false,
-                  verticalScrollbarSize: 0,
-                  horizontalScrollbarSize: 0,
+                  verticalScrollbarSize: 12,
+                  horizontalScrollbarSize: 12,
                 },
+                // 스크롤을 허용하되 편집은 막기
+                selectOnLineNumbers: false,
+                selectionClipboard: false,
+                find: {
+                  addExtraSpaceOnTop: false,
+                  autoFindInSelection: 'never',
+                  seedSearchStringFromSelection: 'never'
+                }
               }}
             />
           </div>
@@ -566,6 +577,15 @@ const Fullcode = () => {
                 autoClosingBrackets: 'never',
                 autoClosingQuotes: 'never',
                 autoSurround: 'never',
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  useShadows: true,
+                  verticalHasArrows: false,
+                  horizontalHasArrows: false,
+                  verticalScrollbarSize: 12,
+                  horizontalScrollbarSize: 12,
+                },
               }}
             />
           </div>
