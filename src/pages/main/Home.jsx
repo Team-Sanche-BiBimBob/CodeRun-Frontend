@@ -36,7 +36,6 @@ const Home = () => {
   const goPrev = () => setActive((p) => (p === 0 ? slidesFromDesign.length - 1 : p - 1));
   const goNext = () => setActive((p) => (p === slidesFromDesign.length - 1 ? 0 : p + 1));
 
-  const visibleSlide = useMemo(() => slidesFromDesign[active], [active]);
   const visiblePromos = useMemo(() => {
     const items = [];
     for (let i = 0; i < 3; i++) {
