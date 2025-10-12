@@ -1,7 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../components/common/footer/Footer.jsx';
-import HeroCarousel from '../../components/Slides/HeroCarouse.jsx';
+import { useNavigate } from 'react-router-dom';
+
+const slidesFromDesign = [
+  { id: 1, bg: 'from-[#c53c6f] to-[#b74488] bg-gradient-to-tr', titleTop: 'CodeRun{}', title: '프로그래밍 언어가 너무 어려워요', subtitle: '쉽게 학습하고 싶은 학생들은 바로 클릭! 단어부터 먼저 해요!', cta: '단어 연습 바로 해보기' },
+  { id: 2, bg: 'from-[#4d36cf] to-[#3e3bb3] bg-gradient-to-tr', badge: '전국 학교 대항전', title: '판을 뒤집을 최강 학교는 어디인가?', subtitle: '(9/24~10/26) 역대급 경품 "상품권"이 간다!', cta: '이벤트 보러가기' },
+  { id: 3, bg: 'from-[#2dbd88] to-[#1fb977] bg-gradient-to-tr', titleTop: 'CodeRun X 코딩 튜팁 콜라보', title: 'CodeRun 과 함께 하는 라이브 클래스', subtitle: '집에서도 쉽고 간편하게', cta: '이벤트 보러가기' },
+  { id: 4, bg: 'from-[#31c7d0] to-[#1bb6c3] bg-gradient-to-tr', date: '9/26일', title: '문제집 AI 기능 추가 업데이트', subtitle: '1개월 무료 체험 가능 (9/26 ~ 11/31)', cta: '업데이트 확인', subCta: '1개월 무료 체험' },
+];
+
+const dummyRanking = [
+  { id: 1, label: '오늘 밤은 삐딱하게', value: 1, time: '08:07:06' },
+  { id: 2, label: '제발집에가고싶어요', value: 2, time: '08:07:00' },
+  { id: 3, label: '집에가지마베이베~', value: 3, time: '08:07:00' },
+  { id: 4, label: '동규는 귀요미', value: 4, time: '08:09:06' },
+  { id: 5, label: '민더덕덩', value: 5, time: '08:07:00' },
+  { id: 6, label: '못생긴애들중에귀여운애', value: 6, time: '08:07:00' },
+];
+
+const promoItems = [
+  { id: 1, title: '돌핀코딩 라이브클래스', caption: '코딩 라이브 클래스 할인' },
+  { id: 2, title: '일대일 코딩수업', caption: '궁금한 건 1:1로 해결' },
+  { id: 3, title: '전문가에게 배우기', caption: '꾸준코딩으로의 초대' },
+  { id: 4, title: '문제집 프리미엄', caption: '심화 문제 무료 체험' },
+  { id: 5, title: '아케이드 이벤트', caption: '랭킹전 참여 혜택' },
+];
 
 const Home = () => {
   const navigate = useNavigate();
@@ -33,41 +57,131 @@ const Home = () => {
   const visiblePromos = promoItems.slice(promoStart, promoStart + 3);
 
   return (
-    <div className="relative w-full min-h-screen mx-auto overflow-hidden bg-white">
-      <HeroCarousel />
+    <div className="min-h-screen bg-black">
+      <header className="header-placeholder"></header>
 
-      {/* ✅ 랭킹 섹션 */}
-      <section className="w-full h-[486px] bg-red-400 relative flex flex-col items-center justify-center text-white">
-        <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
-        <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
-        <div className="grid grid-cols-3 gap-4 mt-8">
-          {rankings.map((ranking) => (
-            <div key={ranking.rank} className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-              <span className="font-semibold">{ranking.rank}</span>
-              <span>{ranking.name}</span>
-              <span className="text-[10px]">{ranking.time}</span>
+      {/* Top Carousel */}
+      <section className="w-full">
+        <div className="relative h-[60vh] overflow-hidden" role="region" aria-label="프로모션 슬라이더">
+          {slidesFromDesign.map((slide, idx) => (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 z-10 transition-opacity duration-500 ease-out ${idx === active ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} ${slide.bg}`}
+            >
+              {/* 장식 요소: 슬라이드별 패턴 */}
+              {slide.id === 1 && (
+                <>
+                  {/* 핑크: 우상향 대각선 패턴 - 미묘함 */}
+                  <div className="absolute -left-40 -top-40 w-[150%] h-[150%] rotate-[-22deg] opacity-25 pointer-events-none" style={{background: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.2) 0, rgba(255,255,255,0.2) 15px, transparent 15px, transparent 30px)'}} />
+                </>
+              )}
+              {slide.id === 2 && (
+                <>
+                  {/* 보라: 기울어진 대각선 패턴 */}
+                  <div className="absolute -right-40 -top-40 w-[80%] h-[180%] rotate-[25deg] opacity-35 pointer-events-none" style={{background: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.25) 0, rgba(255,255,255,0.25) 14px, transparent 14px, transparent 28px)'}} />
+                  <div className="absolute rounded-full w-80 h-80 -left-32 -bottom-32 bg-white/12 blur-2xl" />
+                  <div className="absolute rounded-full w-28 h-28 left-1/4 top-1/4 bg-white/10 blur-lg" />
+                </>
+              )}
+              {slide.id === 3 && (
+                <>
+                  {/* 초록: 큰 원형 그라데이션 */}
+                  <div className="absolute rounded-full w-72 h-72 -left-16 -top-16 bg-white/18 blur-2xl" />
+                  <div className="absolute w-64 h-64 rounded-full -left-8 -top-8 bg-white/12 blur-xl" />
+                  <div className="absolute rounded-full w-96 h-96 -right-24 -bottom-24 bg-white/15 blur-2xl" />
+                  <div className="absolute w-48 h-48 rounded-full -right-12 -bottom-12 bg-white/10 blur-lg" />
+                  <div className="absolute w-32 h-32 rounded-full right-1/4 top-1/3 bg-white/08 blur-lg" />
+                </>
+              )}
+              {slide.id === 4 && (
+                <>
+                  {/* 민트: 큰 원형 그라데이션 */}
+                  <div className="absolute rounded-full -left-40 -top-40 w-[500px] h-[500px] bg-white/14 blur-3xl" />
+                  <div className="absolute rounded-full -right-40 -bottom-40 w-[500px] h-[500px] bg-white/12 blur-3xl" />
+                  <div className="absolute w-56 h-56 rounded-full right-1/3 top-1/3 bg-white/10 blur-2xl" />
+                </>
+              )}
+
+              <div className="relative z-10 flex flex-col items-start justify-center w-full h-full max-w-6xl px-6 mx-auto text-white sm:px-10">
+                {slide.titleTop && <div className="mb-2 text-xl font-bold opacity-95">{slide.titleTop}</div>}
+                {slide.badge && <span className="inline-block px-3 py-1 mb-3 text-xs rounded-full bg-black/40 backdrop-blur">{slide.badge}</span>}
+                {slide.date && <div className="mb-2 font-semibold text-white/90">{slide.date}</div>}
+                <h2 className="mb-2 text-2xl font-extrabold sm:text-3xl lg:text-4xl">{slide.title}</h2>
+                {slide.subtitle && <p className="mb-4 opacity-95">{slide.subtitle}</p>}
+                <div className="flex gap-3">
+                  {slide.cta && (
+                    <button className="px-4 py-2 text-sm font-medium transition-colors rounded bg-black/40 hover:bg-black/50">
+                      {slide.cta}
+                    </button>
+                  )}
+                  {slide.subCta && (
+                    <button className="bg-black/30 hover:bg-black/40 transition-colors rounded px-3 py-1.5 text-xs font-medium">
+                      {slide.subCta}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
+
+          {/* Arrows */}
+          <button aria-label="이전" onClick={goPrev} className="absolute z-20 grid -translate-y-1/2 rounded-full shadow left-2 top-1/2 bg-white/90 hover:bg-white w-9 h-9 place-items-center">
+            <span className="text-gray-700">‹</span>
+          </button>
+          <button aria-label="다음" onClick={goNext} className="absolute z-20 grid -translate-y-1/2 rounded-full shadow right-2 top-1/2 bg-white/90 hover:bg-white w-9 h-9 place-items-center">
+            <span className="text-gray-700">›</span>
+          </button>
+
+          {/* Dots */}
+          <div className="absolute left-0 right-0 flex justify-center gap-2 bottom-4">
+            {slidesFromDesign.map((_, i) => (
+              <button key={i} aria-label={`슬라이드 ${i + 1}`} onClick={() => setActive(i)} className={`w-2.5 h-2.5 rounded-full ${i === active ? 'bg-white' : 'bg-white/60'}`} />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ✅ 언어 섹션 */}
-      <section className="w-full py-10 text-center bg-amber-300">
-        <h2 className="text-2xl font-semibold text-zinc-800">CodeRun{`{}`}</h2>
-        <p className="text-3xl font-semibold text-zinc-800">
-          단어 연습<span className="font-normal">으로 기본부터 튼튼하게</span>
-        </p>
+      {/* Realtime ranking (dummy) */}
+      <section className="flex items-center w-full min-h-[80vh]" style={{backgroundColor: '#FB7A56'}}>
+        <div className="w-full max-w-6xl px-6 py-12 mx-auto">
+          <h3 className="mb-8 text-2xl font-semibold text-center text-white">기준 (실시간 랭킹 자동 갱신 기준)<br/>타임어택 실시간 랭킹</h3>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {dummyRanking.map((r) => (
+              <div 
+                key={r.id} 
+                className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-white/95"
+              >
+                <div className="flex items-center flex-1 gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gray-300 rounded-full" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-700">{r.value}</span>
+                      <span className="text-gray-700 truncate">{r.label}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">{r.time}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        <div className="grid justify-center max-w-3xl grid-cols-4 gap-6 mx-auto mt-8">
-          {languages.map((lang) => (
-            <div
-              key={lang}
-              className="bg-white rounded-[10px] p-5 flex flex-col"
-            >
-              <div className="mb-5 text-xs font-light text-left">단어 연습</div>
-              <div className="text-xl text-right">{lang}</div>
-            </div>
-          ))}
+      {/* Word practice entry */}
+      <section className="flex items-center w-full min-h-[60vh]" style={{backgroundColor: '#FBDA56'}}>
+        <div className="w-full max-w-6xl px-6 py-10 mx-auto">
+          <h3 className="mb-5 text-lg font-semibold text-gray-900">CoRun{} 단어 연습으로 기본부터 탄탄하게</h3>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+            {['Python','Java','C','JavaScript','TypeScript','Swift','Kotlin','SQL'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => navigate('/word')}
+                className="px-4 py-3 text-sm text-gray-900 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
