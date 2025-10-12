@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import Footer from '../../components/common/footer/Footer.jsx';
+import { useNavigate } from 'react-router-dom';
 
 const slidesFromDesign = [
   { id: 1, bg: 'from-[#c53c6f] to-[#b74488] bg-gradient-to-tr', titleTop: 'CodeRun{}', title: '프로그래밍 언어가 너무 어려워요', subtitle: '쉽게 학습하고 싶은 학생들은 바로 클릭! 단어부터 먼저 해요!', cta: '단어 연습 바로 해보기' },
@@ -25,6 +27,7 @@ const promoItems = [
 ];
 
 const Home = () => {
+  const navigate = useNavigate();
   const [active, setActive] = useState(0);
   const [promoStart, setPromoStart] = useState(0);
 
@@ -163,6 +166,7 @@ const Home = () => {
             {['Python','Java','C','JavaScript','TypeScript','Swift','Kotlin','SQL'].map((lang) => (
               <button
                 key={lang}
+                onClick={() => navigate('/word')}
                 className="px-4 py-3 text-sm text-gray-900 bg-yellow-100 rounded-lg hover:bg-yellow-200"
               >
                 {lang}
@@ -197,6 +201,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };
