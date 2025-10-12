@@ -1,30 +1,11 @@
-# CodeRun Frontend
+# React + Vite
 
-타이핑 연습 웹 애플리케이션입니다.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 환경 설정
+Currently, two official plugins are available:
 
-### 환경변수 설정
-
-프로젝트 루트에 `.env` 파일을 생성하고 다음 내용을 추가하세요:
-
-```env
-# API 서버 주소
-VITE_API_BASE_URL=https://api.coderun.site
-```
-
-### 개발 서버 실행
-
-```bash
-npm install
-npm run dev
-```
-
-## 기술 스택
-
-- React + Vite
-- Monaco Editor
-- Tailwind CSS
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
 ## Expanding the ESLint configuration
 
