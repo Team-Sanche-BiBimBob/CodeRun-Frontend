@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-const baseURL = 'https://api.coderun.site/';
+
+// 환경변수에서 API 주소 가져오기, 없으면 기본값 사용
+const baseURL = process.env.VITE_API_BASE_URL || 'https://api.coderun.site/';
 
 // https://vite.dev/config/
 export default defineConfig({
