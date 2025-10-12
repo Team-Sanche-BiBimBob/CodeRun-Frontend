@@ -4,7 +4,7 @@ export default function HeroSlide2() {
     <div className="relative w-full h-full">
       <img
         src={background}
-        alt="Slide 1"
+        alt="Slide 2"
         className="object-cover w-full h-full"
       />
       <div className="absolute text-white left-44  transform top-[50%] translate-y-[-50%]" >
@@ -14,8 +14,8 @@ export default function HeroSlide2() {
         <p className="text-2xl font-semibold mt-2 leading-[60px]">
           쉽게 학습하고 싶은 학생들은 바로 클릭! 단어부터 먼저 해요!
         </p>
-        <button className="mt-4 w-44 h-14 bg-black border border-zinc-400 text-2xl font-semibold font-[Pretendard]">
-          확인하기
+        <button className="mt-4 w-44 h-14 bg-black border border-zinc-400 text-sm font-semibold font-[Pretendard]">
+        단어 연습 바로 해보기
         </button>
       </div>
     </div>
