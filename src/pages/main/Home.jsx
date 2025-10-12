@@ -65,7 +65,7 @@ const Home = () => {
               {slide.id === 1 && (
                 <>
                   {/* 핑크: 좌상단→우하단 대각 빗금 + 원들 */}
-                  <div className="absolute -left-40 -top-28 w-[65%] h-[150%] rotate-[-20deg] opacity-25 pointer-events-none" style={{background: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.28) 0, rgba(255,255,255,0.28) 10px, transparent 10px, transparent 20px)'}} />
+                  <div className="absolute -left-40 -top-28 w-[65%] h-[150%] rotate-[-20deg] opacity-30 pointer-events-none" style={{background: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0, rgba(255,255,255,0.4) 8px, transparent 8px, transparent 16px)'}} />
                   <div className="absolute rounded-full -right-24 -bottom-24 w-80 h-80 bg-white/10 blur-xl" />
                   <div className="absolute w-24 h-24 rounded-full right-10 top-10 bg-white/10" />
                 </>
@@ -136,7 +136,7 @@ const Home = () => {
       </section>
 
       {/* Realtime ranking (dummy) */}
-      <section className="flex items-center w-full min-h-[60vh] mt-0 bg-orange-400">
+      <section className="flex items-center w-full min-h-[60vh] mt-0" style={{backgroundColor: '#FB7A56'}}>
         <div className="w-full max-w-6xl px-6 py-10 mx-auto">
           <h3 className="mb-4 text-lg font-semibold text-white">기준 (실시간 랭킹 자동 갱신 기준) 타이핑어택 실시간 랭킹</h3>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -151,7 +151,7 @@ const Home = () => {
       </section>
 
       {/* Word practice entry */}
-      <section className="flex items-center w-full min-h-[60vh] bg-yellow-300">
+      <section className="flex items-center w-full min-h-[60vh]" style={{backgroundColor: '#FBDA56'}}>
         <div className="w-full max-w-6xl px-6 py-10 mx-auto">
           <h3 className="mb-5 text-lg font-semibold text-gray-900">CoRun{} 단어 연습으로 기본부터 탄탄하게</h3>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
