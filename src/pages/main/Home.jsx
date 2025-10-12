@@ -41,20 +41,40 @@ const Home = () => {
         <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
         <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
         <div className="grid grid-cols-3 gap-4 mt-8">
-          {/* 예시 랭킹 카드 */}
+          {/* 1등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>1</span>
             <span>오늘 밥은 뭐하게</span>
             <span className="text-[10px]">08:07:06</span>
           </div>
+          {/* 2등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>2</span>
             <span>재밌게타자치고싶어요</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
+          {/* 3등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>3</span>
             <span>집에가기제발제바...</span>
+            <span className="text-[10px]">08:07:00</span>
+          </div>
+          {/* 4등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>4</span>
+            <span>둥글게 귀엽게</span>
+            <span className="text-[10px]">08:06:36</span>
+          </div>
+          {/* 5등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>5</span>
+            <span>민타탐탐</span>
+            <span className="text-[10px]">08:07:00</span>
+          </div>
+          {/* 6등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>6</span>
+            <span>못생긴타자총애기여엉</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
         </div>
