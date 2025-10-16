@@ -204,7 +204,7 @@ export default function CodingPlatform() {
                         <div
                           className="h-2 bg-teal-600 rounded-full transition-all duration-300"
                           style={{ width: `${problemSet.progress}%` }}
-                        />
+                        />  
                       </div>
                     </div>
 
