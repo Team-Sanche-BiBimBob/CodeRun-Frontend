@@ -89,13 +89,14 @@ const Home = () => {
 
         <div className="grid justify-center max-w-3xl grid-cols-4 gap-6 mx-auto mt-8">
           {languages.map((lang) => (
-            <div
+            <button
               key={lang}
-              className="bg-white rounded-[10px] p-5 flex flex-col"
+              onClick={() => navigate('/word', { state: { language: lang } })}
+              className="bg-white rounded-[10px] p-5 flex flex-col hover:shadow-lg transition-shadow"
             >
               <div className="mb-5 text-xs font-light text-left">단어 연습</div>
               <div className="text-xl text-right">{lang}</div>
-            </div>
+            </button>
           ))}
         </div>
       </section>
