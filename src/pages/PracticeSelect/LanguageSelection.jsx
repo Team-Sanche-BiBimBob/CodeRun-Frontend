@@ -61,48 +61,52 @@ import LanguageCard from "../../components/LanguageCard/LanguageCard";
     popularity: 3,
   },
 ];*/
+
 const LanguageSelection = () => {
   const [languages, setLanguages] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const navigate = useNavigate();
-  useEffect(()=>{
-    const getData = async ()=>{
-      const response = await fetch('/api/languages', {
+
+  useEffect(() => {
+    const getData = async () => {
+      const response = await fetch('api/languages', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      
       });
       if (!response.ok) {
-        console.log(response.status)
+        console.log(response.status);
         throw new Error(`서버 오류: ${response.status}`);
       }
-      const data =  await response.json();
+      const data = await response.json();
       console.log(data);
       setLanguages(data);
-    }
+    };
     getData();
-  },[]);
+  }, []);
+
   const handleLanguageSelect = (languageId) => {
     setSelectedLanguage(languageId);
   };
+
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
       navigate('/PracticeSelect', { state: { language: selectedLanguage } });
     }
   };
+
   const handleSelectLater = () => {
     console.log('Select later clicked');
   };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-center mb-12">
+      <main className="max-w-6xl px-4 py-12 mx-auto">
+        <h2 className="mb-16 text-3xl font-bold text-center">
           학습할 프로그래밍 언어를 선택하세요
         </h2>
-        <div className="flex justify-center mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-48 max-w-4xl">
+        <div className="grid grid-cols-1 gap-6 mb-12 md:grid-cols-2 lg:grid-cols-4">
           {languages.map((language) => (
             <LanguageCard
               key={language.id}
@@ -110,8 +114,7 @@ const LanguageSelection = () => {
               selectedLanguage={selectedLanguage}
               onSelect={handleLanguageSelect}
             />
-                      ))}
-          </div>
+          ))}
         </div>
         <div className="flex flex-col items-center">
           <button
@@ -136,4 +139,5 @@ const LanguageSelection = () => {
     </div>
   );
 };
+
 export default LanguageSelection;

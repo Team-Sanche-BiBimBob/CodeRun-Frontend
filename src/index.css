@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* CSS 변수로 폰트 패밀리 설정 */
+:root {
+  --font-pretendard: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+}
+
+/* 기본 폰트 설정 - body에만 적용 */
+body {
+  font-family: var(--font-pretendard);
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 *::-webkit-scrollbar {
   display: none;
@@ -11,12 +21,10 @@
   scrollbar-width: none;  /* Firefox */
 }
 
-@font-face {
-    font-family: 'Pretendard-Regular';
-    src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap; /* 폰트 로딩 최적화 */
+
+/* Pretendard 폰트 패밀리 유틸리티 */
+.font-pretendard {
+    font-family: var(--font-pretendard);
 }
 
 @keyframes blink {

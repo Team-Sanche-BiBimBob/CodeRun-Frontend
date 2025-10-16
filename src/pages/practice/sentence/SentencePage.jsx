@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import KeyBoard from '../../../components/practice/keyBorad/KeyBoard';
+import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
@@ -252,6 +252,36 @@ const fetchSentences = useCallback(async () => {
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
   }, [getElapsedTimeSec, getTotalTyped, typedChars.length]);
 
+  // 키보드에 전달할 정보 계산
+  const getNextCharInfo = useCallback(() => {
+    if (!currentSentence || typedChars.length >= currentSentence.length) {
+      return {
+        nextChar: null,
+        nextWord: null,
+        currentPosition: typedChars.length,
+        totalLength: currentSentence.length,
+        remainingText: ''
+      };
+    }
+
+    const nextCharIndex = typedChars.length;
+    const nextChar = currentSentence[nextCharIndex];
+    const remainingText = currentSentence.slice(nextCharIndex);
+    
+    // 다음에 나올 단어 찾기 (스페이스까지)
+    const nextWordMatch = remainingText.match(/^(\S+)/);
+    const nextWord = nextWordMatch ? nextWordMatch[1] : remainingText;
+
+    return {
+      nextChar: nextChar,
+      nextWord: nextWord,
+      currentPosition: nextCharIndex,
+      totalLength: currentSentence.length,
+      remainingText: remainingText,
+      currentSentence: currentSentence
+    };
+  }, [currentSentence, typedChars.length]);
+
   // 다시 시작 & 홈
   const handleRestart = () => {
     setCurrentIndex(0);
@@ -318,7 +348,10 @@ const fetchSentences = useCallback(async () => {
             startTime={startTime}
           />
           {/* 키보드 */}
-          <KeyBoard />
+          <KeyBoard 
+            nextCharInfo={getNextCharInfo()}
+            isTypingActive={!isComplete}
+          />
         </div>
       )}
 
