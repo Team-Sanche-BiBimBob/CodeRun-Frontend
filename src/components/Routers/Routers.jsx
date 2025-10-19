@@ -9,6 +9,7 @@ import SentencePage from '../../pages/practice/sentence/SentencePage';
 import Fullcode from '../../pages/practice/fullCode/FullCode';
 import CodingPlatform from '../../pages/workbook/CodingPlatform';
 import TeacherView from '../../pages/teacherView/TeacherView';
+import TeacherDashboard from '../../pages/teacher/TeacherDashboard';
 import Signup from '../../pages/auth/Signup/Signup';
 import Login from '../../pages/auth/Login/Login';
 import Battle from '../../pages/arcade/battle/Battle';
@@ -31,6 +32,7 @@ const Routers = () => {
       <Route path="/full" element={<Fullcode />} />
       <Route path="/problem" element={<CodingPlatform />} />
       <Route path="/teacher" element={<TeacherView />} />
+      <Route path="/teacherDashboard" element={<TeacherDashboard />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path='/arcadeSelect' element={<ArcadeSelect />} />

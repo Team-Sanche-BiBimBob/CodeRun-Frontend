@@ -11,7 +11,7 @@ api.interceptors.request.use(async (config) => {
   if (auth_header) return config;
 
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   if(token!==null){
     config.headers["Authorization"] = `Bearer ${token}`;
   }
@@ -25,7 +25,7 @@ api.interceptors.response.use(function (response) {
   // before catch
   if(error.response && error.response.status === 419){
     alert('토큰이 만료되었습니다. 다시 로그인해주세요.')
-    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
   }
   return Promise.reject(error);
 });
