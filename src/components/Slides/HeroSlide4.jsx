@@ -1,6 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import background from "./assets/slide4.png"
 
 export default function HeroSlide4() {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate('/*');
+  };
+
   const textStrokeStyle = {
     WebkitTextStroke: '3px black',
     paintOrder: 'stroke fill',
@@ -30,7 +37,10 @@ export default function HeroSlide4() {
         <p className="text-xl font-medium mb-8" style={textStrokeStyle}>
           집에서도 쉽고 간편하게
         </p>
-        <button className="px-8 py-3 bg-black text-white text-lg font-semibold hover:bg-gray-900 transition-colors">
+        <button 
+          onClick={handleClick}
+          className="px-8 py-3 bg-black text-white text-lg font-semibold hover:bg-gray-900 transition-colors"
+        >
           이벤트 바로가기
         </button>
       </div>
