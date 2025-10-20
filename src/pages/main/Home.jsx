@@ -22,12 +22,9 @@ const Home = () => {
   ];
 
   const promoItems = [
-    { id: 1, title: '프리미엄 멤버십', caption: '무제한 연습 코스 제공' },
-    { id: 2, title: '실시간 랭킹', caption: '전국 사용자와 경쟁' },
-    { id: 3, title: '상세 분석', caption: '타이핑 성능 분석 리포트' },
-    { id: 4, title: '커스텀 연습', caption: '나만의 단어장 만들기' },
-    { id: 5, title: '배지 시스템', caption: '성취 배지 수집' },
-    { id: 6, title: '커뮤니티', caption: '유저 커뮤니티 참여' },
+    { id: 1, title: '코딩 실력 향상', caption: '체계적인 타이핑 연습', image: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=800&q=80' },
+    { id: 2, title: '학습 환경', caption: '최적화된 교육 시스템', image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80' },
+    { id: 3, title: '협업과 성장', caption: '함께 배우는 코딩', image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80' },
   ];
 
   const visiblePromos = promoItems.slice(promoStart, promoStart + 3);
@@ -130,7 +127,13 @@ const Home = () => {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {visiblePromos.map((card) => (
                   <div key={card.id} className="">
-                    <div className="w-full h-40 bg-gray-200 border border-gray-300 rounded-xl" />
+                    <div className="w-full h-40 bg-gray-200 border border-gray-300 rounded-xl overflow-hidden">
+                      <img 
+                        src={card.image} 
+                        alt={card.title}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
                     <div className="px-2 mt-3 text-sm text-gray-700 truncate">
                       {card.title}
                     </div>
