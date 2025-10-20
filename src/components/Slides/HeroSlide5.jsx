@@ -1,6 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import background from "./assets/slide5.png"
 
 export default function HeroSlide5() {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate('/*');
+  };
+
   return (
     <div className="relative w-full h-full">
       <img
@@ -18,7 +25,10 @@ export default function HeroSlide5() {
         <p className="text-xl font-medium mb-6" style={{ color: '#1F2A51' }}>
           1개월 무료 체험 가능 (9/26 ~ 11/31)
         </p>
-        <button className="mt-6 px-8 py-3 bg-black text-white text-lg font-semibold hover:bg-gray-900 transition-colors">
+        <button 
+          onClick={handleClick}
+          className="mt-6 px-8 py-3 bg-black text-white text-lg font-semibold hover:bg-gray-900 transition-colors"
+        >
           1개월 무료 체험
         </button>
       </div>
