@@ -119,8 +119,21 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
-      console.log("Navigating with selectedLanguage:", selectedLanguage);
-      navigate('/PracticeSelect', { state: { language: selectedLanguage } });
+      // 언어 ID 매핑 (WordPage와 동일한 값 사용)
+      const languageIdMap = {
+        'python': 1,
+        'java': 2,
+        'javascript': 3,
+        'c': 4,
+        'sql': 5,
+        'typescript': 6,
+        'kotlin': 7,
+        'swift': 8
+      };
+      
+      const numericLanguageId = languageIdMap[selectedLanguage] || 1; // 기본값은 파이썬
+      console.log("Navigating with selectedLanguage:", selectedLanguage, "-> numericId:", numericLanguageId);
+      navigate('/PracticeSelect', { state: { language: numericLanguageId } });
     }
   };
 
@@ -130,7 +143,7 @@ const LanguageSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="px-4 py-12 mx-auto max-w-6xl">
+      <main className="max-w-6xl px-4 py-12 mx-auto">
         <h2 className="mb-16 text-3xl font-bold text-center">
           학습할 프로그래밍 언어를 선택하세요
         </h2>
