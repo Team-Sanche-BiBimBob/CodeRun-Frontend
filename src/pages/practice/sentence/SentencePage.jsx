@@ -66,7 +66,7 @@ function SentencePage() {
     ];
 
       const possibleUrls = [
-        languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences'
+        finalLanguageId ? `/api/problems/sentences/${finalLanguageId}` : '/api/problems/sentences'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
@@ -101,8 +101,11 @@ function SentencePage() {
         }
 
         if (Array.isArray(sentences) && sentences.length > 0) {
-          setSentences(sentences);
-          console.log('서버에서 문장 로드 성공:', sentences.length + '개');
+          // 서버에서 받은 문장들 중 랜덤하게 1개만 선택
+          const randomIndex = Math.floor(Math.random() * sentences.length);
+          const selectedSentence = sentences[randomIndex];
+          setSentences([selectedSentence]);
+          console.log('서버에서 문장 로드 성공:', sentences.length + '개 중 ' + (randomIndex + 1) + '번째 랜덤 선택됨');
           return;
         } else {
           throw new Error('문장 데이터가 비어있습니다');
