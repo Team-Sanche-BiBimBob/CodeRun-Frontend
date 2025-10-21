@@ -134,12 +134,6 @@ const CodeRunTimeAttack = () => {
     }
   };
 
-  // 문제집 선택 처리 - 문제 클릭 시 바로 연습 시작
-  const handleProblemSetSelect = (problem) => {
-    console.log('handleProblemSetSelect 호출됨:', problem);
-    // 문제 객체를 받아서 바로 연습 시작
-    handleChallengeClick(problem.difficulty, problem);
-  };
 
   // 태그 추가하기 버튼 클릭
   const handleAddTag = () => {
@@ -345,8 +339,7 @@ const CodeRunTimeAttack = () => {
                 {(filteredProblems.length > 0 ? filteredProblems : problems).map((problem) => (
                   <div
                     key={problem.id}
-                    className="p-4 transition-shadow rounded-lg cursor-pointer bg-gray-50 hover:shadow-md"
-                    onClick={() => handleProblemSetSelect(problem)}
+                    className="p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md"
                   >
                     <h3 className="mb-3 font-semibold text-gray-800">{problem.title}</h3>
                     <div className="flex gap-2 mb-3">
