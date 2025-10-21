@@ -162,7 +162,7 @@ const StudentDashboard = () => {
                     <div key={index} className="relative">
                         <button
                             className="w-full bg-teal-500 text-white px-4 py-8 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
-                            onClick={() => navigate(assignment ? assignment.path : '/')}
+                            onClick={() => navigate('/selectLanguage')}
                         >
                             {item}
                         </button>
@@ -331,7 +331,7 @@ const StudentDashboard = () => {
                                 </div>
                                 <p className="text-[#1c1c1c] text-[16px] font-medium">{assignment.title}</p>
                             </div>
-                            <button className="bg-[#0D9488] text-white px-4 py-2 rounded-lg" onClick={() => navigate(assignment.path)}>연습하러가기</button>
+                            <button className="bg-[#0D9488] text-white px-4 py-2 rounded-lg" onClick={() => navigate('/selectLanguage')}>연습하러가기</button>
                         </div>
                     ))}
                 </div>

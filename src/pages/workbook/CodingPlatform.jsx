@@ -97,7 +97,7 @@ export default function CodingPlatform() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="px-6 py-8 mx-auto max-w-7xl">
+      <div className="px-6 py-8 pt-20 mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* 메인 콘텐츠 영역 */}
           <div className="lg:col-span-3">
