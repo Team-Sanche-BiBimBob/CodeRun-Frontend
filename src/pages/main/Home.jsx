@@ -91,7 +91,7 @@ const Home = () => {
           {languages.map((lang) => (
             <button
               key={lang.id}
-              onClick={() => navigate(`/word?languageId=${lang.id}`)}
+              onClick={() => navigate('/word', { state: { languageId: lang.id } })}
               className="bg-white rounded-[10px] p-5 flex flex-col hover:shadow-lg transition-shadow"
             >
               <div className="mb-5 text-xs font-light text-left">단어 연습</div>

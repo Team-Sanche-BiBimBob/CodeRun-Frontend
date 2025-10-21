@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -20,6 +21,12 @@ function WordPage() {
 
   // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
+    if (!languageId) {
+      console.error('언어 ID가 없습니다.');
+      navigate('/');
+      return;
+    }
+
     try {
       setLoading(true);
       console.log('단어 가져오기 시도 중...');
@@ -99,7 +106,7 @@ function WordPage() {
 
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
-
+    
     if (!currentWord || userInput.length >= currentWord.length) {
       return {
         nextChar: null,
@@ -116,12 +123,12 @@ function WordPage() {
     const remainingText = currentWord.slice(nextCharIndex);
 
     return {
-      nextChar,
+      nextChar: nextChar,
       nextWord: remainingText,
       currentPosition: nextCharIndex,
       totalLength: currentWord.length,
-      remainingText,
-      currentWord
+      remainingText: remainingText,
+      currentWord: currentWord
     };
   }, [wordList, currentIndex, userInput]);
 
@@ -154,10 +161,13 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === ' ') e.preventDefault();
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
 
     if (e.key === 'Enter') {
       e.preventDefault();
+      
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];

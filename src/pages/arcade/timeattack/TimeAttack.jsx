@@ -19,11 +19,7 @@ const CodeRunTimeAttack = () => {
   const [rankings, setRankings] = useState([]);
   const [problems, setProblems] = useState([]);
   const [filteredProblems, setFilteredProblems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [activeRankingTab, setActiveRankingTab] = useState('오늘');
-  const [showSearch, setShowSearch] = useState(true);
-  const scrollContainerRef = useRef(null);
 
   // 랭킹 데이터
   const rankingsData = {
@@ -53,16 +49,14 @@ const CodeRunTimeAttack = () => {
     ]
   };
 
-  // 초기 문제 데이터
+  // 초기 문제 데이터 - 언어당 하나씩만 (서버 ID에 맞게 수정)
   const initialProblems = [
-    { id: 1, title: "Python 반복문 예제 1", tags: ["python", "반복문"], difficulty: "문장", time: "00:00:00" },
-    { id: 2, title: "Python 출력문 예제 1", tags: ["python", "출력문"], difficulty: "풀코드", time: "00:00:00" },
-    { id: 3, title: "JavaScript 반복문 예제 1", tags: ["javascript", "반복문"], difficulty: "문장", time: "00:00:00" },
-    { id: 4, title: "Java 기초문장 예제 1", tags: ["java", "기초문장"], difficulty: "풀코드", time: "00:00:00" },
-    { id: 5, title: "Python 실제코드 예제 1", tags: ["python", "실제코드"], difficulty: "문장", time: "00:00:00" },
-    { id: 6, title: "JavaScript 출력문 예제 1", tags: ["javascript", "출력문"], difficulty: "풀코드", time: "00:00:00" },
-    { id: 7, title: "Java 반복문 예제 1", tags: ["java", "반복문"], difficulty: "문장", time: "00:00:00" },
-    { id: 8, title: "Python 기초문장 예제 1", tags: ["python", "기초문장"], difficulty: "풀코드", time: "00:00:00" }
+    { id: 1, title: "Python 문장 연습", tags: ["python"], difficulty: "문장", time: "00:00:00" },
+    { id: 2, title: "Python 풀코드 연습", tags: ["python"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 3, title: "Java 문장 연습", tags: ["java"], difficulty: "문장", time: "00:00:00" },
+    { id: 4, title: "Java 풀코드 연습", tags: ["java"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 5, title: "JavaScript 문장 연습", tags: ["javascript"], difficulty: "문장", time: "00:00:00" },
+    { id: 6, title: "JavaScript 풀코드 연습", tags: ["javascript"], difficulty: "풀코드", time: "00:00:00" }
   ];
 
   useEffect(() => {
@@ -174,62 +168,60 @@ const CodeRunTimeAttack = () => {
   };
 
   // 문제 도전하기 버튼 클릭 처리
-  const handleChallengeClick = (difficulty) => {
+  const handleChallengeClick = (difficulty, problem) => {
+    // 언어 ID 매핑 (서버 데이터에 맞게 수정)
+    const languageIdMap = {
+      'python': 1,
+      'java': 2,
+      'javascript': 5,
+      'c': 3,
+      'c++': 4,
+      'typescript': 6,
+      'go': 7,
+      'rust': 8
+    };
+    
+    // 선택된 언어 확인 (완료된 태그 또는 문제의 태그에서)
+    const selectedLanguage = completedTags.find(tag => ['python', 'java', 'javascript'].includes(tag)) ||
+                            (problem && problem.tags && problem.tags.find(tag => ['python', 'java', 'javascript'].includes(tag)));
+    
+    const languageId = selectedLanguage ? languageIdMap[selectedLanguage] : null;
+    
     if (difficulty === '문장') {
-      // sentence 페이지로 이동
-      window.location.href = '/sentence';
-    } else if (difficulty === '풀코드') {
-      // full 페이지로 이동
-      window.location.href = '/full';
-    }
-  };
-
-  // 스크롤 감지 및 무한 스크롤
-  const handleScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    
-    if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore && !isLoading) {
-      loadMoreProblems();
-    }
-  };
-
-  const loadMoreProblems = () => {
-    setIsLoading(true);
-    
-    // 서버에서 더 많은 문제를 가져오는 시뮬레이션
-    setTimeout(() => {
-      const newProblems = Array.from({ length: 6 }, (_, i) => ({
-        id: problems.length + i + 1,
-        title: `Python 반복문 예제 ${problems.length + i + 1}`,
-        tags: ["python", "반복문"],
-        difficulty: i % 2 === 0 ? "문장" : "풀코드",
-        time: "00:00:00"
-      }));
-      
-      setProblems(prev => [...prev, ...newProblems]);
-      setIsLoading(false);
-      
-      if (problems.length >= 24) {
-        setHasMore(false);
+      if (languageId) {
+        // sentence 페이지로 이동 (선택된 언어 ID 전달)
+        window.location.href = `/sentence?language=${languageId}`;
+      } else {
+        // 일반 sentence 페이지로 이동
+        window.location.href = '/sentence';
       }
-    }, 1000);
+    } else if (difficulty === '풀코드') {
+      if (languageId) {
+        // full 페이지로 이동 (선택된 언어 ID 전달)
+        window.location.href = `/full?language=${languageId}`;
+      } else {
+        // 일반 full 페이지로 이동
+        window.location.href = '/full';
+      }
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">타임어택</h1>
+      <div className="max-w-6xl px-6 py-8 mx-auto">
+        <h1 className="mb-8 text-3xl font-bold text-gray-800">타임어택</h1>
         
         <div className="flex gap-6">
           <div className="flex-1">
             {/* 태그 섹션 */}
-            <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
-              <div className="mb-5 flex justify-between items-center">
+            <div className="p-6 mb-6 bg-white shadow-sm rounded-xl">
+              <div className="flex items-center justify-between mb-5">
                 <h2 className="text-xl font-semibold text-gray-800">태그</h2>
                 <div className="flex gap-2">
                   <button
                     onClick={handleAddTag}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-white transition-colors rounded-lg hover:opacity-90"
                     style={{ backgroundColor: '#14B8A6' }}
                   >
                     추가하기
@@ -237,7 +229,7 @@ const CodeRunTimeAttack = () => {
                   {!isTagAdded && (
                     <button 
                       onClick={handleReset}
-                      className="w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-center"
+                      className="flex items-center justify-center w-8 h-8 text-gray-500 transition-colors rounded-lg hover:text-gray-700 hover:bg-gray-100"
                     >
                       ✕
                     </button>
@@ -266,7 +258,7 @@ const CodeRunTimeAttack = () => {
               {isTagAdded && (
                 <div className="mb-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-sm text-gray-600 font-medium min-w-16">문제 유형</span>
+                    <span className="text-sm font-medium text-gray-600 min-w-16">문제 유형</span>
                     <div className="flex gap-2">
                       {['문장', '풀코드'].map(tag => (
                         <button
@@ -286,7 +278,7 @@ const CodeRunTimeAttack = () => {
                   </div>
 
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-sm text-gray-600 font-medium min-w-16">언어 선택</span>
+                    <span className="text-sm font-medium text-gray-600 min-w-16">언어 선택</span>
                     <div className="flex gap-2">
                       {['python', 'javascript', 'java'].map(tag => (
                         <button
@@ -306,7 +298,7 @@ const CodeRunTimeAttack = () => {
                   </div>
 
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-sm text-gray-600 font-medium min-w-16">유형 선택</span>
+                    <span className="text-sm font-medium text-gray-600 min-w-16">유형 선택</span>
                     <div className="flex gap-2">
                       {['반복문', '출력문', '기초문장', '실제코드'].map(tag => (
                         <button
@@ -327,7 +319,7 @@ const CodeRunTimeAttack = () => {
 
                   <button 
                     onClick={handleCompleteTag}
-                    className="w-full text-white py-3 rounded-lg font-medium text-base hover:opacity-90 transition-colors"
+                    className="w-full py-3 text-base font-medium text-white transition-colors rounded-lg hover:opacity-90"
                     style={{ backgroundColor: '#14B8A6' }}
                   >
                     완료
@@ -337,38 +329,34 @@ const CodeRunTimeAttack = () => {
             </div>
 
             {/* 문제 목록 */}
-            <div
-              ref={scrollContainerRef}
-              onScroll={handleScroll}
-              className="h-96 overflow-y-auto bg-white rounded-xl p-6 shadow-sm"
-            >
+            <div className="p-6 overflow-y-auto bg-white shadow-sm h-96 rounded-xl">
               <div className="grid grid-cols-2 gap-4">
                 {(filteredProblems.length > 0 ? filteredProblems : problems).map((problem) => (
                   <div
                     key={problem.id}
-                    className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    className="p-4 transition-shadow rounded-lg cursor-pointer bg-gray-50 hover:shadow-md"
                     onClick={() => handleProblemSetSelect(problem.title)}
                   >
-                    <h3 className="font-semibold text-gray-800 mb-3">{problem.title}</h3>
+                    <h3 className="mb-3 font-semibold text-gray-800">{problem.title}</h3>
                     <div className="flex gap-2 mb-3">
                       {problem.tags.map((tag, index) => (
-                        <span key={index} className="text-xs bg-gray-200 px-2 py-1 rounded">
+                        <span key={index} className="px-2 py-1 text-xs bg-gray-200 rounded">
                           {tag}
                         </span>
                       ))}
-                      <span className="text-xs bg-gray-200 px-2 py-1 rounded">
+                      <span className="px-2 py-1 text-xs bg-gray-200 rounded">
                         {problem.difficulty}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
+                    <div className="flex items-center justify-between mb-3 text-sm text-gray-600">
                       <span>⏱️ {problem.time}</span>
                     </div>
                     <button 
-                      className="w-full mt-3 text-white py-2 rounded-md text-sm hover:opacity-90 transition-colors"
+                      className="w-full py-2 mt-3 text-sm text-white transition-colors rounded-md hover:opacity-90"
                       style={{ backgroundColor: '#2DD4BF' }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleChallengeClick(problem.difficulty);
+                        handleChallengeClick(problem.difficulty, problem);
                       }}
                     >
                       도전하기
@@ -376,27 +364,12 @@ const CodeRunTimeAttack = () => {
                   </div>
                 ))}
               </div>
-              
-              {isLoading && (
-                <div className="text-center py-4">
-                  <div 
-                    className="inline-block animate-spin rounded-full h-6 w-6 border-b-2"
-                    style={{ borderColor: '#14B8A6' }}
-                  ></div>
-                </div>
-              )}
-              
-              {!hasMore && (
-                <div className="text-center py-4 text-gray-500">
-                  모든 문제를 불러왔습니다.
-                </div>
-              )}
             </div>
           </div>
 
           {/* 오른쪽 랭킹 섹션 */}
           <div className="w-80">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="p-6 bg-white shadow-sm rounded-xl">
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-2xl">🏆</span>
                 <h2 className="text-xl font-semibold text-gray-800">랭킹</h2>
@@ -446,8 +419,8 @@ const CodeRunTimeAttack = () => {
                   return (
                     <React.Fragment key={index}>
                       {showDots && (
-                        <div className="text-center py-2">
-                          <span className="text-gray-400 text-lg">⋮</span>
+                        <div className="py-2 text-center">
+                          <span className="text-lg text-gray-400">⋮</span>
                         </div>
                       )}
                       <div
@@ -477,7 +450,7 @@ const CodeRunTimeAttack = () => {
               </div>
 
               {selectedProblemSet && (
-                <div className="mt-4 p-3 rounded-lg border" style={{ backgroundColor: '#F0FDFA', borderColor: '#14B8A6' }}>
+                <div className="p-3 mt-4 border rounded-lg" style={{ backgroundColor: '#F0FDFA', borderColor: '#14B8A6' }}>
                   <div className="text-sm" style={{ color: '#065F46' }}>
                     선택된 문제집: <strong>{selectedProblemSet}</strong>
                   </div>

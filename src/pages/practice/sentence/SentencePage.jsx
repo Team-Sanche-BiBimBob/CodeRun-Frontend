@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -17,7 +17,13 @@ function SentencePage() {
 
   const location = useLocation();
   const { language: languageId } = location.state || {};
-  // console.log("SentencePage received languageId:", languageId);
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
+  
+  // console.log("SentencePage received languageId:", finalLanguageId);
 
   // 서버에서 문장 가져오기
   const fetchSentences = useCallback(async () => {
@@ -178,7 +184,9 @@ function SentencePage() {
 
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    for (let i = 0; i < original.length; i++) {
+    const originalLength = original.length;
+
+    for (let i = 0; i < originalLength; i++) {
       const originalChar = original[i];
       const typedChar = typedArr[i] || '';
       const isError = spaceErrorIndices[i];
