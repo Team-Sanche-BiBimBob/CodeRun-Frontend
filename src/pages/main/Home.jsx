@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../server/index.js';
 import Footer from '../../components/common/footer/Footer.jsx';
 import HeroCarousel from '../../components/Slides/HeroCarouse.jsx';
 
 const Home = () => {
   const navigate = useNavigate();
   const [promoStart, setPromoStart] = useState(0);
+  const [languages, setLanguages] = useState([]);
 
   const rankings = [
     { rank: 1, name: '오늘 밥은 뭐하게', time: '08:07:06' },
@@ -16,18 +18,24 @@ const Home = () => {
     { rank: 6, name: '못생긴타자총애기여엉', time: '08:07:00' },
   ];
 
-  const languages = [
-    'Python', 'Java', 'C', 'JavaScript',
-    'TypeScript', 'Swift', 'Kotlin', 'SQL'
-  ];
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await api.get('/api/languages', {
+          headers: { 'x-auth-not-required': true }
+        });
+        setLanguages(response.data);
+      } catch (error) {
+        console.error('Failed to fetch languages:', error);
+      }
+    };
+    fetchLanguages();
+  }, []);
 
   const promoItems = [
-    { id: 1, title: '프리미엄 멤버십', caption: '무제한 연습 코스 제공' },
-    { id: 2, title: '실시간 랭킹', caption: '전국 사용자와 경쟁' },
-    { id: 3, title: '상세 분석', caption: '타이핑 성능 분석 리포트' },
-    { id: 4, title: '커스텀 연습', caption: '나만의 단어장 만들기' },
-    { id: 5, title: '배지 시스템', caption: '성취 배지 수집' },
-    { id: 6, title: '커뮤니티', caption: '유저 커뮤니티 참여' },
+    { id: 1, title: '코딩 실력 향상', caption: '체계적인 타이핑 연습', image: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=800&q=80' },
+    { id: 2, title: '학습 환경', caption: '최적화된 교육 시스템', image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80' },
+    { id: 3, title: '협업과 성장', caption: '함께 배우는 코딩', image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80' },
   ];
 
   const visiblePromos = promoItems.slice(promoStart, promoStart + 3);
@@ -36,42 +44,35 @@ const Home = () => {
     <div className="relative w-full min-h-screen mx-auto overflow-hidden bg-white">
       <HeroCarousel />
 
-      {/* ✅ 랭킹 섹션 */}
       <section className="w-full h-[486px] bg-red-400 relative flex flex-col items-center justify-center text-white">
         <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
         <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
         <div className="grid grid-cols-3 gap-4 mt-8">
-          {/* 1등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>1</span>
             <span>오늘 밥은 뭐하게</span>
             <span className="text-[10px]">08:07:06</span>
           </div>
-          {/* 2등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>2</span>
             <span>재밌게타자치고싶어요</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
-          {/* 3등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>3</span>
             <span>집에가기제발제바...</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
-          {/* 4등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>4</span>
             <span>둥글게 귀엽게</span>
             <span className="text-[10px]">08:06:36</span>
           </div>
-          {/* 5등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>5</span>
             <span>민타탐탐</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
-          {/* 6등 */}
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>6</span>
             <span>못생긴타자총애기여엉</span>
@@ -80,7 +81,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ✅ 언어 섹션 */}
       <section className="w-full py-10 text-center bg-amber-300">
         <h2 className="text-2xl font-semibold text-zinc-800">CodeRun{`{}`}</h2>
         <p className="text-3xl font-semibold text-zinc-800">
@@ -89,18 +89,18 @@ const Home = () => {
 
         <div className="grid justify-center max-w-3xl grid-cols-4 gap-6 mx-auto mt-8">
           {languages.map((lang) => (
-            <div
-              key={lang}
-              className="bg-white rounded-[10px] p-5 flex flex-col"
+            <button
+              key={lang.id}
+              onClick={() => navigate('/word', { state: { languageId: lang.id } })}
+              className="bg-white rounded-[10px] p-5 flex flex-col hover:shadow-lg transition-shadow"
             >
               <div className="mb-5 text-xs font-light text-left">단어 연습</div>
-              <div className="text-xl text-right">{lang}</div>
-            </div>
+              <div className="text-xl text-right">{lang.name}</div>
+            </button>
           ))}
         </div>
       </section>
 
-      {/* ✅ 고객 혜택 섹션 */}
       <section className="flex items-center w-full min-h-[60vh] bg-white">
         <div className="w-full max-w-6xl px-6 py-12 mx-auto">
           <h3 className="mb-6 text-xl font-semibold text-center text-gray-900">
@@ -129,7 +129,13 @@ const Home = () => {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {visiblePromos.map((card) => (
                   <div key={card.id} className="">
-                    <div className="w-full h-40 bg-gray-200 border border-gray-300 rounded-xl" />
+                    <div className="w-full h-40 bg-gray-200 border border-gray-300 rounded-xl overflow-hidden">
+                      <img 
+                        src={card.image} 
+                        alt={card.title}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
                     <div className="px-2 mt-3 text-sm text-gray-700 truncate">
                       {card.title}
                     </div>

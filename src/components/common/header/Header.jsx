@@ -25,12 +25,16 @@ const Header = memo(({ isLoggedIn }) => {
 
   // 네비게이션 아이템들을 메모이제이션하여 성능 최적화
   const navigation = useMemo(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    const user = userInfo ? JSON.parse(userInfo) : {};
+    const studyHref = user.role === 'PREMIUM' ? '/teacher' : '/study';
+
     const navItems = [
       { name: '홈', href: '/', current: false },
       { name: '타자연습', href: '/selectLanguage', current: false },
       { name: '문제집', href: '/problem', current: false },
       { name: '아케이드', href: '/arcadeSelect', current: false },
-      { name: '학습방', href: '/study', current: false },
+      { name: '학습방', href: studyHref, current: false },
     ];
     
     navItems.forEach(item => {
@@ -80,26 +84,29 @@ const Header = memo(({ isLoggedIn }) => {
           {/*사용자 정보*/}
           <div className="flex items-center">
             {isLoggedIn ? (
-              <div className="flex items-center gap-3 text-gray-700">
-                <span className="hidden sm:block text-sm font-medium">{userName}</span>
-                <img 
-                  src={userImg} 
-                  alt="사용자 프로필" 
-                  className="w-8 h-8 rounded-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('userInfo');
-                    window.location.reload();
-                  }}
-                  className="ml-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
-                >
-                  로그아웃
-                </button>
-              </div>
+              <a href="/mypage">
+                <div className="flex items-center gap-3 text-gray-700">
+                  <span className="hidden sm:block text-sm font-medium">{userName}</span>
+                  <img 
+                    src={userImg} 
+                    alt="사용자 프로필" 
+                    className="w-8 h-8 rounded-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('accessToken');
+                      localStorage.removeItem('userInfo');
+                      window.location.reload();
+                    }}
+                    className="ml-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </a>
+              
             ) : (
               <>
                 <a 

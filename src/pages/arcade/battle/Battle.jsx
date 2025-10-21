@@ -65,6 +65,7 @@ function Battle() {
     setIsLoggedIn(false);
     setUserName('사용자');
     setUserInfo(null);
+    navigate('/');
   };
 
   const handleStartMatching = () => {
