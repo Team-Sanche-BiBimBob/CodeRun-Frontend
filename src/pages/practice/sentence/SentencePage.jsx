@@ -141,6 +141,7 @@ function SentencePage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const handleKeyDown = useCallback((e) => {
+    console.log('Key pressed:', e.key); // DEBUG: Add this line
     if (e.isComposing || e.keyCode === 229) { e.preventDefault(); return; }
     if (hangulRegex.test(e.key)) { e.preventDefault(); return; }
     if (isComplete || sentences.length === 0) return;

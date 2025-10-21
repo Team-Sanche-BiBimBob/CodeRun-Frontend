@@ -70,16 +70,27 @@ const LanguageSelection = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        // 프록시를 통한 안전한 API 호출
-        const response = await fetch('/api/languages', {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const apiUrl = `${apiBaseUrl}${apiBaseUrl.endsWith('/') ? '' : '/'}api/languages`;
+        
+        console.log('Fetching languages from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         });
         
         if (!response.ok) {
-          console.log('API 응답 실패:', response.status);
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API 응답 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
+          
           // API 실패 시 기본 언어 목록 사용
           const defaultLanguages = [
             { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
