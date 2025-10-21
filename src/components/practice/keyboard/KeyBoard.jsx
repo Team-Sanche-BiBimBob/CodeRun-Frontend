@@ -1,11 +1,28 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-// props를 올바르게 받도록 수정
 const SimpleKeyboard = ({ nextCharInfo }) => {
-  const [nextKey, setNextKey] = useState(null); // 다음에 누를 키 (빨간색)
-  const [pressedKey, setPressedKey] = useState(null); // 현재 누르고 있는 키 (회색)
+  const [nextKey, setNextKey] = useState(null); // 다음에 눌러야 할 키
+  const [pressedKey, setPressedKey] = useState(null); // 현재 누르고 있는 키
   const [focusedElement, setFocusedElement] = useState(null);
-  
+
+  // ✅ 키보드 사운드 (효과음)
+  const keySoundRef = useRef(null);
+
+  useEffect(() => {
+    // /public/sounds/key-press.mp3 에 음원 파일 추가
+    keySoundRef.current = new Audio('/sound/key-press.mp3');
+    keySoundRef.current.volume = 0.3; // 볼륨 (0.0~1.0)
+  }, []);
+
+  // ✅ 소리 재생 함수
+  const playKeySound = useCallback(() => {
+    const sound = keySoundRef.current;
+    if (sound) {
+      sound.currentTime = 0; // 재생 중이면 처음으로 되감기
+      sound.play().catch(() => {}); // 자동재생 제한 방지
+    }
+  }, []);
+
   // 포커스된 텍스트 입력 요소 추적
   useEffect(() => {
     const handleFocus = (event) => {
@@ -13,55 +30,34 @@ const SimpleKeyboard = ({ nextCharInfo }) => {
         setFocusedElement(event.target);
       }
     };
-    
     const handleBlur = () => {
       setFocusedElement(null);
       setNextKey(null);
     };
-    
     document.addEventListener('focusin', handleFocus);
     document.addEventListener('focusout', handleBlur);
-    
     return () => {
       document.removeEventListener('focusin', handleFocus);
       document.removeEventListener('focusout', handleBlur);
     };
   }, []);
-  
-  // nextCharInfo에서 다음 키 코드를 계산하는 함수
+
+  // nextCharInfo에서 다음 키코드 계산
   const getKeyCodeFromChar = useCallback((char) => {
     if (!char) return null;
-    
-    const charToKeyCode = {
-      // 알파벳
-      'a': 'KeyA', 'b': 'KeyB', 'c': 'KeyC', 'd': 'KeyD', 'e': 'KeyE', 
-      'f': 'KeyF', 'g': 'KeyG', 'h': 'KeyH', 'i': 'KeyI', 'j': 'KeyJ', 
-      'k': 'KeyK', 'l': 'KeyL', 'm': 'KeyM', 'n': 'KeyN', 'o': 'KeyO', 
-      'p': 'KeyP', 'q': 'KeyQ', 'r': 'KeyR', 's': 'KeyS', 't': 'KeyT', 
-      'u': 'KeyU', 'v': 'KeyV', 'w': 'KeyW', 'x': 'KeyX', 'y': 'KeyY', 'z': 'KeyZ',
-      
-      // 숫자
-      '0': 'Digit0', '1': 'Digit1', '2': 'Digit2', '3': 'Digit3', '4': 'Digit4',
-      '5': 'Digit5', '6': 'Digit6', '7': 'Digit7', '8': 'Digit8', '9': 'Digit9',
-      
-      // 특수문자
-      ' ': 'Space', '.': 'Period', ',': 'Comma', ';': 'Semicolon', 
-      "'": 'Quote', '/': 'Slash', '\\': 'Backslash', 
-      '[': 'BracketLeft', ']': 'BracketRight', 
-      '-': 'Minus', '=': 'Equal', '`': 'Backquote',
-      
-      // Shift + 문자들
-      '!': 'Digit1', '@': 'Digit2', '#': 'Digit3', '$': 'Digit4', '%': 'Digit5',
-      '^': 'Digit6', '&': 'Digit7', '*': 'Digit8', '(': 'Digit9', ')': 'Digit0',
-      '_': 'Minus', '+': 'Equal', '{': 'BracketLeft', '}': 'BracketRight',
-      '|': 'Backslash', ':': 'Semicolon', '"': 'Quote', '<': 'Comma',
-      '>': 'Period', '?': 'Slash', '~': 'Backquote'
+    const map = {
+      'a':'KeyA','b':'KeyB','c':'KeyC','d':'KeyD','e':'KeyE','f':'KeyF','g':'KeyG','h':'KeyH','i':'KeyI','j':'KeyJ',
+      'k':'KeyK','l':'KeyL','m':'KeyM','n':'KeyN','o':'KeyO','p':'KeyP','q':'KeyQ','r':'KeyR','s':'KeyS','t':'KeyT',
+      'u':'KeyU','v':'KeyV','w':'KeyW','x':'KeyX','y':'KeyY','z':'KeyZ',
+      '0':'Digit0','1':'Digit1','2':'Digit2','3':'Digit3','4':'Digit4','5':'Digit5','6':'Digit6','7':'Digit7','8':'Digit8','9':'Digit9',
+      ' ':'Space','.' :'Period',',' :'Comma',';':'Semicolon',"'" :'Quote','/':'Slash','\\':'Backslash','[':'BracketLeft',']':'BracketRight','-':'Minus','=':'Equal','`':'Backquote',
+      '!':'Digit1','@':'Digit2','#':'Digit3','$':'Digit4','%':'Digit5','^':'Digit6','&':'Digit7','*':'Digit8','(':'Digit9',')':'Digit0',
+      '_':'Minus','+':'Equal','{':'BracketLeft','}':'BracketRight','|':'Backslash',':':'Semicolon','"':'Quote','<':'Comma','>':'Period','?':'Slash','~':'Backquote'
     };
-    
-    return charToKeyCode[char.toLowerCase()] || null;
+    return map[char.toLowerCase()] || null;
   }, []);
 
-  // nextCharInfo가 변경될 때마다 다음 키 하이라이트 업데이트
+  // nextCharInfo 변경 시 다음 키 표시 업데이트
   useEffect(() => {
     if (nextCharInfo && nextCharInfo.nextChar) {
       const keyCode = getKeyCodeFromChar(nextCharInfo.nextChar);
@@ -71,73 +67,53 @@ const SimpleKeyboard = ({ nextCharInfo }) => {
     }
   }, [nextCharInfo, getKeyCodeFromChar]);
   
-  // 커서 위치 기반으로 다음 키 예측 (fallback용 - nextCharInfo가 없을 때만 사용)
+  useEffect(() => {
+    const enableSound = () => {
+      const s = new Audio('/sound/key-press.mp3');
+      s.play().catch(() => {});
+      window.removeEventListener('click', enableSound);
+    };
+    window.addEventListener('click', enableSound);
+  }, []);
+  
+
+  // 예측 키 (fallback)
   const predictNextKey = useCallback(() => {
-    if (!focusedElement) {
-      console.log('no focusedElement')
-      return null;
-    } 
-    
+    if (!focusedElement) return null;
     const cursorPos = focusedElement.selectionStart;
     const text = focusedElement.value;
-    
     if (cursorPos === 0 || cursorPos > text.length) return null;
-    
     const lastChar = text[cursorPos - 1];
-    
-    // 간단한 영어 단어 완성 예측
     if (/[a-zA-Z]/.test(lastChar)) {
-      const commonNext = {
-        'a': 'KeyN', 'e': 'KeyR', 'i': 'KeyN', 'o': 'KeyN', 'u': 'KeyR',
-        't': 'KeyH', 'h': 'KeyE', 's': 'KeyH', 'r': 'KeyE', 'n': 'KeyG'
-      };
+      const commonNext = { 'a':'KeyN','e':'KeyR','i':'KeyN','o':'KeyN','u':'KeyR','t':'KeyH','h':'KeyE','s':'KeyH','r':'KeyE','n':'KeyG' };
       return commonNext[lastChar.toLowerCase()] || null;
     }
-    
     return null;
   }, [focusedElement]);
-  
-  // 커서 위치 변경 감지 (nextCharInfo가 없을 때만 사용)
+
   useEffect(() => {
-    if (!focusedElement || (nextCharInfo && nextCharInfo.nextChar)) {
-      return; // nextCharInfo가 있으면 그걸 우선 사용
-    }
-    
-    const updatePrediction = () => {
-      const nextKey = predictNextKey();
-      setNextKey(nextKey);
-    };
-    
-    const handleInput = updatePrediction;
-    const handleClick = updatePrediction;
-    const handleKeyUp = updatePrediction;
-    
-    focusedElement.addEventListener('input', handleInput);
-    focusedElement.addEventListener('click', handleClick);
-    focusedElement.addEventListener('keyup', handleKeyUp);
-    
-    // 초기 예측
-    updatePrediction();
-    
+    if (!focusedElement || (nextCharInfo && nextCharInfo.nextChar)) return;
+    const update = () => setNextKey(predictNextKey());
+    focusedElement.addEventListener('input', update);
+    focusedElement.addEventListener('click', update);
+    focusedElement.addEventListener('keyup', update);
+    update();
     return () => {
-      focusedElement.removeEventListener('input', handleInput);
-      focusedElement.removeEventListener('click', handleClick);
-      focusedElement.removeEventListener('keyup', handleKeyUp);
+      focusedElement.removeEventListener('input', update);
+      focusedElement.removeEventListener('click', update);
+      focusedElement.removeEventListener('keyup', update);
     };
   }, [focusedElement, predictNextKey, nextCharInfo]);
 
-  // 키 눌렀을 때 (현재 눌린 키 표시)
+  // ✅ 키 입력 이벤트 (소리 재생 포함)
   const handleKeyDown = useCallback((event) => {
     const pressedKeyCode = event.code;
     setPressedKey(pressedKeyCode);
-  }, []);
+    playKeySound(); // ✅ 소리 재생
+  }, [playKeySound]);
 
-  // 키 뗐을 때 (눌린 키 표시 해제)
-  const handleKeyUp = useCallback(() => {
-    setPressedKey(null);
-  }, []);
+  const handleKeyUp = useCallback(() => setPressedKey(null), []);
 
-  // 이벤트 리스너 등록
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -224,9 +200,7 @@ const SimpleKeyboard = ({ nextCharInfo }) => {
       <div className="p-8 bg-gray-100">
         <div
           className="grid keyboard gap-x-3 gap-y-2"
-          style={{
-            gridTemplateColumns: 'repeat(60, 1fr)',
-          }}
+          style={{ gridTemplateColumns: 'repeat(60, 1fr)' }}
         >
           {keyboardLayout.map((row, rowIndex) => (
             <React.Fragment key={rowIndex}>
@@ -234,19 +208,15 @@ const SimpleKeyboard = ({ nextCharInfo }) => {
                 <div
                   key={`${rowIndex}-${keyIndex}`}
                   className={`key border border-gray-300 rounded-lg shadow-sm
-                              transition-all duration-150
-                              flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
-                              ${key.isFunctional ? 'text-xs' : ''}
-                              ${key.code === pressedKey 
-                                ? 'bg-gray-400 border-gray-600 shadow-gray-300 shadow-lg scale-105' 
-                                : key.code === nextKey 
-                                ? 'bg-red-400 border-red-600 shadow-red-300 shadow-lg scale-105' 
-                                : 'bg-white hover:bg-gray-50'
-                              }
-                            `}
-                  style={{
-                    gridColumn: `span ${key.span}`,
-                  }}
+                    transition-all duration-150 flex flex-col items-center justify-center text-sm font-medium text-gray-700 h-12
+                    ${key.isFunctional ? 'text-xs' : ''}
+                    ${key.code === pressedKey 
+                      ? 'bg-gray-400 border-gray-600 shadow-gray-300 shadow-lg scale-105' 
+                      : key.code === nextKey 
+                      ? 'bg-red-400 border-red-600 shadow-red-300 shadow-lg scale-105' 
+                      : 'bg-white hover:bg-gray-50'
+                    }`}
+                  style={{ gridColumn: `span ${key.span}` }}
                 >
                   <div className="flex flex-col items-center">
                     {key.shift && <span className="text-xs text-gray-400">{key.shift}</span>}
