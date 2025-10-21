@@ -8,12 +8,16 @@ import ToastProvider from './components/common/Toast/ToastProvider.jsx';
 const App = () => {
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
-  
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('userInfo')));
+
   useEffect(() => {
-    const onStorage = () => setIsLoggedIn(!!localStorage.getItem('accessToken'));
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []); 
+    const handleStorageChange = () => {
+      setIsLoggedIn(!!localStorage.getItem('accessToken'));
+      setUser(JSON.parse(localStorage.getItem('userInfo')));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // 헤더 표시 경로들을 메모이제이션 (/home 경로 추가)
   const headerVisibleRoutes = useMemo(() => [
@@ -33,6 +37,7 @@ const App = () => {
     "/timeattack",
     "/battle",
     "/mypage",
+    "/student",
   ], []);
 
   const normalizePath = useMemo(() => (path) => {

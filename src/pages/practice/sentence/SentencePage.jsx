@@ -48,31 +48,7 @@ const fetchSentences = useCallback(async () => {
         if (!contentType || !contentType.includes('application/json')) {
           throw new Error('응답이 JSON 형식이 아닙니다');
         }
-
-        const data = await response.json();
-        console.log('받은 데이터:', data);
-
-        let sentences = data.sentences || data || [];
-
-        // ✅ 객체 배열일 경우 content나 sentence 필드 추출
-        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
-          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
-        }
-
-        if (!Array.isArray(sentences) || sentences.length === 0) {
-          throw new Error('문장 데이터가 비어있습니다');
-        }
-
-        const shuffled = [...sentences].sort(() => Math.random() - 0.5);
-        setSentences(shuffled);
-        console.log('문장 로드 성공:', shuffled.length + '개');
-        return;
-      } catch (err) {
-        console.log(`${apiUrl} 실패:`, err.message);
-        lastError = err;
-        continue;
       }
-    }
 
     throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
   } catch (err) {
@@ -122,16 +98,21 @@ const fetchSentences = useCallback(async () => {
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
   const currentSentence = sentences[currentIndex] || '';
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
-  // 키 입력 처리 - 모든 기본 동작 방지
   const handleKeyDown = useCallback((e) => {
     if (e.isComposing || e.keyCode === 229) { e.preventDefault(); return; }
     if (hangulRegex.test(e.key)) { e.preventDefault(); return; }
     if (isComplete || sentences.length === 0) return;
 
-    // ✅ 모든 키 입력에 대해 기본 동작 방지
     e.preventDefault();
 
     if (e.key === 'Backspace') {
@@ -171,23 +152,12 @@ const fetchSentences = useCallback(async () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // === 렌더링 보조 함수들 ===
-  const renderUserTypedText = ({ sentence, typed }) => {
-    const sentenceChars = sentence.split('');
-    const typedChars = typed.split('');
-    return (
-      <span className="whitespace-pre font-mono">
-        {typedChars.map((char, i) => {
-          const colorClass = char === sentenceChars[i] ? 'text-black' : 'text-red-500';
-          return <span key={i} className={colorClass}>{char === ' ' ? '\u00A0' : char}</span>;
-        })}
-      </span>
-    );
-  };
-
+  // === 수정된 부분 ===
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    for (let i = 0; i < original.length; i++) {
+    const originalLength = original.length;
+
+    for (let i = 0; i < originalLength; i++) {
       const originalChar = original[i];
       const typedChar = typedArr[i] || '';
       const isError = spaceErrorIndices[i];
@@ -195,6 +165,7 @@ const fetchSentences = useCallback(async () => {
 
       let colorClass = 'text-black';
       let displayChar = originalChar;
+
       if (typedChar !== '') {
         if (typedChar === originalChar && !isError) {
           colorClass = 'text-white';
@@ -206,6 +177,7 @@ const fetchSentences = useCallback(async () => {
       } else if (isError) {
         colorClass = 'text-red-500';
       }
+
       if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
@@ -217,13 +189,31 @@ const fetchSentences = useCallback(async () => {
         </span>
       );
     }
-    if (isActive && typedArr.length >= original.length) {
-      elements.push(<span key="cursor-end" className="inline-block w-[2px] h-6 bg-black custom-blink ml-1" />);
+
+    if (typedArr.length > originalLength) {
+      const extraChars = typedArr.slice(originalLength);
+      extraChars.forEach((char, i) => {
+        elements.push(
+          <span key={`extra-${i}`} className="font-mono text-red-500">
+            {char === ' ' ? '\u00A0' : char}
+          </span>
+        );
+      });
     }
+
+    if (isActive && typedArr.length >= originalLength) {
+      elements.push(
+        <span
+          key="cursor-end"
+          className="inline-block w-[2px] h-6 bg-black custom-blink ml-1"
+        />
+      );
+    }
+
     return <span className="whitespace-pre">{elements}</span>;
   };
 
-  // === 통계 계산 ===
+  // === 통계 관련 ===
   const getTotalTyped = useCallback(() => history.reduce((acc, cur) => acc + cur.typed.length, 0), [history]);
   const getCorrectTyped = useCallback(() => history.reduce((acc, cur) => {
     const correctCount = cur.typed.split('').filter((c, i) => c === cur.sentence[i]).length;
@@ -251,12 +241,11 @@ const fetchSentences = useCallback(async () => {
   const getTypingSpeed = useCallback(() => {
     const elapsedSeconds = getElapsedTimeSec();
     const completedTyped = getTotalTyped();
-    const currentTyped = typedChars.length; // 현재 타이핑 중인 글자 추가
+    const currentTyped = typedChars.length;
     const totalTyped = completedTyped + currentTyped;
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
   }, [getElapsedTimeSec, getTotalTyped, typedChars.length]);
 
-  // 키보드에 전달할 정보 계산
   const getNextCharInfo = useCallback(() => {
     if (!currentSentence || typedChars.length >= currentSentence.length) {
       return {
@@ -267,26 +256,17 @@ const fetchSentences = useCallback(async () => {
         remainingText: ''
       };
     }
-
     const nextCharIndex = typedChars.length;
     const nextChar = currentSentence[nextCharIndex];
     const remainingText = currentSentence.slice(nextCharIndex);
-    
-    // 다음에 나올 단어 찾기 (스페이스까지)
     const nextWordMatch = remainingText.match(/^(\S+)/);
     const nextWord = nextWordMatch ? nextWordMatch[1] : remainingText;
-
     return {
-      nextChar: nextChar,
-      nextWord: nextWord,
-      currentPosition: nextCharIndex,
-      totalLength: currentSentence.length,
-      remainingText: remainingText,
-      currentSentence: currentSentence
+      nextChar, nextWord, currentPosition: nextCharIndex,
+      totalLength: currentSentence.length, remainingText, currentSentence
     };
   }, [currentSentence, typedChars.length]);
 
-  // 다시 시작 & 홈
   const handleRestart = () => {
     setCurrentIndex(0);
     setTypedChars([]);
@@ -295,6 +275,7 @@ const fetchSentences = useCallback(async () => {
     setIsComplete(false);
     setStartTime(new Date());
   };
+
   const handleGoHome = () => navigate('/');
 
   const getBoxStyle = (index) => {
@@ -305,27 +286,56 @@ const fetchSentences = useCallback(async () => {
     return 'hidden';
   };
 
-  // === UI ===
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
       <div className="text-center">
-        <div className="text-xl font-semibold text-gray-700 mb-4">타자연습 문장을 불러오는 중...</div>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+        <div className="mb-4 text-xl font-semibold text-gray-700">타자연습 문장을 불러오는 중...</div>
+        <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
       </div>
     </div>
   );
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
-
-      {/* 이전 문장 */}
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
+      {/* ✅ 다 친 문장 (틀린 부분 빨간색 표시) */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
-        {history.length > 0 && currentIndex > 0 && renderUserTypedText(history[history.length - 1])}
+        {history.length > 0 && currentIndex > 0 && (() => {
+          const lastHistory = history[history.length - 1];
+          const { sentence, typed } = lastHistory;
+          const elements = [];
+
+          for (let i = 0; i < sentence.length; i++) {
+            const originalChar = sentence[i];
+            const typedChar = typed[i] || '';
+            const isCorrect = typedChar === originalChar;
+            elements.push(
+              <span
+                key={i}
+                className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}
+              >
+                {typedChar || originalChar}
+              </span>
+            );
+          }
+
+          if (typed.length > sentence.length) {
+            const extras = typed.slice(sentence.length);
+            extras.split('').forEach((char, i) => {
+              elements.push(
+                <span key={`extra-${i}`} className="font-mono text-red-500">
+                  {char}
+                </span>
+              );
+            });
+          }
+
+          return <span className="whitespace-pre">{elements}</span>;
+        })()}
       </div>
 
       {/* 현재 문장 */}
       <div className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
-        <div className="relative font-mono text-2xl w-full">
+        <div className="relative w-full font-mono text-2xl">
           {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
       </div>
@@ -341,8 +351,7 @@ const fetchSentences = useCallback(async () => {
       </div>
 
       {!isComplete && (
-        <div className="mt-10 w-full flex flex-col items-center">
-          {/* ✅ StatsBar */}
+        <div className="flex flex-col items-center w-full mt-10">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
@@ -351,8 +360,7 @@ const fetchSentences = useCallback(async () => {
             totalSentences={sentences.length}
             startTime={startTime}
           />
-          {/* 키보드 */}
-          <KeyBoard 
+          <KeyBoard
             nextCharInfo={getNextCharInfo()}
             isTypingActive={!isComplete}
           />

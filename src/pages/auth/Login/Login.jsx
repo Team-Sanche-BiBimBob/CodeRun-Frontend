@@ -42,7 +42,8 @@ const Login = () => {
         // 사용자 정보 저장 (실제 API 응답에 따라 조정 필요)
         const userInfo = {
           name: response.data.name || response.data.username || email.split('@')[0],
-          email: email
+          email: email,
+          role: response.data.role
         };
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
         
