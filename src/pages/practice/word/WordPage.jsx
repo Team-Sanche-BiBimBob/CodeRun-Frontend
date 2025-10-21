@@ -7,9 +7,9 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function WordPage() {
   const navigate = useNavigate();
-
   const [searchParams, _] = useSearchParams();
   const languageId = searchParams.get('languageId')
+
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
