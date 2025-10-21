@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -17,15 +17,22 @@ function SentencePage() {
 
   const location = useLocation();
   const { language: languageId } = location.state || {};
-  // console.log("SentencePage received languageId:", languageId);
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
+  
+  // console.log("SentencePage received languageId:", finalLanguageId);
 
-  // 서버에서 문장 가져오기 (폴백 데이터 우선 사용)
+  // 서버에서 문장 가져오기
   const fetchSentences = useCallback(async () => {
-    setLoading(true);
-    console.log('문장 가져오기 시도 중...');
+    try {
+      setLoading(true);
+      console.log('문장 가져오기 시도 중...');
 
-    // 기본 문장 목록 (폴백 데이터)
-    const defaultSentences = [
+      // 기본 문장 목록 (폴백 데이터)
+      const defaultSentences = [
       'print("Hello world!")',
       'for i in range(10):',
       'console.log("Hello world!");',
@@ -57,29 +64,35 @@ function SentencePage() {
       'CREATE TABLE users (id INT PRIMARY KEY);',
       'const handleSubmit = (e) => { e.preventDefault(); }'
     ];
-    
-    // API 호출 시도 (짧은 타임아웃)
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
-      const apiUrl = languageId 
-        ? `${apiBaseUrl}/problems/sentences/${languageId}` 
-        : `${apiBaseUrl}/problems/sentences`;
-      
-      console.log('API 요청:', apiUrl);
-      
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        signal: AbortSignal.timeout(2000), // 2초 타임아웃
-      });
 
-      if (response.ok) {
+      const possibleUrls = [
+        languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences'
+      ];
+
+      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
+      const apiUrl = possibleUrls[0];
+      try {
+        console.log(`시도 중: ${apiUrl}`);
+        // 직접 서버에 요청 (프록시 우회)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const fullUrl = baseUrl + apiUrl;
+        console.log(`API 요청 URL: ${fullUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(10000), // 10초 타임아웃
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
-        console.log('받은 데이터:', data);
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
 
         let sentences = data.sentences || data || [];
 
@@ -91,19 +104,30 @@ function SentencePage() {
           const shuffled = [...sentences].sort(() => Math.random() - 0.5);
           setSentences(shuffled);
           console.log('서버에서 문장 로드 성공:', shuffled.length + '개');
-          setLoading(false);
           return;
+        } else {
+          throw new Error('문장 데이터가 비어있습니다');
         }
+      } catch (err) {
+        console.log('API 호출 실패, 기본 문장 사용:', err.message);
       }
-    } catch (err) {
-      console.log('API 호출 실패, 기본 문장 사용:', err.message);
-    }
 
-    // 폴백 데이터 사용
-    const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-    setSentences(shuffled);
-    console.log('기본 문장 사용:', shuffled.length + '개');
-    setLoading(false);
+      // 폴백 데이터 사용
+      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
+      console.log('기본 문장 사용:', shuffled.length + '개');
+    } catch (error) {
+      console.error('문장 가져오기 실패:', error);
+      const defaultSentences = [
+        'print("Hello world!")',
+        'console.log("Hello world!");',
+        'function greet(name) {',
+      ];
+      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
+    } finally {
+      setLoading(false);
+    }
   }, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);

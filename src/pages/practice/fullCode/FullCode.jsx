@@ -23,7 +23,13 @@ const Fullcode = () => {
 
   const location = useLocation();
   const { language: languageId } = location.state || {}; // languageId를 가져옴
-  // console.log("Received languageId:", languageId);
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
+  
+  // console.log("Received languageId:", finalLanguageId);
 
   // 풀코드 데이터 가져오기 (서버 API 시도 후 폴백)
   const fetchFullCodes = async () => {
@@ -48,7 +54,7 @@ const Fullcode = () => {
       console.log('풀코드 가져오기 시도 중...');
 
       const possibleUrls = [
-        languageId ? `/api/problems/full-code/${languageId}` : '/api/problems/full-code'
+        finalLanguageId ? `/api/problems/full-code/${finalLanguageId}` : '/api/problems/full-code'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
@@ -446,12 +452,12 @@ const Fullcode = () => {
   // 로딩 상태 표시
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-white">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
           <div className="mb-4 text-xl font-semibold text-gray-700">
             {loadingMessage || '풀코드를 불러오는 중...'}
           </div>
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );

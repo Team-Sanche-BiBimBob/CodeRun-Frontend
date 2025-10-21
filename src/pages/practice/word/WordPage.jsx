@@ -1,11 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function WordPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("WordPage received languageId:", languageId);
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,68 +19,67 @@ function WordPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  const location = useLocation();
-  const { language: languageId } = location.state || {};
-  // console.log("WordPage received languageId:", languageId);
-
-  // 서버에서 단어 가져오기 (폴백 데이터 우선 사용)
+  // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
+    if (!languageId) {
+      console.error('언어 ID가 없습니다.');
+      navigate('/');
+      return;
+    }
+
     try {
       setLoading(true);
       console.log('단어 가져오기 시도 중...');
 
-      // 기본 단어 목록 (폴백 데이터)
-      const defaultWords = [
-        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
-        'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
-        'interface', 'new', 'null', 'private', 'public', 'return', 'static',
-        'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
+      const possibleUrls = [
+        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words'
       ];
 
-      // API 호출 시도 (짧은 타임아웃)
+      let lastError = null;
+
+      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
+      const apiUrl = possibleUrls[0];
       try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
-        const apiUrl = languageId 
-          ? `${apiBaseUrl}/problems/words/${languageId}` 
-          : `${apiBaseUrl}/problems/words`;
-        
-        console.log('API 요청:', apiUrl);
-        
-        const response = await fetch(apiUrl, {
+        console.log(`시도 중: ${apiUrl}`);
+        // 직접 서버에 요청 (프록시 우회)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const fullUrl = baseUrl + apiUrl;
+        console.log(`API 요청 URL: ${fullUrl}`);
+        const response = await fetch(fullUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          credentials: 'include',
-          signal: AbortSignal.timeout(2000), // 2초 타임아웃
+          signal: AbortSignal.timeout(10000), // 10초 타임아웃
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('받은 데이터:', data);
-
-          let words = data.words || data || [];
-
-          if (Array.isArray(words) && typeof words[0] === 'object') {
-            words = words.map((w) => w.content || '');
-          }
-
-          if (Array.isArray(words) && words.length > 0) {
-            const shuffled = [...words].sort(() => Math.random() - 0.5);
-            setWordList(shuffled);
-            console.log('서버에서 단어 로드 성공:', shuffled.length + '개');
-            return;
-          }
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
-      } catch (err) {
-        console.log('API 호출 실패, 기본 단어 사용:', err.message);
-      }
 
-      // 폴백 데이터 사용
-      const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
-      setWordList(shuffled);
-      console.log('기본 단어 사용:', shuffled.length + '개');
+        const data = await response.json();
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
+
+        let words = data.words || data || [];
+
+        // 객체 배열일 경우 content 필드 추출
+        if (Array.isArray(words) && typeof words[0] === 'object') {
+          words = words.map((w) => w.content || w.title || '');
+        }
+
+        if (!Array.isArray(words) || words.length === 0) {
+          throw new Error('단어 데이터가 비어있습니다');
+        }
+
+        const shuffled = [...words].sort(() => Math.random() - 0.5);
+        setWordList(shuffled);
+        console.log('단어 로드 성공:', shuffled.length + '개');
+        return;
+      } catch (err) {
+        console.log(`${apiUrl} 실패:`, err.message);
+        lastError = err;
+      }
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
       const defaultWords = [
@@ -103,7 +106,7 @@ function WordPage() {
 
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
-
+    
     if (!currentWord || userInput.length >= currentWord.length) {
       return {
         nextChar: null,
@@ -120,12 +123,12 @@ function WordPage() {
     const remainingText = currentWord.slice(nextCharIndex);
 
     return {
-      nextChar,
+      nextChar: nextChar,
       nextWord: remainingText,
       currentPosition: nextCharIndex,
       totalLength: currentWord.length,
-      remainingText,
-      currentWord
+      remainingText: remainingText,
+      currentWord: currentWord
     };
   }, [wordList, currentIndex, userInput]);
 
@@ -158,10 +161,13 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === ' ') e.preventDefault();
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
 
     if (e.key === 'Enter') {
       e.preventDefault();
+      
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];
