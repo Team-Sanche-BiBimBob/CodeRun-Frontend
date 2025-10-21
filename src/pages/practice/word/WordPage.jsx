@@ -74,18 +74,7 @@ function WordPage() {
         }
       }
 
-      const response = await api.get(`/api/problems/words/${languageId}`);
-      const words = response.data
-        .filter(item => item.content)
-        .map(item => item.content);
-
-      if (words.length === 0) {
-        throw new Error('단어 데이터가 없습니다.');
-      }
-
-      const shuffled = [...words].sort(() => Math.random() - 0.5);
-      setWordList(shuffled);
-      console.log('단어 로드 성공:', shuffled.length + '개');
+      throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
       const defaultWords = [
