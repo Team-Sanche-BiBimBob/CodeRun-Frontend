@@ -11,6 +11,7 @@ function WordPage() {
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [history, setHistory] = useState([]);
@@ -20,44 +21,94 @@ function WordPage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const fetchWords = useCallback(async () => {
-    // languageId가 없어도 기본 단어로 연습 가능하도록 수정
-    if (!languageId) {
-      console.warn('언어 ID가 없습니다. 기본 단어로 연습합니다.');
-    }
-
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
+      console.log('단어 가져오기 시도 중...');
       
       if (!languageId) {
         console.warn('언어 ID가 없습니다. 기본 단어 사용');
         throw new Error('언어 ID 없음');
       }
 
-      const response = await api.get(`/api/problems/words/${languageId}`, {
-        headers: { 'x-auth-not-required': true }
-      });
+      const possibleUrls = [
+        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words'
+      ];
 
-      const words = response.data
-        .filter(item => item.content)
-        .map(item => item.content);
+      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
+      const apiUrl = possibleUrls[0];
+      try {
+        console.log(`시도 중: ${apiUrl}`);
+        // 직접 서버에 요청 (프록시 우회)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const fullUrl = baseUrl + apiUrl;
+        console.log(`API 요청 URL: ${fullUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(10000), // 10초 타임아웃
+        });
 
-      if (words.length === 0) {
-        throw new Error('단어 데이터가 없습니다.');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
+
+        let words = data.words || data || [];
+
+        if (Array.isArray(words) && typeof words[0] === 'object') {
+          words = words.map((w) => w.content || w.word || w.title || '');
+        }
+
+        if (Array.isArray(words) && words.length > 0) {
+          // 서버에서 받은 단어들 중 랜덤하게 1개만 선택
+          const randomIndex = Math.floor(Math.random() * words.length);
+          const selectedWord = words[randomIndex];
+          setWordList([selectedWord]);
+          console.log('서버에서 단어 로드 성공:', words.length + '개 중 ' + (randomIndex + 1) + '번째 랜덤 선택됨');
+          setLoading(false);
+          return;
+        } else {
+          throw new Error('단어 데이터가 비어있습니다');
+        }
+      } catch (err) {
+        console.log('API 호출 실패, 기본 단어 사용:', err.message);
       }
 
-      const shuffled = [...words].sort(() => Math.random() - 0.5);
-      setWordList(shuffled);
-      console.log('단어 로드 성공:', shuffled.length + '개');
+      // 폴백 데이터 사용 (언어별 기본 단어)
+      let fallbackWords = [];
+      
+      if (languageId === 1) { // Python
+        fallbackWords = [
+          'print', 'def', 'if', 'else', 'for', 'while', 'class', 'import', 'return', 'lambda'
+        ];
+      } else if (languageId === 2) { // Java
+        fallbackWords = [
+          'public', 'class', 'static', 'void', 'main', 'String', 'int', 'boolean', 'if', 'for'
+        ];
+      } else if (languageId === 5) { // JavaScript
+        fallbackWords = [
+          'function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'console'
+        ];
+      } else {
+        // 기본값 (Python)
+        fallbackWords = [
+          'print', 'def', 'if', 'else', 'for', 'while', 'class', 'import', 'return', 'lambda'
+        ];
+      }
+      
+      setWordList(fallbackWords);
+      console.log('기본 단어 사용:', fallbackWords.length + '개');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
-      const defaultWords = [
-        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
-        'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
-        'interface', 'new', 'null', 'private', 'public', 'return', 'static',
-        'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
-      ];
-      const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
-      setWordList(shuffled);
+      setError('서버에서 단어를 가져오는데 실패했습니다. 페이지를 새로고침해주세요.');
     } finally {
       setLoading(false);
     }
@@ -241,6 +292,23 @@ function WordPage() {
             타자연습 단어를 불러오는 중...
           </div>
           <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
+        <div className="text-center">
+          <div className="mb-4 text-6xl text-red-500">⚠️</div>
+          <div className="mb-4 text-xl font-semibold text-gray-700">{error}</div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 text-white transition-colors bg-teal-600 rounded-lg hover:bg-teal-700"
+          >
+            페이지 새로고침
+          </button>
         </div>
       </div>
     );
