@@ -29,6 +29,12 @@ function WordPage() {
 
     try {
       setLoading(true);
+      
+      if (!languageId) {
+        console.warn('언어 ID가 없습니다. 기본 단어 사용');
+        throw new Error('언어 ID 없음');
+      }
+
       const response = await api.get(`/api/problems/words/${languageId}`, {
         headers: { 'x-auth-not-required': true }
       });
@@ -57,7 +63,7 @@ function WordPage() {
     } finally {
       setLoading(false);
     }
-  }, [languageId, navigate]);
+  }, [languageId]);
 
   useEffect(() => {
     fetchWords();
