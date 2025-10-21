@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function WordPage() {
   const navigate = useNavigate();
-  const [searchParams, _] = useSearchParams();
-  const languageId = searchParams.get('languageId')
+  const location = useLocation();
+  const languageId = location.state?.languageId;
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,66 +18,27 @@ function WordPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  const location = useLocation();
-  const { language: languageId } = location.state || {};
-  // console.log("WordPage received languageId:", languageId);
+  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
-  // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
+    if (!languageId) {
+      console.error('언어 ID가 없습니다.');
+      navigate('/');
+      return;
+    }
+
     try {
       setLoading(true);
-      console.log('단어 가져오기 시도 중...');
-
-      const possibleUrls = [
-        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words',
-      ];
-
-      let lastError = null;
-
-      for (const apiUrl of possibleUrls) {
-        try {
-          const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-            signal: AbortSignal.timeout(5000),
-          });
-
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('응답이 JSON 형식이 아닙니다');
-          }
-
-          const data = await response.json();
-          console.log('받은 데이터:', data);
-
-          let words = data.words || data || [];
-
-          // ✅ 객체 배열일 경우 title만 추출
-          if (Array.isArray(words) && typeof words[0] === 'object') {
-            words = words.map((w) => w.content || '');
-          }
-
-          if (!Array.isArray(words) || words.length === 0) {
-            throw new Error('단어 데이터가 비어있습니다');
-          }
-
-          const shuffled = [...words].sort(() => Math.random() - 0.5);
-          setWordList(shuffled);
-          console.log('단어 로드 성공:', shuffled.length + '개');
-          return;
-        } catch (err) {
-          console.log(`${apiUrl} 실패:`, err.message);
-          lastError = err;
-          continue;
-        }
+      
+      if (!languageId) {
+        console.warn('언어 ID가 없습니다. 기본 단어 사용');
+        throw new Error('언어 ID 없음');
       }
 
-      const response = await api.get(`/api/problems/words/${languageId}`);
+      const response = await api.get(`/api/problems/words/${languageId}`, {
+        headers: { 'x-auth-not-required': true }
+      });
+
       const words = response.data
         .filter(item => item.content)
         .map(item => item.content);
@@ -114,7 +76,7 @@ function WordPage() {
 
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
-
+    
     if (!currentWord || userInput.length >= currentWord.length) {
       return {
         nextChar: null,
@@ -131,12 +93,12 @@ function WordPage() {
     const remainingText = currentWord.slice(nextCharIndex);
 
     return {
-      nextChar,
+      nextChar: nextChar,
       nextWord: remainingText,
       currentPosition: nextCharIndex,
       totalLength: currentWord.length,
-      remainingText,
-      currentWord
+      remainingText: remainingText,
+      currentWord: currentWord
     };
   }, [wordList, currentIndex, userInput]);
 
@@ -169,10 +131,13 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === ' ') e.preventDefault();
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
 
     if (e.key === 'Enter') {
       e.preventDefault();
+      
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];
@@ -277,7 +242,7 @@ function WordPage() {
           <div className="mb-4 text-xl font-semibold text-gray-700">
             타자연습 단어를 불러오는 중...
           </div>
-          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
         </div>
       </div>
     );
@@ -286,8 +251,8 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 mt-10 font-sans bg-teal-50">
-      <div className="grid items-end grid-cols-3 mb-6">
+    <div className="flex relative flex-col items-center pt-16 pb-32 min-h-screen font-sans bg-teal-50">
+      <div className="grid grid-cols-3 items-end mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
             entry.isCorrect ? (
@@ -338,7 +303,7 @@ function WordPage() {
       )}
 
       {!isComplete && (
-        <div className="flex flex-col items-center w-full mt-10">
+        <div className="flex flex-col items-center mt-10 w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
