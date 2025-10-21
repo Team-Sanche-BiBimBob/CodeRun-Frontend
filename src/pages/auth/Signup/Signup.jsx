@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../../../server";
 import backgroundImage from "../../../assets/login-background.png";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -24,13 +25,13 @@ const Signup = () => {
       })
         .then((response) => {
           console.log("회원가입 성공", response);
-          alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
+          toast.success("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
           window.location.href = "/login";
         })
         .catch((error) => {
           console.error("서버 에러 ", error);
-          alert(error.response.data.error);
-        });
+          toast.error(error.response.data.error);
+        }); 
     }
   };
 
@@ -75,7 +76,7 @@ const Signup = () => {
             className="w-full h-[56px] border border-[rgba(146,146,146,0.6)] rounded-[10px] mb-[20px] pl-[20px] text-[20px] focus:outline-none"
           />
           {password && passwordCheck && password !== passwordCheck && (
-            <p className="text-red-500 text-sm">비밀번호가 일치하지 않습니다.</p>
+            <p className="text-sm text-red-500">비밀번호가 일치하지 않습니다.</p>
           )}
         </>
       );
@@ -158,7 +159,7 @@ const Signup = () => {
                   className="absolute top-0 left-0 h-[12px] bg-[#14C5B1] rounded-full transition-all duration-300"
                   style={{ width: `${((step - 1) / 3) * 100}%` }}
                 />
-                <div className="absolute flex justify-between w-full top-1/2 -translate-y-1/2">
+                <div className="flex absolute top-1/2 justify-between w-full -translate-y-1/2">
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}

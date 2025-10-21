@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../server";
+import { toast } from "react-toastify";
 
 import backgroundImage from "../../../assets/login-background.png";
 import { ArrowLeft } from "lucide-react";
@@ -27,7 +28,7 @@ const Login = () => {
 
   const handleSubmit = () => {
     if (!email || !password) {
-      alert("모든 항목을 입력해주세요.");
+      toast.warn("모든 항목을 입력해주세요.");
       return;
     }
 
@@ -49,12 +50,13 @@ const Login = () => {
         // storage 이벤트를 수동으로 트리거하여 App.js의 상태 업데이트
         window.dispatchEvent(new Event('storage'));
         
-        // role에 따라 리디렉션
+        toast.success("로그인에 성공했습니다.");
+        // home.jsx로 이동
         navigate('/home');
       })
       .catch((error) => {
         console.error("서버 에러 ", error);
-        alert(error.response?.data?.error || "로그인에 실패했습니다.");
+        toast.error(error.response?.data?.error || "로그인에 실패했습니다.");
       });
   };
 
