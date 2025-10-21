@@ -19,85 +19,12 @@ function SentencePage() {
   const { language: languageId } = location.state || {};
   // console.log("SentencePage received languageId:", languageId);
 
-  // 서버에서 문장 가져오기 (환경 변수 사용)
+  // 서버에서 문장 가져오기 (폴백 데이터 우선 사용)
   const fetchSentences = useCallback(async () => {
     setLoading(true);
     console.log('문장 가져오기 시도 중...');
 
-    // 환경 변수에서 API 기본 URL 가져오기
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-    const isDev = import.meta.env.DEV;
-    const basePath = isDev ? '/api' : apiBaseUrl;
-
-    const endpoints = [
-      languageId ? `problems/sentences/${languageId}` : 'problems/sentences',
-      'sentences',
-      'api/sentences'
-    ];
-
-    const possibleUrls = endpoints.map(endpoint => 
-      `${basePath}${basePath.endsWith('/') ? '' : '/'}${endpoint}`
-    );
-
-    if (isDev) {
-      possibleUrls.unshift(languageId ? 
-        `/api/problems/sentences/${languageId}` : 
-        '/api/problems/sentences'
-      );
-    }
-
-    let lastError = null;
-    let fetchedSuccessfully = false;
-
-  for (const apiUrl of possibleUrls) {
-    try {
-      console.log(`[${isDev ? 'Development' : 'Production'}] Fetching from:`, apiUrl);
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('응답이 JSON 형식이 아닙니다');
-      }
-
-      const data = await response.json();
-      console.log('받은 데이터:', data);
-
-      let sentences = data.sentences || data || [];
-
-      if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
-        sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
-      }
-
-      if (!Array.isArray(sentences) || sentences.length === 0) {
-        throw new Error('문장 데이터가 비어있습니다');
-      }
-
-      const shuffled = [...sentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
-      console.log('문장 로드 성공:', shuffled.length + '개');
-      fetchedSuccessfully = true;
-      break; // 성공 시 루프 종료
-    } catch (err) {
-      console.log(`${apiUrl} 실패:`, err.message);
-      lastError = err;
-      // continue; // 다음 URL 시도 (이 부분은 이미 존재)
-    }
-  }
-
-  if (!fetchedSuccessfully) {
-    // 모든 URL 시도가 실패했을 경우
-    console.error('타자연습 문장 가져오기 최종 실패:', lastError);
-    // fallback 문장들 (더 많은 프로그래밍 관련 문장들)
+    // 기본 문장 목록 (폴백 데이터)
     const defaultSentences = [
       'print("Hello world!")',
       'for i in range(10):',
@@ -131,12 +58,53 @@ function SentencePage() {
       'const handleSubmit = (e) => { e.preventDefault(); }'
     ];
     
+    // API 호출 시도 (짧은 타임아웃)
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      const apiUrl = languageId 
+        ? `${apiBaseUrl}/problems/sentences/${languageId}` 
+        : `${apiBaseUrl}/problems/sentences`;
+      
+      console.log('API 요청:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        signal: AbortSignal.timeout(2000), // 2초 타임아웃
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('받은 데이터:', data);
+
+        let sentences = data.sentences || data || [];
+
+        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+        }
+
+        if (Array.isArray(sentences) && sentences.length > 0) {
+          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+          setSentences(shuffled);
+          console.log('서버에서 문장 로드 성공:', shuffled.length + '개');
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.log('API 호출 실패, 기본 문장 사용:', err.message);
+    }
+
+    // 폴백 데이터 사용
     const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
     setSentences(shuffled);
-    console.log('기본 문장으로 시작:', shuffled.length + '개');
-  }
-  setLoading(false);
-}, [languageId]);
+    console.log('기본 문장 사용:', shuffled.length + '개');
+    setLoading(false);
+  }, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 

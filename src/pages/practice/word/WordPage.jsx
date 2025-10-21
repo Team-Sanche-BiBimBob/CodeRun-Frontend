@@ -19,82 +19,64 @@ function WordPage() {
   const { language: languageId } = location.state || {};
   // console.log("WordPage received languageId:", languageId);
 
-  // 서버에서 단어 가져오기 (환경 변수 사용)
+  // 서버에서 단어 가져오기 (폴백 데이터 우선 사용)
   const fetchWords = useCallback(async () => {
     try {
       setLoading(true);
       console.log('단어 가져오기 시도 중...');
 
-      // 환경 변수에서 API 기본 URL 가져오기
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const isDev = import.meta.env.DEV;
-      const basePath = isDev ? '/api' : apiBaseUrl;
-
-      const endpoints = [
-        languageId ? `problems/words/${languageId}` : 'problems/words',
-        'words',
-        'api/words'
+      // 기본 단어 목록 (폴백 데이터)
+      const defaultWords = [
+        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
+        'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
+        'interface', 'new', 'null', 'private', 'public', 'return', 'static',
+        'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
       ];
 
-      const possibleUrls = endpoints.map(endpoint => 
-        `${basePath}${basePath.endsWith('/') ? '' : '/'}${endpoint}`
-      );
+      // API 호출 시도 (짧은 타임아웃)
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const apiUrl = languageId 
+          ? `${apiBaseUrl}/problems/words/${languageId}` 
+          : `${apiBaseUrl}/problems/words`;
+        
+        console.log('API 요청:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          signal: AbortSignal.timeout(2000), // 2초 타임아웃
+        });
 
-      if (isDev) {
-        possibleUrls.unshift(languageId ? 
-          `/api/problems/words/${languageId}` : 
-          '/api/problems/words'
-        );
-      }
-
-      let lastError = null;
-
-      for (const apiUrl of possibleUrls) {
-        try {
-          console.log(`[${isDev ? 'Development' : 'Production'}] Fetching from:`, apiUrl);
-          const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            credentials: 'include',
-            signal: AbortSignal.timeout(5000),
-          });
-
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('응답이 JSON 형식이 아닙니다');
-          }
-
+        if (response.ok) {
           const data = await response.json();
           console.log('받은 데이터:', data);
 
           let words = data.words || data || [];
 
-          // ✅ 객체 배열일 경우 title만 추출
           if (Array.isArray(words) && typeof words[0] === 'object') {
             words = words.map((w) => w.content || '');
           }
 
-          if (!Array.isArray(words) || words.length === 0) {
-            throw new Error('단어 데이터가 비어있습니다');
+          if (Array.isArray(words) && words.length > 0) {
+            const shuffled = [...words].sort(() => Math.random() - 0.5);
+            setWordList(shuffled);
+            console.log('서버에서 단어 로드 성공:', shuffled.length + '개');
+            return;
           }
-
-          const shuffled = [...words].sort(() => Math.random() - 0.5);
-          setWordList(shuffled);
-          console.log('단어 로드 성공:', shuffled.length + '개');
-          return;
-        } catch (err) {
-          console.log(`${apiUrl} 실패:`, err.message);
-          lastError = err;
-          continue;
         }
+      } catch (err) {
+        console.log('API 호출 실패, 기본 단어 사용:', err.message);
       }
 
-      throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
+      // 폴백 데이터 사용
+      const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
+      setWordList(shuffled);
+      console.log('기본 단어 사용:', shuffled.length + '개');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
       const defaultWords = [

@@ -67,62 +67,61 @@ const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const navigate = useNavigate();
 
-  // 기본 언어 목록을 상수로 분리
-  const defaultLanguages = [
-    { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
-    { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
-    { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
-    { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
-    { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
-    { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
-  ];
-
   useEffect(() => {
     const getData = async () => {
       try {
-        // 환경 변수에서 API 기본 URL 가져오기
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-        const isDev = import.meta.env.DEV;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const apiUrl = `${apiBaseUrl}${apiBaseUrl.endsWith('/') ? '' : '/'}api/languages`;
         
-        // 개발 환경에서는 프록시를 통해 요청, 프로덕션에서는 환경 변수 사용
-        const baseUrl = isDev ? '/api' : (apiBaseUrl || '');
-        const apiUrl = `${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}languages`;
-        
-        console.log(`[${isDev ? 'Development' : 'Production'}] Fetching languages from:`, apiUrl);
+        console.log('Fetching languages from:', apiUrl);
         
         const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            // 필요시 인증 헤더 추가
-            // 'Authorization': `Bearer ${yourAuthToken}`
           },
           credentials: 'include',
         });
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API 응답 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
+          
+          // API 실패 시 기본 언어 목록 사용
+          const defaultLanguages = [
+            { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
+            { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
+            { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
+            { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
+            { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
+            { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
+          ];
+          setLanguages(defaultLanguages);
+          return;
         }
         
         const data = await response.json();
         console.log('API 응답 성공:', data);
-        setLanguages(Array.isArray(data) ? data : defaultLanguages);
+        setLanguages(data);
       } catch (error) {
         console.error('언어 목록 가져오기 실패:', error);
         // 에러 발생 시 기본 언어 목록 사용
+        const defaultLanguages = [
+          { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
+          { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
+          { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
+          { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
+          { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
+          { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
+        ];
         setLanguages(defaultLanguages);
       }
     };
-    
-    // 초기 데이터 로드
     getData();
-    
-    // 5초 후에 재시도 (옵션)
-    const retryTimer = setTimeout(() => {
-      getData();
-    }, 5000);
-    
-    return () => clearTimeout(retryTimer);
   }, []);
 
   const handleLanguageSelect = (languageId) => {
