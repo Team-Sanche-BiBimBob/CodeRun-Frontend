@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
@@ -7,8 +7,8 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function WordPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const languageId = location.state?.id;
+  const [searchParams, _] = useSearchParams();
+  const languageId = searchParams.get('languageId')
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,16 +23,22 @@ function WordPage() {
   const fetchWords = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       if (!languageId) {
         console.warn('언어 ID가 없습니다. 기본 단어 사용');
-        throw new Error('언어 ID 없음');
+        const defaultWords = [
+          'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
+          'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
+          'interface', 'new', 'null', 'private', 'public', 'return', 'static',
+          'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
+        ];
+        const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
+        setWordList(shuffled);
+        setLoading(false);
+        return;
       }
 
-      const response = await api.get(`/api/problems/words/${languageId}`, {
-        headers: { 'x-auth-not-required': true }
-      });
-
+      const response = await api.get(`/api/problems/words/${languageId}`);
       const words = response.data
         .filter(item => item.content)
         .map(item => item.content);
@@ -77,7 +83,7 @@ function WordPage() {
 
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
-    
+
     if (!currentWord || userInput.length >= currentWord.length) {
       return {
         nextChar: null,
@@ -94,12 +100,12 @@ function WordPage() {
     const remainingText = currentWord.slice(nextCharIndex);
 
     return {
-      nextChar: nextChar,
+      nextChar,
       nextWord: remainingText,
       currentPosition: nextCharIndex,
       totalLength: currentWord.length,
-      remainingText: remainingText,
-      currentWord: currentWord
+      remainingText,
+      currentWord
     };
   }, [wordList, currentIndex, userInput]);
 
@@ -132,13 +138,10 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === ' ') {
-      e.preventDefault();
-    }
+    if (e.key === ' ') e.preventDefault();
 
     if (e.key === 'Enter') {
       e.preventDefault();
-      
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];
