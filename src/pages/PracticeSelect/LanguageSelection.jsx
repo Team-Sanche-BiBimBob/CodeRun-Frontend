@@ -102,7 +102,7 @@ const LanguageSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-6xl px-4 py-12 mx-auto">
+      <main className="px-4 py-12 mx-auto max-w-6xl">
         <h2 className="mb-16 text-3xl font-bold text-center">
           학습할 프로그래밍 언어를 선택하세요
         </h2>
@@ -120,8 +120,8 @@ const LanguageSelection = () => {
           <button
             className={`w-64 py-3 px-6 rounded-md text-center border-none cursor-pointer transition-colors ${
               selectedLanguage
-                ? 'bg-teal-500 hover:bg-teal-600 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'text-white bg-teal-500 hover:bg-teal-600'
+                : 'text-gray-500 bg-gray-300 cursor-not-allowed'
             }`}
             disabled={!selectedLanguage}
             onClick={handleCompleteSelection}
