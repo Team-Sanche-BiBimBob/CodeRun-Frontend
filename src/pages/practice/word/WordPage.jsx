@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -21,10 +20,9 @@ function WordPage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const fetchWords = useCallback(async () => {
+    // languageId가 없어도 기본 단어로 연습 가능하도록 수정
     if (!languageId) {
-      console.error('언어 ID가 없습니다.');
-      navigate('/');
-      return;
+      console.warn('언어 ID가 없습니다. 기본 단어로 연습합니다.');
     }
 
     try {
