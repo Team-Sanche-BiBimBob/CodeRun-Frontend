@@ -6,8 +6,6 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function WordPage() {
   const navigate = useNavigate();
-  const [searchParams, _] = useSearchParams();
-  const languageId = searchParams.get('languageId')
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -277,7 +275,7 @@ function WordPage() {
           <div className="mb-4 text-xl font-semibold text-gray-700">
             타자연습 단어를 불러오는 중...
           </div>
-          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
         </div>
       </div>
     );
@@ -286,8 +284,8 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 mt-10 font-sans bg-teal-50">
-      <div className="grid items-end grid-cols-3 mb-6">
+    <div className="flex relative flex-col items-center pt-16 pb-32 mt-10 min-h-screen font-sans bg-teal-50">
+      <div className="grid grid-cols-3 items-end mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
             entry.isCorrect ? (
@@ -338,7 +336,7 @@ function WordPage() {
       )}
 
       {!isComplete && (
-        <div className="flex flex-col items-center w-full mt-10">
+        <div className="flex flex-col items-center mt-10 w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}

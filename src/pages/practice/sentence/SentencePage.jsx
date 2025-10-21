@@ -6,7 +6,6 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function SentencePage() {
   const navigate = useNavigate();
-  const { id } = useParams(); // URL에서 id 추출
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -49,8 +48,33 @@ const fetchSentences = useCallback(async () => {
         if (!contentType || !contentType.includes('application/json')) {
           throw new Error('응답이 JSON 형식이 아닙니다');
         }
-      }
 
+        const data = await response.json();
+        console.log('받은 데이터:', data);
+
+        let sentences = data.sentences || data || [];
+
+        // ✅ 객체 배열일 경우 content나 sentence 필드 추출
+        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+        }
+
+        if (!Array.isArray(sentences) || sentences.length === 0) {
+          throw new Error('문장 데이터가 비어있습니다');
+        }
+
+        const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+        setSentences(shuffled);
+        console.log('문장 로드 성공:', shuffled.length + '개');
+        return; // 성공 시 여기서 함수 종료
+      } catch (err) {
+        console.log(`${apiUrl} 실패:`, err.message);
+        lastError = err;
+        continue; // 다음 URL 시도
+      }
+    }
+
+    // 모든 URL 시도가 실패했을 경우
     throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
   } catch (err) {
     console.error('타자연습 문장 가져오기 최종 실패:', err);
@@ -108,6 +132,7 @@ const fetchSentences = useCallback(async () => {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const handleKeyDown = useCallback((e) => {
+    console.log('Key pressed:', e.key); // DEBUG: Add this line
     if (e.isComposing || e.keyCode === 229) { e.preventDefault(); return; }
     if (hangulRegex.test(e.key)) { e.preventDefault(); return; }
     if (isComplete || sentences.length === 0) return;
