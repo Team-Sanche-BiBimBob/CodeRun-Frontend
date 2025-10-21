@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -18,7 +18,13 @@ function SentencePage() {
 
   const location = useLocation();
   const { language: languageId } = location.state || {};
-  // console.log("SentencePage received languageId:", languageId);
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
+  
+  // console.log("SentencePage received languageId:", finalLanguageId);
 
   // 서버에서 문장 가져오기 (개선된 버전)
 const fetchSentences = useCallback(async () => {
@@ -27,7 +33,7 @@ const fetchSentences = useCallback(async () => {
     console.log('문장 가져오기 시도 중...');
 
     const possibleUrls = [
-      languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
+      finalLanguageId ? `/api/problems/sentences/${finalLanguageId}` : '/api/problems/sentences',
     ];
 
     let lastError = null;
@@ -49,7 +55,26 @@ const fetchSentences = useCallback(async () => {
         if (!contentType || !contentType.includes('application/json')) {
           throw new Error('응답이 JSON 형식이 아닙니다');
         }
+
+        const data = await response.json();
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
+
+        let sentences = data.sentences || data || [];
+        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+        }
+
+        if (Array.isArray(sentences) && sentences.length > 0) {
+          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+          setSentences(shuffled);
+          console.log('서버에서 문장 로드 성공:', sentences.length + '개');
+          return;
+        }
+      } catch (err) {
+        lastError = err;
+        console.log(`${apiUrl} 실패:`, err.message);
       }
+    }
 
     throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
   } catch (err) {
@@ -95,7 +120,7 @@ const fetchSentences = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, [languageId]);
+}, [finalLanguageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 
