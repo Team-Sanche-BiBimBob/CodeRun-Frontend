@@ -19,26 +19,46 @@ function WordPage() {
   const { language: languageId } = location.state || {};
   // console.log("WordPage received languageId:", languageId);
 
-  // 서버에서 단어 가져오기
+  // 서버에서 단어 가져오기 (환경 변수 사용)
   const fetchWords = useCallback(async () => {
     try {
       setLoading(true);
       console.log('단어 가져오기 시도 중...');
 
-      const possibleUrls = [
-        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words',
+      // 환경 변수에서 API 기본 URL 가져오기
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const isDev = import.meta.env.DEV;
+      const basePath = isDev ? '/api' : apiBaseUrl;
+
+      const endpoints = [
+        languageId ? `problems/words/${languageId}` : 'problems/words',
+        'words',
+        'api/words'
       ];
+
+      const possibleUrls = endpoints.map(endpoint => 
+        `${basePath}${basePath.endsWith('/') ? '' : '/'}${endpoint}`
+      );
+
+      if (isDev) {
+        possibleUrls.unshift(languageId ? 
+          `/api/problems/words/${languageId}` : 
+          '/api/problems/words'
+        );
+      }
 
       let lastError = null;
 
       for (const apiUrl of possibleUrls) {
         try {
+          console.log(`[${isDev ? 'Development' : 'Production'}] Fetching from:`, apiUrl);
           const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              Accept: 'application/json',
+              'Accept': 'application/json',
             },
+            credentials: 'include',
             signal: AbortSignal.timeout(5000),
           });
 

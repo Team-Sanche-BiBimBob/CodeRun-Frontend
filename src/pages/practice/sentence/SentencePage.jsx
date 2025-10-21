@@ -19,26 +19,46 @@ function SentencePage() {
   const { language: languageId } = location.state || {};
   // console.log("SentencePage received languageId:", languageId);
 
-  // 서버에서 문장 가져오기 (개선된 버전)
-const fetchSentences = useCallback(async () => {
-  setLoading(true);
-  console.log('문장 가져오기 시도 중...');
+  // 서버에서 문장 가져오기 (환경 변수 사용)
+  const fetchSentences = useCallback(async () => {
+    setLoading(true);
+    console.log('문장 가져오기 시도 중...');
 
-  const possibleUrls = [
-    languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
-  ];
+    // 환경 변수에서 API 기본 URL 가져오기
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const isDev = import.meta.env.DEV;
+    const basePath = isDev ? '/api' : apiBaseUrl;
 
-  let lastError = null;
-  let fetchedSuccessfully = false;
+    const endpoints = [
+      languageId ? `problems/sentences/${languageId}` : 'problems/sentences',
+      'sentences',
+      'api/sentences'
+    ];
+
+    const possibleUrls = endpoints.map(endpoint => 
+      `${basePath}${basePath.endsWith('/') ? '' : '/'}${endpoint}`
+    );
+
+    if (isDev) {
+      possibleUrls.unshift(languageId ? 
+        `/api/problems/sentences/${languageId}` : 
+        '/api/problems/sentences'
+      );
+    }
+
+    let lastError = null;
+    let fetchedSuccessfully = false;
 
   for (const apiUrl of possibleUrls) {
     try {
+      console.log(`[${isDev ? 'Development' : 'Production'}] Fetching from:`, apiUrl);
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Accept: 'application/json',
+          'Accept': 'application/json',
         },
+        credentials: 'include',
         signal: AbortSignal.timeout(5000),
       });
 
