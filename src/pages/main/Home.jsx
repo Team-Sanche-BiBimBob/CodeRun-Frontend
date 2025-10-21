@@ -1,100 +1,149 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../../components/common/footer/Footer.jsx';
-import { useNavigate } from 'react-router-dom'; 
+import HeroCarousel from '../../components/Slides/HeroCarouse.jsx';
 
 const Home = () => {
-  const [items, setItems] = useState([]);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [promoStart, setPromoStart] = useState(0);
 
-  useEffect(() => {
-    const dummyData = [
-      {
-        name: 'Python',
-        description: '간결하고 배우기 쉬운 문법으로 다양한 분야에서 사랑받는 프로그래밍 언어입니다.',
-      },
-      {
-        name: 'C',
-        description: '시스템 프로그래밍에 강력하며 하드웨어 제어에 많이 사용되는 저수준 언어입니다.',
-      },
-      {
-        name: 'JavaScript',
-        description: '웹 개발에 필수적인 언어로, 동적인 사용자 인터페이스 구현에 주로 사용됩니다.',
-      },
-    ];
-    setItems(dummyData);
-  }, []);
+  const rankings = [
+    { rank: 1, name: '오늘 밥은 뭐하게', time: '08:07:06' },
+    { rank: 2, name: '재밌게타자치고싶어요', time: '08:07:00' },
+    { rank: 3, name: '집에가기제발제바...', time: '08:07:00' },
+    { rank: 4, name: '둥글게 귀엽게', time: '08:06:36' },
+    { rank: 5, name: '민타탐탐', time: '08:07:00' },
+    { rank: 6, name: '못생긴타자총애기여엉', time: '08:07:00' },
+  ];
+
+  const languages = [
+    'Python', 'Java', 'C', 'JavaScript',
+    'TypeScript', 'Swift', 'Kotlin', 'SQL'
+  ];
+
+  const promoItems = [
+    { id: 1, title: '프리미엄 멤버십', caption: '무제한 연습 코스 제공' },
+    { id: 2, title: '실시간 랭킹', caption: '전국 사용자와 경쟁' },
+    { id: 3, title: '상세 분석', caption: '타이핑 성능 분석 리포트' },
+    { id: 4, title: '커스텀 연습', caption: '나만의 단어장 만들기' },
+    { id: 5, title: '배지 시스템', caption: '성취 배지 수집' },
+    { id: 6, title: '커뮤니티', caption: '유저 커뮤니티 참여' },
+  ];
+
+  const visiblePromos = promoItems.slice(promoStart, promoStart + 3);
 
   return (
-    <div className="flex flex-col min-h-screen w-screen mx-auto bg-gray-100 relative">
-      {/* Hero Section */}
-      <section className="relative w-full h-96 overflow-hidden bg-white">
-        {/* Hero Left */}
-        <div 
-          className="absolute top-0 h-full w-full z-10"
-          style={{ 
-            backgroundColor: '#14b8a6',
-            clipPath: 'polygon(0 0, 70% 0, 50% 100%, 0% 100%)' 
-          }}
-        ></div>
-        
-        {/* Hero Right */}
-        <div 
-          className="absolute top-0 h-full w-full z-0"
-          style={{ 
-            background: '#1fa799',
-            clipPath: 'polygon(70% 0, 100% 0, 100% 100%, 50% 100%)'
-          }}
-        ></div>
+    <div className="relative w-full min-h-screen mx-auto overflow-hidden bg-white">
+      <HeroCarousel />
 
-        {/* Background Gradient */}
-        <div 
-          className="absolute top-0 left-0 w-full h-full z-0"
-          style={{ 
-            background: 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
-            clipPath: 'polygon(0 0, 60% 0, 40% 100%, 0% 100%)'
-          }}
-        ></div>
-
-        {/* Hero Content */}
-        <div className="relative z-20 p-25 text-white max-w-1/2">
-          <h1 className="text-4xl font-bold mb-3">CodeRun{"{}"}</h1>
-          <p className="text-lg font-normal">어제보다 한 글자 더 빠르게</p>
+      {/* ✅ 랭킹 섹션 */}
+      <section className="w-full h-[486px] bg-red-400 relative flex flex-col items-center justify-center text-white">
+        <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
+        <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
+        <div className="grid grid-cols-3 gap-4 mt-8">
+          {/* 1등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>1</span>
+            <span>오늘 밥은 뭐하게</span>
+            <span className="text-[10px]">08:07:06</span>
+          </div>
+          {/* 2등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>2</span>
+            <span>재밌게타자치고싶어요</span>
+            <span className="text-[10px]">08:07:00</span>
+          </div>
+          {/* 3등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>3</span>
+            <span>집에가기제발제바...</span>
+            <span className="text-[10px]">08:07:00</span>
+          </div>
+          {/* 4등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>4</span>
+            <span>둥글게 귀엽게</span>
+            <span className="text-[10px]">08:06:36</span>
+          </div>
+          {/* 5등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>5</span>
+            <span>민타탐탐</span>
+            <span className="text-[10px]">08:07:00</span>
+          </div>
+          {/* 6등 */}
+          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+            <span>6</span>
+            <span>못생긴타자총애기여엉</span>
+            <span className="text-[10px]">08:07:00</span>
+          </div>
         </div>
       </section>
 
-      {/* Content Wrapper */}
-      <div className="max-w-4xl mx-auto py-15 px-5 flex flex-col gap-15">
-        {/* Languages Section */}
-        <section className="w-full">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">최근 인기 있는 언어</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.slice(0, 3).map((language, index) => (
-              <div 
-                key={index} 
-                className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                {/* Language Header */}
-                <div className="text-white py-4 px-5 text-center" style={{ backgroundColor: '#17b6a2' }}>
-                  <h3 className="text-xl font-semibold m-0">{language.name}</h3>
-                </div>
-                
-                {/* Language Body */}
-                <div className="p-5">
-                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                    {language.description}
-                  </p>
-                  <button
-                    className="bg-teal-50 text-teal-700 border-none rounded-lg py-2 px-4 text-sm cursor-pointer transition-colors duration-200 w-full hover:bg-teal-100"
-                    onClick={() => navigate('/PracticeSelect')}
-                  >
-                    이동하기
-                  </button>
-                </div>
+      {/* ✅ 언어 섹션 */}
+      <section className="w-full py-10 text-center bg-amber-300">
+        <h2 className="text-2xl font-semibold text-zinc-800">CodeRun{`{}`}</h2>
+        <p className="text-3xl font-semibold text-zinc-800">
+          단어 연습<span className="font-normal">으로 기본부터 튼튼하게</span>
+        </p>
+
+        <div className="grid justify-center max-w-3xl grid-cols-4 gap-6 mx-auto mt-8">
+          {languages.map((lang) => (
+            <button
+              key={lang}
+              onClick={() => navigate('/word', { state: { language: lang } })}
+              className="bg-white rounded-[10px] p-5 flex flex-col hover:shadow-lg transition-shadow"
+            >
+              <div className="mb-5 text-xs font-light text-left">단어 연습</div>
+              <div className="text-xl text-right">{lang}</div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ✅ 고객 혜택 섹션 */}
+      <section className="flex items-center w-full min-h-[60vh] bg-white">
+        <div className="w-full max-w-6xl px-6 py-12 mx-auto">
+          <h3 className="mb-6 text-xl font-semibold text-center text-gray-900">
+            고객님께 전하는 Code{`{}`}에서 드리는 혜택!
+          </h3>
+          <div className="relative">
+            <button
+              aria-label="이전"
+              onClick={() =>
+                setPromoStart((p) => (p - 1 + promoItems.length) % promoItems.length)
+              }
+              className="absolute left-0 z-10 grid -translate-y-1/2 bg-gray-100 rounded-full shadow w-9 h-9 top-1/2 place-items-center hover:bg-gray-200"
+            >
+              <span className="text-gray-700">‹</span>
+            </button>
+            <button
+              aria-label="다음"
+              onClick={() =>
+                setPromoStart((p) => (p + 1) % promoItems.length)
+              }
+              className="absolute right-0 z-10 grid -translate-y-1/2 bg-gray-100 rounded-full shadow w-9 h-9 top-1/2 place-items-center hover:bg-gray-200"
+            >
+              <span className="text-gray-700">›</span>
+            </button>
+            <div className="px-12">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                {visiblePromos.map((card) => (
+                  <div key={card.id} className="">
+                    <div className="w-full h-40 bg-gray-200 border border-gray-300 rounded-xl" />
+                    <div className="px-2 mt-3 text-sm text-gray-700 truncate">
+                      {card.title}
+                    </div>
+                    <div className="px-2 text-xs text-gray-500 truncate">
+                      {card.caption}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <Footer />
     </div>
