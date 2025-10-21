@@ -6,7 +6,6 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function SentencePage() {
   const navigate = useNavigate();
-  const { id } = useParams(); // URL에서 id 추출
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -26,62 +25,14 @@ function SentencePage() {
   
   // console.log("SentencePage received languageId:", finalLanguageId);
 
-  // 서버에서 문장 가져오기 (개선된 버전)
-const fetchSentences = useCallback(async () => {
-  try {
-    setLoading(true);
-    console.log('문장 가져오기 시도 중...');
+  // 서버에서 문장 가져오기
+  const fetchSentences = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('문장 가져오기 시도 중...');
 
-    const possibleUrls = [
-      finalLanguageId ? `/api/problems/sentences/${finalLanguageId}` : '/api/problems/sentences',
-    ];
-
-    let lastError = null;
-
-    for (const apiUrl of possibleUrls) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          signal: AbortSignal.timeout(5000),
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('응답이 JSON 형식이 아닙니다');
-        }
-
-        const data = await response.json();
-        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
-
-        let sentences = data.sentences || data || [];
-        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
-          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
-        }
-
-        if (Array.isArray(sentences) && sentences.length > 0) {
-          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
-          setSentences(shuffled);
-          console.log('서버에서 문장 로드 성공:', sentences.length + '개');
-          return;
-        }
-      } catch (err) {
-        lastError = err;
-        console.log(`${apiUrl} 실패:`, err.message);
-      }
-    }
-
-    throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
-  } catch (err) {
-    console.error('타자연습 문장 가져오기 최종 실패:', err);
-
-    // fallback 문장들 (더 많은 프로그래밍 관련 문장들)
-    const defaultSentences = [
+      // 기본 문장 목록 (폴백 데이터)
+      const defaultSentences = [
       'print("Hello world!")',
       'for i in range(10):',
       'console.log("Hello world!");',
@@ -113,14 +64,71 @@ const fetchSentences = useCallback(async () => {
       'CREATE TABLE users (id INT PRIMARY KEY);',
       'const handleSubmit = (e) => { e.preventDefault(); }'
     ];
-    
-    const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-    setSentences(shuffled);
-    console.log('기본 문장으로 시작:', shuffled.length + '개');
-  } finally {
-    setLoading(false);
-  }
-}, [finalLanguageId]);
+
+      const possibleUrls = [
+        languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences'
+      ];
+
+      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
+      const apiUrl = possibleUrls[0];
+      try {
+        console.log(`시도 중: ${apiUrl}`);
+        // 직접 서버에 요청 (프록시 우회)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const fullUrl = baseUrl + apiUrl;
+        console.log(`API 요청 URL: ${fullUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(10000), // 10초 타임아웃
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
+
+        let sentences = data.sentences || data || [];
+
+        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+        }
+
+        if (Array.isArray(sentences) && sentences.length > 0) {
+          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+          setSentences(shuffled);
+          console.log('서버에서 문장 로드 성공:', shuffled.length + '개');
+          return;
+        } else {
+          throw new Error('문장 데이터가 비어있습니다');
+        }
+      } catch (err) {
+        console.log('API 호출 실패, 기본 문장 사용:', err.message);
+      }
+
+      // 폴백 데이터 사용
+      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
+      console.log('기본 문장 사용:', shuffled.length + '개');
+    } catch (error) {
+      console.error('문장 가져오기 실패:', error);
+      const defaultSentences = [
+        'print("Hello world!")',
+        'console.log("Hello world!");',
+        'function greet(name) {',
+      ];
+      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
+    } finally {
+      setLoading(false);
+    }
+  }, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 
