@@ -69,19 +69,46 @@ const LanguageSelection = () => {
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch('api/languages', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        console.log(response.status);
-        throw new Error(`서버 오류: ${response.status}`);
+      try {
+        // 프록시를 통한 안전한 API 호출
+        const response = await fetch('/api/languages', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          console.log('API 응답 실패:', response.status);
+          // API 실패 시 기본 언어 목록 사용
+          const defaultLanguages = [
+            { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
+            { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
+            { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
+            { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
+            { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
+            { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
+          ];
+          setLanguages(defaultLanguages);
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('API 응답 성공:', data);
+        setLanguages(data);
+      } catch (error) {
+        console.error('언어 목록 가져오기 실패:', error);
+        // 에러 발생 시 기본 언어 목록 사용
+        const defaultLanguages = [
+          { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
+          { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
+          { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
+          { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
+          { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
+          { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
+        ];
+        setLanguages(defaultLanguages);
       }
-      const data = await response.json();
-      console.log(data);
-      setLanguages(data);
     };
     getData();
   }, []);

@@ -151,7 +151,9 @@ const fetchSentences = useCallback(async () => {
 
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    for (let i = 0; i < original.length; i++) {
+    const originalLength = original.length;
+
+    for (let i = 0; i < originalLength; i++) {
       const originalChar = original[i];
       const typedChar = typedArr[i] || '';
       const isError = spaceErrorIndices[i];
