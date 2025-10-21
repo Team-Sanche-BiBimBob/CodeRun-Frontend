@@ -1,114 +1,202 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { CreditCard, Mail, MapPin, Lock, Check } from 'lucide-react';
 
 const PaymentPage = () => {
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedRecurring, setAgreedRecurring] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('구독 처리');
+  };
+
   return (
-    <div className="flex min-h-screen font-sans bg-gray-50">
+    <div className="flex min-h-screen font-sans bg-gradient-to-br from-gray-50 to-gray-100">
       {/* 사이드바 */}
-      <div className="w-1/3 bg-white flex justify-center border-r sticky top-0 h-screen overflow-auto">
-        <div className="w-full max-w-xs px-6 py-12">
-          <h1 className="text-2xl font-semibold mb-8">CodeRun</h1>
-          <p className="text-gray-500 text-sm mb-2">CodeRun 구독하기</p>
+      <div className="sticky top-0 flex justify-center w-2/5 h-screen overflow-auto text-white shadow-2xl bg-gradient-to-br from-teal-600 to-teal-700">
+        <div className="w-full max-w-sm px-8 py-16">
+          <div className="mb-12">
+            <h1 className="mb-2 text-3xl font-bold tracking-tight">CodeRun</h1>
+            <p className="text-sm text-teal-100">프리미엄 구독</p>
+          </div>
 
-          <p className="text-3xl font-bold mb-4">
-            $22.00 <span className="text-base font-normal text-gray-500">/월</span>
-          </p>
+          <div className="p-6 mb-8 border bg-white/10 backdrop-blur-sm rounded-2xl border-white/20">
+            <p className="mb-3 text-sm text-teal-100">월간 요금제</p>
+            <p className="mb-1 text-5xl font-bold">
+              $22<span className="text-2xl font-normal text-teal-100">.00</span>
+            </p>
+            <p className="text-sm text-teal-100">/ 월</p>
+          </div>
 
-          <div className="space-y-3 text-sm text-gray-700">
-            <div className="flex justify-between border-b pb-2 font-medium">
-              <span>CodeRun<br/> 월간 청구</span>
-              <span><br/>$20.00</span>
+          <div className="space-y-4 text-sm">
+            <div className="flex justify-between py-3 border-b border-white/20">
+              <span className="text-teal-100">CodeRun 월간 청구</span>
+              <span className="font-semibold">$20.00</span>
             </div>
-            <div className="flex justify-between text-gray-500">
-              <span>부가세 (10%)</span>
-              <span>$2.00</span>
+            <div className="flex justify-between py-3 border-b border-white/20">
+              <span className="text-teal-100">부가세 (10%)</span>
+              <span className="font-semibold">$2.00</span>
             </div>
-            <div className="border-t pt-4 flex justify-between font-semibold text-black">
-              <span>당월 청구 총액</span>
+            <div className="flex justify-between py-4 text-lg font-bold">
+              <span>총 결제 금액</span>
               <span>$22.00</span>
+            </div>
+          </div>
+
+          <div className="mt-12 space-y-4 text-sm text-teal-100">
+            <div className="flex items-start gap-3">
+              <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span>언제든지 구독 취소 가능</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span>모든 프리미엄 기능 이용</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span>우선 고객 지원</span>
             </div>
           </div>
         </div>
       </div>
-      {/* 폼 */}
-      <div className="w-2/3 h-screen overflow-auto p-12">
-        <form className="max-w-xl mx-auto space-y-8">
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">연락처 정보</h2>
+      {/* 폼 */}
+      <div className="w-3/5 h-screen p-12 overflow-auto">
+        <div className="max-w-2xl mx-auto space-y-8">
+          <div className="mb-8">
+            <h2 className="mb-2 text-3xl font-bold text-gray-900">결제 정보</h2>
+            <p className="text-gray-500">안전하고 간편한 결제를 진행해주세요</p>
+          </div>
+
+          {/* 연락처 정보 */}
+          <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Mail className="w-5 h-5 text-teal-600" />
+              <h3 className="text-lg font-semibold text-gray-900">연락처 정보</h3>
+            </div>
             <input
               type="email"
-              placeholder="이메일"
-              className="w-full p-3 border rounded-md"
+              placeholder="이메일 주소를 입력하세요"
+              className="w-full p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">결제 방식</h2>
+          {/* 결제 방식 */}
+          <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="w-5 h-5 text-teal-600" />
+              <h3 className="text-lg font-semibold text-gray-900">결제 방식</h3>
+            </div>
 
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="1234 1234 1234 1234"
-                className="w-full p-3 border rounded-md"
-              />
-
-              <div className="flex gap-3">
+            <div className="space-y-4">
+              <div className="relative">
                 <input
                   type="text"
-                  placeholder="MM/YY"
-                  className="w-1/2 p-3 border rounded-md"
+                  placeholder="카드 번호"
+                  maxLength={19}
+                  className="w-full p-4 pr-12 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
+                <CreditCard className="absolute w-5 h-5 text-gray-400 -translate-y-1/2 right-4 top-1/2" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text"
-                  placeholder="보안코드 (CVC)"
-                  className="w-1/2 p-3 border rounded-md"
+                  placeholder="MM / YY"
+                  maxLength={7}
+                  className="p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="CVC"
+                    maxLength={4}
+                    className="w-full p-4 pr-12 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+                  <Lock className="absolute w-5 h-5 text-gray-400 -translate-y-1/2 right-4 top-1/2" />
+                </div>
               </div>
 
               <input
                 type="text"
                 placeholder="카드 소유자 이름"
-                className="w-full p-3 border rounded-md"
+                className="w-full p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">청구 주소</h2>
-            <div className="space-y-3">
-              <input type="text" placeholder="나라" className="w-full p-3 border rounded-md" />
-              <input type="text" placeholder="도시 / 시" className="w-full p-3 border rounded-md" />
-              <input type="text" placeholder="읍/면/동" className="w-full p-3 border rounded-md" />
-              <input type="text" placeholder="주소란" className="w-full p-3 border rounded-md" />
-              <input type="text" placeholder="우편번호" className="w-full p-3 border rounded-md" />
+          {/* 청구 주소 */}
+          <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <MapPin className="w-5 h-5 text-teal-600" />
+              <h3 className="text-lg font-semibold text-gray-900">청구 주소</h3>
+            </div>
+            <div className="space-y-4">
+              <input 
+                type="text" 
+                placeholder="국가" 
+                className="w-full p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <input 
+                  type="text" 
+                  placeholder="도시" 
+                  className="p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
+                />
+                <input 
+                  type="text" 
+                  placeholder="우편번호" 
+                  className="p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
+                />
+              </div>
+              <input 
+                type="text" 
+                placeholder="상세 주소" 
+                className="w-full p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
+              />
             </div>
           </div>
 
-          <div className="space-y-3 text-sm text-gray-700">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" />
-              비즈니스 목적으로 구매합니다.
+          {/* 약관 동의 */}
+          <div className="p-6 space-y-4 text-sm text-gray-700 bg-gray-50 rounded-xl">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input 
+                type="checkbox" 
+                checked={agreedTerms}
+                onChange={(e) => setAgreedTerms(e.target.checked)}
+                className="w-5 h-5 mt-1 text-teal-600 border-gray-300 rounded cursor-pointer focus:ring-2 focus:ring-teal-500" 
+              />
+              <span className="transition group-hover:text-gray-900">
+                비즈니스 목적으로 구매합니다.
+              </span>
             </label>
-            <label className="flex items-start gap-2">
-              <input type="checkbox" />
-              <span>
-                결재를 취소할 때까지 상기 안내된 기간마다 해당 금액이 청구됩니다.
-                이용약관에 명시된 바에 따라 요금이 변경될 수 있습니다. <br/>
-                결재는 언제든 취소 가능합니다. 구독함으로써, <br/>
-                CodeRun의 이용약관 및 개인정보 정책에 동의하는 것으로, <br/>
-                갱신 및 기타 구매를 위해 사용자님의 결재 방법을  저장하는 권한을 <br/>
-                당사에 부여하는 것으로 간주합니다.
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input 
+                type="checkbox"
+                checked={agreedRecurring}
+                onChange={(e) => setAgreedRecurring(e.target.checked)}
+                className="w-5 h-5 mt-1 text-teal-600 border-gray-300 rounded cursor-pointer focus:ring-2 focus:ring-teal-500" 
+              />
+              <span className="leading-relaxed transition group-hover:text-gray-900">
+                결제를 취소할 때까지 매월 자동으로 결제됩니다. CodeRun의 이용약관 및 개인정보 정책에 동의하며, 
+                갱신 및 기타 구매를 위해 결제 정보를 저장하는 것에 동의합니다.
               </span>
             </label>
           </div>
 
+          {/* 제출 버튼 */}
           <button
-            type="submit"
-            className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-md font-medium text-lg"
+            onClick={handleSubmit}
+            className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
             구독하기
           </button>
-        </form>
+
+          <p className="text-sm text-center text-gray-500">
+            <Lock className="inline w-4 h-4 mr-1" />
+            모든 결제 정보는 암호화되어 안전하게 처리됩니다
+          </p>
+        </div>
       </div>
     </div>
   );
