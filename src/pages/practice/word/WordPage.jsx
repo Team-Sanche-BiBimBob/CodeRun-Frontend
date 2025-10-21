@@ -21,14 +21,14 @@ function WordPage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const fetchWords = useCallback(async () => {
-    if (!languageId) {
-      console.error('언어 ID가 없습니다.');
-      navigate('/');
-      return;
-    }
-
     try {
       setLoading(true);
+      
+      if (!languageId) {
+        console.warn('언어 ID가 없습니다. 기본 단어 사용');
+        throw new Error('언어 ID 없음');
+      }
+
       const response = await api.get(`/api/problems/words/${languageId}`, {
         headers: { 'x-auth-not-required': true }
       });
@@ -57,7 +57,7 @@ function WordPage() {
     } finally {
       setLoading(false);
     }
-  }, [languageId, navigate]);
+  }, [languageId]);
 
   useEffect(() => {
     fetchWords();
