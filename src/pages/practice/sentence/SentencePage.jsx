@@ -6,6 +6,7 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function SentencePage() {
   const navigate = useNavigate();
+  const { id } = useParams(); // URL에서 id 추출
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -100,9 +101,7 @@ const fetchSentences = useCallback(async () => {
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
+    return () => { document.body.style.overflow = 'auto'; };
   }, []);
 
   const currentSentence = sentences[currentIndex] || '';
@@ -116,32 +115,30 @@ const fetchSentences = useCallback(async () => {
     e.preventDefault();
 
     if (e.key === 'Backspace') {
-      setTypedChars((prev) => prev.slice(0, -1));
-      setSpaceErrorIndices((prev) => prev.slice(0, -1));
+      setTypedChars(prev => prev.slice(0, -1));
+      setSpaceErrorIndices(prev => prev.slice(0, -1));
     } else if (e.key.length === 1) {
       const expectedChar = currentSentence[typedChars.length];
       if (e.key === ' ') {
         if (expectedChar === ' ') {
-          setTypedChars((prev) => [...prev, ' ']);
-          setSpaceErrorIndices((prev) => [...prev, false]);
+          setTypedChars(prev => [...prev, ' ']);
+          setSpaceErrorIndices(prev => [...prev, false]);
         } else {
-          setTypedChars((prev) => [...prev, '']);
-          setSpaceErrorIndices((prev) => [...prev, true]);
+          setTypedChars(prev => [...prev, '']);
+          setSpaceErrorIndices(prev => [...prev, true]);
         }
       } else {
-        setTypedChars((prev) => [...prev, e.key]);
-        setSpaceErrorIndices((prev) => [...prev, false]);
+        setTypedChars(prev => [...prev, e.key]);
+        setSpaceErrorIndices(prev => [...prev, false]);
       }
     } else if (e.key === 'Enter') {
       if (typedChars.length === 0) return;
-      const userTyped = typedChars.map((c, i) =>
-        spaceErrorIndices[i] ? '' : c
-      ).join('');
+      const userTyped = typedChars.map((c, i) => spaceErrorIndices[i] ? '' : c).join('');
       const isIncomplete = userTyped !== currentSentence;
 
-      setHistory((prev) => [...prev, { sentence: currentSentence, typed: userTyped, isIncomplete }]);
+      setHistory(prev => [...prev, { sentence: currentSentence, typed: userTyped, isIncomplete }]);
       if (currentIndex === sentences.length - 1) setIsComplete(true);
-      else setCurrentIndex((prev) => prev + 1);
+      else setCurrentIndex(prev => prev + 1);
       setTypedChars([]);
       setSpaceErrorIndices([]);
     }
@@ -152,12 +149,9 @@ const fetchSentences = useCallback(async () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // === 수정된 부분 ===
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    const originalLength = original.length;
-
-    for (let i = 0; i < originalLength; i++) {
+    for (let i = 0; i < original.length; i++) {
       const originalChar = original[i];
       const typedChar = typedArr[i] || '';
       const isError = spaceErrorIndices[i];
@@ -167,17 +161,10 @@ const fetchSentences = useCallback(async () => {
       let displayChar = originalChar;
 
       if (typedChar !== '') {
-        if (typedChar === originalChar && !isError) {
-          colorClass = 'text-white';
-          displayChar = typedChar;
-        } else {
-          colorClass = 'text-red-500';
-          displayChar = typedChar || originalChar;
-        }
-      } else if (isError) {
-        colorClass = 'text-red-500';
-      }
-
+        if (typedChar === originalChar && !isError) colorClass = 'text-white';
+        else colorClass = 'text-red-500';
+        displayChar = typedChar || originalChar;
+      } else if (isError) colorClass = 'text-red-500';
       if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
@@ -190,8 +177,8 @@ const fetchSentences = useCallback(async () => {
       );
     }
 
-    if (typedArr.length > originalLength) {
-      const extraChars = typedArr.slice(originalLength);
+    if (typedArr.length > original.length) {
+      const extraChars = typedArr.slice(original.length);
       extraChars.forEach((char, i) => {
         elements.push(
           <span key={`extra-${i}`} className="font-mono text-red-500">
@@ -201,7 +188,7 @@ const fetchSentences = useCallback(async () => {
       });
     }
 
-    if (isActive && typedArr.length >= originalLength) {
+    if (isActive && typedArr.length >= original.length) {
       elements.push(
         <span
           key="cursor-end"
@@ -213,58 +200,42 @@ const fetchSentences = useCallback(async () => {
     return <span className="whitespace-pre">{elements}</span>;
   };
 
-  // === 통계 관련 ===
+  // 통계 관련
   const getTotalTyped = useCallback(() => history.reduce((acc, cur) => acc + cur.typed.length, 0), [history]);
   const getCorrectTyped = useCallback(() => history.reduce((acc, cur) => {
     const correctCount = cur.typed.split('').filter((c, i) => c === cur.sentence[i]).length;
     return acc + correctCount;
   }, 0), [history]);
-
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
-    const currentTypedCount = typedChars.length;
-    const currentCorrectCount = typedChars.filter((char, i) =>
-      !spaceErrorIndices[i] && char === currentSentence[i]
-    ).length;
-    const finalTotalTyped = totalTyped + currentTypedCount;
-    const finalCorrectTyped = correctTyped + currentCorrectCount;
-    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+    const currentCorrectCount = typedChars.filter((c, i) => !spaceErrorIndices[i] && c === currentSentence[i]).length;
+    const finalTotal = totalTyped + typedChars.length;
+    const finalCorrect = correctTyped + currentCorrectCount;
+    return finalTotal === 0 ? 0 : (finalCorrect / finalTotal) * 100;
   }, [getTotalTyped, getCorrectTyped, typedChars, spaceErrorIndices, currentSentence]);
 
   const getElapsedTimeSec = useCallback(() => Math.floor((new Date() - startTime) / 1000), [startTime]);
   const getElapsedTime = useCallback(() => {
     const diff = getElapsedTimeSec();
-    return `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}`;
+    return `${String(Math.floor(diff / 60)).padStart(2,'0')}:${String(diff % 60).padStart(2,'0')}`;
   }, [getElapsedTimeSec]);
-
   const getTypingSpeed = useCallback(() => {
-    const elapsedSeconds = getElapsedTimeSec();
-    const completedTyped = getTotalTyped();
-    const currentTyped = typedChars.length;
-    const totalTyped = completedTyped + currentTyped;
-    return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
+    const elapsed = getElapsedTimeSec();
+    const totalTyped = getTotalTyped() + typedChars.length;
+    return elapsed === 0 ? 0 : (totalTyped / elapsed) * 60;
   }, [getElapsedTimeSec, getTotalTyped, typedChars.length]);
 
   const getNextCharInfo = useCallback(() => {
     if (!currentSentence || typedChars.length >= currentSentence.length) {
-      return {
-        nextChar: null,
-        nextWord: null,
-        currentPosition: typedChars.length,
-        totalLength: currentSentence.length,
-        remainingText: ''
-      };
+      return { nextChar: null, nextWord: null, currentPosition: typedChars.length, totalLength: currentSentence.length, remainingText: '' };
     }
     const nextCharIndex = typedChars.length;
     const nextChar = currentSentence[nextCharIndex];
     const remainingText = currentSentence.slice(nextCharIndex);
     const nextWordMatch = remainingText.match(/^(\S+)/);
     const nextWord = nextWordMatch ? nextWordMatch[1] : remainingText;
-    return {
-      nextChar, nextWord, currentPosition: nextCharIndex,
-      totalLength: currentSentence.length, remainingText, currentSentence
-    };
+    return { nextChar, nextWord, currentPosition: nextCharIndex, totalLength: currentSentence.length, remainingText, currentSentence };
   }, [currentSentence, typedChars.length]);
 
   const handleRestart = () => {
@@ -297,7 +268,7 @@ const fetchSentences = useCallback(async () => {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
-      {/* ✅ 다 친 문장 (틀린 부분 빨간색 표시) */}
+      {/* 이전 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && (() => {
           const lastHistory = history[history.length - 1];
@@ -309,12 +280,7 @@ const fetchSentences = useCallback(async () => {
             const typedChar = typed[i] || '';
             const isCorrect = typedChar === originalChar;
             elements.push(
-              <span
-                key={i}
-                className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}
-              >
-                {typedChar || originalChar}
-              </span>
+              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>{typedChar || originalChar}</span>
             );
           }
 
@@ -322,9 +288,7 @@ const fetchSentences = useCallback(async () => {
             const extras = typed.slice(sentence.length);
             extras.split('').forEach((char, i) => {
               elements.push(
-                <span key={`extra-${i}`} className="font-mono text-red-500">
-                  {char}
-                </span>
+                <span key={`extra-${i}`} className="font-mono text-red-500">{char}</span>
               );
             });
           }
