@@ -21,64 +21,62 @@ function SentencePage() {
 
   // 서버에서 문장 가져오기 (개선된 버전)
 const fetchSentences = useCallback(async () => {
-  try {
-    setLoading(true);
-    console.log('문장 가져오기 시도 중...');
+  setLoading(true);
+  console.log('문장 가져오기 시도 중...');
 
-    const possibleUrls = [
-      languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
-    ];
+  const possibleUrls = [
+    languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
+  ];
 
-    let lastError = null;
+  let lastError = null;
+  let fetchedSuccessfully = false;
 
-    for (const apiUrl of possibleUrls) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          signal: AbortSignal.timeout(5000),
-        });
+  for (const apiUrl of possibleUrls) {
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        signal: AbortSignal.timeout(5000),
+      });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('응답이 JSON 형식이 아닙니다');
-        }
-
-        const data = await response.json();
-        console.log('받은 데이터:', data);
-
-        let sentences = data.sentences || data || [];
-
-        // ✅ 객체 배열일 경우 content나 sentence 필드 추출
-        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
-          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
-        }
-
-        if (!Array.isArray(sentences) || sentences.length === 0) {
-          throw new Error('문장 데이터가 비어있습니다');
-        }
-
-        const shuffled = [...sentences].sort(() => Math.random() - 0.5);
-        setSentences(shuffled);
-        console.log('문장 로드 성공:', shuffled.length + '개');
-        return; // 성공 시 여기서 함수 종료
-      } catch (err) {
-        console.log(`${apiUrl} 실패:`, err.message);
-        lastError = err;
-        continue; // 다음 URL 시도
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('응답이 JSON 형식이 아닙니다');
       }
+
+      const data = await response.json();
+      console.log('받은 데이터:', data);
+
+      let sentences = data.sentences || data || [];
+
+      if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+        sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+      }
+
+      if (!Array.isArray(sentences) || sentences.length === 0) {
+        throw new Error('문장 데이터가 비어있습니다');
+      }
+
+      const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
+      console.log('문장 로드 성공:', shuffled.length + '개');
+      fetchedSuccessfully = true;
+      break; // 성공 시 루프 종료
+    } catch (err) {
+      console.log(`${apiUrl} 실패:`, err.message);
+      lastError = err;
+      // continue; // 다음 URL 시도 (이 부분은 이미 존재)
     }
+  }
 
+  if (!fetchedSuccessfully) {
     // 모든 URL 시도가 실패했을 경우
-    throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
-  } catch (err) {
-    console.error('타자연습 문장 가져오기 최종 실패:', err);
-
+    console.error('타자연습 문장 가져오기 최종 실패:', lastError);
     // fallback 문장들 (더 많은 프로그래밍 관련 문장들)
     const defaultSentences = [
       'print("Hello world!")',
@@ -116,9 +114,8 @@ const fetchSentences = useCallback(async () => {
     const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
     setSentences(shuffled);
     console.log('기본 문장으로 시작:', shuffled.length + '개');
-  } finally {
-    setLoading(false);
   }
+  setLoading(false);
 }, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
