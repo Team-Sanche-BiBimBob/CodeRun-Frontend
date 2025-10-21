@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
@@ -7,8 +7,8 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 
 function WordPage() {
   const navigate = useNavigate();
-  const [searchParams, _] = useSearchParams();
-  const languageId = searchParams.get('languageId')
+  const location = useLocation();
+  const languageId = location.state?.languageId;
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,24 +21,24 @@ function WordPage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const fetchWords = useCallback(async () => {
+    if (!languageId) {
+      console.error('언어 ID가 없습니다.');
+      navigate('/');
+      return;
+    }
+
     try {
       setLoading(true);
-
+      
       if (!languageId) {
         console.warn('언어 ID가 없습니다. 기본 단어 사용');
-        const defaultWords = [
-          'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
-          'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
-          'interface', 'new', 'null', 'private', 'public', 'return', 'static',
-          'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
-        ];
-        const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
-        setWordList(shuffled);
-        setLoading(false);
-        return;
+        throw new Error('언어 ID 없음');
       }
 
-      const response = await api.get(`/api/problems/words/${languageId}`);
+      const response = await api.get(`/api/problems/words/${languageId}`, {
+        headers: { 'x-auth-not-required': true }
+      });
+
       const words = response.data
         .filter(item => item.content)
         .map(item => item.content);
@@ -66,13 +66,6 @@ function WordPage() {
   }, [languageId]);
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
-
-  useEffect(() => {
     fetchWords();
     setCurrentIndex(0);
     setUserInput('');
@@ -83,7 +76,7 @@ function WordPage() {
 
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
-
+    
     if (!currentWord || userInput.length >= currentWord.length) {
       return {
         nextChar: null,
@@ -100,12 +93,12 @@ function WordPage() {
     const remainingText = currentWord.slice(nextCharIndex);
 
     return {
-      nextChar,
+      nextChar: nextChar,
       nextWord: remainingText,
       currentPosition: nextCharIndex,
       totalLength: currentWord.length,
-      remainingText,
-      currentWord
+      remainingText: remainingText,
+      currentWord: currentWord
     };
   }, [wordList, currentIndex, userInput]);
 
@@ -138,10 +131,13 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === ' ') e.preventDefault();
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
 
     if (e.key === 'Enter') {
       e.preventDefault();
+      
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];
@@ -255,7 +251,11 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
+<<<<<<< HEAD
     <div className="relative flex flex-col items-center justify-center h-screen pt-16 font-sans bg-teal-50">
+=======
+    <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 font-sans bg-teal-50">
+>>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
       <div className="grid items-end grid-cols-3 mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
