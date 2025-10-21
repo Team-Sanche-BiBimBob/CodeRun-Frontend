@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -15,6 +15,10 @@ function WordPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("WordPage received languageId:", languageId);
+
   // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
     try {
@@ -22,7 +26,7 @@ function WordPage() {
       console.log('단어 가져오기 시도 중...');
 
       const possibleUrls = [
-        '/api/problems/words',
+        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words',
       ];
 
       let lastError = null;
@@ -52,7 +56,7 @@ function WordPage() {
 
           // ✅ 객체 배열일 경우 title만 추출
           if (Array.isArray(words) && typeof words[0] === 'object') {
-            words = words.map((w) => w.title || '');
+            words = words.map((w) => w.content || '');
           }
 
           if (!Array.isArray(words) || words.length === 0) {
@@ -89,7 +93,7 @@ function WordPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [languageId]);
 
   useEffect(() => {
     fetchWords();

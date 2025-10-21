@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -15,6 +15,10 @@ function SentencePage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("SentencePage received languageId:", languageId);
+
   // 서버에서 문장 가져오기 (개선된 버전)
 const fetchSentences = useCallback(async () => {
   try {
@@ -22,7 +26,7 @@ const fetchSentences = useCallback(async () => {
     console.log('문장 가져오기 시도 중...');
 
     const possibleUrls = [
-      '/api/problems/sentences',
+      languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
     ];
 
     let lastError = null;
@@ -114,7 +118,7 @@ const fetchSentences = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, []);
+}, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 

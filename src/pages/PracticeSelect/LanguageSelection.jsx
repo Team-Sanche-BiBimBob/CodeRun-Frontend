@@ -92,6 +92,7 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
+      console.log("Navigating with selectedLanguage:", selectedLanguage);
       navigate('/PracticeSelect', { state: { language: selectedLanguage } });
     }
   };
