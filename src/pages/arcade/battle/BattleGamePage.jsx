@@ -1,14 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 
 function BattleGamePage() {
-  const [gameType, setGameType] = useState('단어'); // '단어' or '문장'
-  const [timeLimit] = useState(60);
-  const [roomName] = useState('테스트방');
+  const location = useLocation();
+  const initialGameType = (location?.state?.gameType) || '단어';
+  const initialTimeLimit = Number(location?.state?.timeLimit) || 60;
+  const initialRoomName = (location?.state?.roomName) || '테스트방';
+
+  const [gameType, setGameType] = useState(initialGameType); // '단어' or '문장'
+  const [timeLimit, setTimeLimit] = useState(initialTimeLimit);
+  const [roomName, setRoomName] = useState(initialRoomName);
 
   // 공통 상태
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isGameComplete, setIsGameComplete] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(60);
+  const [remainingTime, setRemainingTime] = useState(initialTimeLimit);
   const [firstKeyTime, setFirstKeyTime] = useState(null); // 최초 타이핑 시간
 
   // 단어 게임 상태
@@ -29,6 +35,19 @@ function BattleGamePage() {
   const [opponentAccuracy] = useState(80);
   const [mySpeed, setMySpeed] = useState(0); // 실시간 타수 (WPM)
   const [opponentSpeed, setOpponentSpeed] = useState(0); // 상대 시뮬레이션
+
+  // 라우팅 state 변경 시 설정값 반영 (직접 진입 등 대비)
+  useEffect(() => {
+    if (location?.state) {
+      const nextGameType = location.state.gameType || '단어';
+      const nextTimeLimit = Number(location.state.timeLimit) || 60;
+      const nextRoomName = location.state.roomName || '테스트방';
+      setGameType(nextGameType);
+      setTimeLimit(nextTimeLimit);
+      setRoomName(nextRoomName);
+      setRemainingTime(nextTimeLimit);
+    }
+  }, [location?.state]);
 
   // 초기 데이터 로드
   useEffect(() => {
