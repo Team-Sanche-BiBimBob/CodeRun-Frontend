@@ -110,23 +110,6 @@ function Battle() {
     setSelectedRoomId(selectedRoomId === roomId ? null : roomId);
   };
 
-  // ✅ 방 입장 핸들러 추가
-  const handleEnterRoom = () => {
-    if (!selectedRoomId) return;
-    
-    const selectedRoom = battleRooms.find(room => room.id === selectedRoomId);
-    if (!selectedRoom) return;
-    
-    // BattleGamePage로 라우팅
-    navigate('/battle-game', {
-      state: {
-        gameType: selectedRoom.type,
-        timeLimit: selectedRoom.timeLimit,
-        roomName: selectedRoom.name
-      }
-    });
-  };
-
   // 시간 포맷 함수 (MM:SS)
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -271,7 +254,6 @@ function Battle() {
                 <div className="flex items-center justify-end pt-4 mt-auto border-t border-gray-200">
                   <div className="flex gap-3">
                     <button 
-                      onClick={handleEnterRoom}
                       className={`font-medium py-2 px-6 rounded-lg transition-colors ${
                         isLoggedIn && selectedRoomId
                           ? 'bg-teal-400 hover:bg-teal-500 text-white' 
