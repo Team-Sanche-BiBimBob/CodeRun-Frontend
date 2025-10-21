@@ -47,16 +47,16 @@ const Header = memo(({ isLoggedIn }) => {
   }, [location.pathname]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-sm">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 right-0 left-0 z-50 bg-white shadow-sm transition-all duration-300">
+      <div className="px-4 mx-auto max-w-screen-xl sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/*로고*/}
-          <div className="flex-shrink-0 flex items-center justify-center w-24 h-5 pt-1">
+          <div className="flex flex-shrink-0 justify-center items-center pt-1 w-24 h-5">
             <a href="/">
               <img 
                 src={logo}
                 alt="CodeRun 로고" 
-                className="max-w-full max-h-full object-contain"
+                className="object-contain max-w-full max-h-full"
                 loading="eager"
                 decoding="async"
               />
@@ -64,7 +64,7 @@ const Header = memo(({ isLoggedIn }) => {
           </div>
 
           {/*네비게이션*/}
-          <nav className="hidden md:flex gap-8">
+          <nav className="hidden gap-8 md:flex">
             {navigation.map((item) => (
               <a
                 key={item.name}
@@ -85,22 +85,24 @@ const Header = memo(({ isLoggedIn }) => {
           <div className="flex items-center">
             {isLoggedIn ? (
               <a href="/mypage">
-                <div className="flex items-center gap-3 text-gray-700">
-                  <span className="hidden sm:block text-sm font-medium">{userName}</span>
+                <div className="flex gap-3 items-center text-gray-700">
+                  <span className="hidden text-sm font-medium sm:block">{userName}</span>
                   <img 
                     src={userImg} 
                     alt="사용자 프로필" 
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="object-cover w-8 h-8 rounded-full"
                     loading="lazy"
                     decoding="async"
                   />
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
                       localStorage.removeItem('accessToken');
                       localStorage.removeItem('userInfo');
-                      window.location.reload();
+                      // 리다이렉션을 통해 헤더 상태 업데이트
+                      window.location.href = '/';
                     }}
-                    className="ml-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                    className="px-3 py-1 ml-2 text-xs text-gray-600 rounded transition-colors duration-200 hover:text-gray-900 hover:bg-gray-100"
                   >
                     로그아웃
                   </button>

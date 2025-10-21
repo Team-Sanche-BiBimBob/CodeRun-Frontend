@@ -221,7 +221,7 @@ function SentencePage() {
     } finally {
       setLoading(false);
     }
-  }, [languageId]);
+  }, [finalLanguageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 
