@@ -141,11 +141,11 @@ const TeacherView = () => {
   };
 
   const renderStudents = () => (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">학생 관리</h2>
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <h2 className="mb-4 text-2xl font-bold">학생 관리</h2>
       <ul className="divide-y divide-gray-200">
         {students.map(student => (
-          <li key={student.id} className="py-4 flex items-center justify-between">
+          <li key={student.id} className="flex items-center justify-between py-4">
             <div className="flex items-center">
               <div className="ml-4">
                 <p className="text-lg font-semibold text-gray-800">{student.name}</p>
@@ -153,11 +153,11 @@ const TeacherView = () => {
               </div>
             </div>
             <div className="flex items-center">
-              <div className="text-right mr-4">
+              <div className="mr-4 text-right">
                 <p className="text-lg font-semibold text-gray-800">{student.progress}%</p>
                 <p className="text-sm text-gray-500">진행률</p>
               </div>
-              <button className="text-red-500 hover:text-red-700 ml-4" onClick={() => handleExpel(student.id)}>추방</button>
+              <button className="ml-4 text-red-500 hover:text-red-700" onClick={() => handleExpel(student.id)}>추방</button>
             </div>
           </li>
         ))}
@@ -170,33 +170,33 @@ const TeacherView = () => {
     if (!folder) return null;
 
     return (
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
+      <div className="p-6 bg-white rounded-lg shadow-md">
+        <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">{folder.name}</h2>
             <div>
-                <button className="text-gray-500 hover:text-gray-700 mr-4" onClick={handleAddFolderContent}>연습 추가</button>
+                <button className="mr-4 text-gray-500 hover:text-gray-700" onClick={handleAddFolderContent}>연습 추가</button>
                 <button className="text-gray-500 hover:text-gray-700" onClick={() => setSelectedFolderId(null)}>뒤로가기</button>
             </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {folder.content.map((item, index) => (
                 <div key={index} className="relative">
                     <button 
-                        className="w-full bg-teal-500 text-white px-4 py-8 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+                        className="w-full px-4 py-8 text-white bg-teal-500 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
                         onClick={() => navigate('/selectLanguage')}
                     >
                         {item}
                     </button>
                     {folder.name === '이용한 세트' ? (
                         <button 
-                            className="absolute top-2 right-2 text-white bg-transparent rounded-full p-1 text-xs hover:bg-black/20"
+                            className="absolute p-1 text-xs text-white bg-transparent rounded-full top-2 right-2 hover:bg-black/20"
                             onClick={(e) => { e.stopPropagation(); handleDeleteFolderContent(item); }}
                         >
                             -
                         </button>
                     ) : (
                         <button 
-                            className="absolute top-2 right-2 text-white bg-red-500 rounded-full p-1 text-xs hover:bg-red-700"
+                            className="absolute p-1 text-xs text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-700"
                             onClick={(e) => { e.stopPropagation(); handleDeleteFolderContent(item); }}
                         >
                             X
@@ -254,89 +254,52 @@ const TeacherView = () => {
   return (
     <div className="flex flex-col h-screen font-sans bg-gray-100 md:flex-row">
       {/* Sidebar */}
-<<<<<<< HEAD
-      <div className="w-full md:w-70 bg-white border-r border-gray-200 md:border-b-0 border-b p-5 flex flex-col gap-6">
+      <div className="flex flex-col w-full gap-6 p-5 bg-white border-b border-r border-gray-200 md:w-70 md:border-b-0">
         <button
-          className="flex items-center gap-3 px-4 py-3 bg-teal-600 text-white border-none rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 hover:bg-teal-700"
-=======
-      <div className="flex flex-col gap-6 p-5 w-full bg-white border-r border-b border-gray-200 md:w-70 md:border-b-0">
-        <button 
-          className="flex gap-3 items-center px-4 py-3 text-sm font-medium text-white bg-teal-600 rounded-lg border-none transition-colors duration-200 cursor-pointer hover:bg-teal-700"
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-          onClick={openModal}
+          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white transition-colors duration-200 bg-teal-600 border-none rounded-lg cursor-pointer hover:bg-teal-700"          onClick={openModal}
         >
           <UsersIcon />
           클래스만들기
         </button>
 
         <div className="flex flex-col gap-3">
-          <div className="flex justify-between items-center text-sm font-medium text-gray-600">
+          <div className="flex items-center justify-between text-sm font-medium text-gray-600">
             <span>나의 폴더</span>
-<<<<<<< HEAD
             <div className="flex items-center gap-2 text-gray-600">
-              <PlusIcon className="cursor-pointer transition-colors duration-200 hover:text-black" onClick={handleAddFolder} />
-=======
-            <div className="flex gap-2 items-center text-gray-400">
-              <PlusIcon className="transition-colors duration-200 cursor-pointer hover:text-gray-500" />
-              <SettingsIcon className="transition-colors duration-200 cursor-pointer hover:text-gray-500" />
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-            </div>
+              <PlusIcon className="transition-colors duration-200 cursor-pointer hover:text-black" onClick={handleAddFolder} />            </div>
           </div>
 
           <div className="flex flex-col gap-1">
-<<<<<<< HEAD
             {folders.map((folder) => (
               <div key={folder.id} className={`flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer rounded-md transition-colors duration-200 ${selectedFolderId === folder.id ? 'bg-teal-100 text-teal-700' : 'text-gray-600 hover:bg-gray-100'}`} onClick={() => setSelectedFolderId(folder.id)}>
                 <div className="flex items-center gap-3">
                     <FolderIcon />
                     <span>{folder.name}</span>
                 </div>
-                <TrashIcon className="cursor-pointer transition-colors duration-200 hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder.id); }} />
-=======
-            {folders.map((folder, index) => (
-              <div key={index} className="flex gap-3 items-center px-3 py-2 text-sm text-gray-600 rounded-md transition-colors duration-200 cursor-pointer hover:bg-gray-100">
-                {folder.icon}
-                <span>{folder.name}</span>
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-              </div>
+                <TrashIcon className="transition-colors duration-200 cursor-pointer hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder.id); }} />              </div>
             ))}
           </div>
         </div>
 
         <div className="flex flex-col gap-3">
-          <div className="flex justify-between items-center text-sm font-medium text-gray-600">
+          <div className="flex items-center justify-between text-sm font-medium text-gray-600">
             <span>나의 클래스</span>
-<<<<<<< HEAD
             <div className="flex items-center gap-2 text-gray-600">
-              <PlusIcon className="cursor-pointer transition-colors duration-200 hover:text-black" onClick={handleAddClass} />
-=======
-            <div className="flex gap-2 items-center text-gray-400">
-              <PlusIcon className="transition-colors duration-200 cursor-pointer hover:text-gray-500" />
-              <SettingsIcon className="transition-colors duration-200 cursor-pointer hover:text-gray-500" />
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-            </div>
+              <PlusIcon className="transition-colors duration-200 cursor-pointer hover:text-black" onClick={handleAddClass} />            </div>
           </div>
 
           <div className="flex flex-col gap-1">
-<<<<<<< HEAD
             {classes.map((classItem) => (
               <div key={classItem.id} className={`flex items-center justify-between gap-3 px-3 py-2 text-sm cursor-pointer rounded-md transition-colors duration-200 ${selectedClassId === classItem.id ? 'bg-teal-100 text-teal-700' : 'text-gray-600 hover:bg-gray-100'}`} onClick={() => { setSelectedClassId(classItem.id); setSelectedFolderId(null); }}>
                 <div className="flex items-center gap-3">
                   <UsersIcon />
                   <span>{classItem.name}</span>
-                </div>
-=======
-            {classes.map((classItem, index) => (
-              <div key={index} className="flex gap-3 items-center px-3 py-2 text-sm text-gray-600 rounded-md transition-colors duration-200 cursor-pointer hover:bg-gray-100">
-                {classItem.icon}
-                <span>{classItem.name}</span>
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-              </div>
+                </div>              </div>
             ))}
           </div>
 
           <button
-            className="flex gap-2 items-center px-3 py-2 text-sm text-gray-500 bg-none rounded-md border-none transition-colors duration-200 cursor-pointer hover:bg-gray-100"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 transition-colors duration-200 border-none rounded-md cursor-pointer bg-none hover:bg-gray-100"
             onClick={() => setShowMore(!showMore)}
           >
             더보기 <ChevronDownIcon />
@@ -347,72 +310,63 @@ const TeacherView = () => {
       {/* Main Content */}
       <div className="flex flex-col flex-1">
         {/* Hero Section */}
-<<<<<<< HEAD
-        <div className="bg-teal-500 text-white px-10 py-15 flex items-center justify-start h-55 relative md:px-20">
-          <div className="text-left ml-10">
-            <h1 className="text-4xl font-semibold m-0 mb-3 tracking-tight">CodeRun{'{ }'}</h1>
-            <p className="text-lg m-0 opacity-90 font-normal">어제보다 한글자 더 빠르게</p>
-=======
-        <div className="flex relative justify-start items-center px-10 text-white bg-teal-500 py-15 h-55 md:px-20">
+        <div className="relative flex items-center justify-start px-10 text-white bg-teal-500 py-15 h-55 md:px-20">
           <div className="ml-10 text-left">
-            <h1 className="m-0 mb-3 text-4xl font-semibold tracking-tight">CodeRun{'{}'}</h1>
-            <p className="m-0 text-lg font-normal opacity-90">어제보다 한글자 더 빠르게</p>
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-          </div>
+            <h1 className="m-0 mb-3 text-4xl font-semibold tracking-tight">CodeRun{'{ }'}</h1>
+            <p className="m-0 text-lg font-normal opacity-90">어제보다 한글자 더 빠르게</p>          </div>
         </div>
 
         {/* Content Section */}
         <div className="flex-1 p-10 bg-gray-50 md:p-20">
-<<<<<<< HEAD
             {selectedFolderId ? renderFolderContent() : (
                 <>
-                    <div className="flex items-center gap-4 mb-8 text-sm flex-wrap md:gap-8">
+                    <div className="flex flex-wrap items-center gap-4 mb-8 text-sm md:gap-8">
                         <span className={`cursor-pointer transition-colors duration-200 ${activeView === 'assignment' ? 'text-teal-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveView('assignment')}>과제</span>
                         <span className="text-gray-300">|</span>
                         <span className={`cursor-pointer transition-colors duration-200 ${activeView === 'students' ? 'text-teal-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveView('students')}>학생 관리</span>
                         <div className="flex-1"></div>
-                        <span className="text-gray-500 cursor-pointer transition-colors duration-200 hover:text-gray-700" onClick={() => setShowAssignmentModal(true)}>과제 추가</span>
+                        <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700" onClick={() => setShowAssignmentModal(true)}>과제 추가</span>
                         <span className="text-gray-300">|</span>
-                        <span className="text-gray-500 cursor-pointer transition-colors duration-200 hover:text-gray-700" onClick={handleRenameClass}>클래스 이름 변경</span>
+                        <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700" onClick={handleRenameClass}>클래스 이름 변경</span>
                         <span className="text-gray-300">|</span>
-                        <span className="text-gray-500 cursor-pointer transition-colors duration-200 hover:text-gray-700" onClick={handleDeleteSelectedClass}>클래스 삭제</span>
+                        <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700" onClick={handleDeleteSelectedClass}>클래스 삭제</span>
                     </div>
 
                     {activeView === 'assignment' && selectedClass && (
                     <div>
-                        <div className="flex items-center gap-6 mb-6 md:flex-row flex-col md:items-center ">
-                        <button className="px-6 py-3 border-none rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 min-w-20 bg-teal-600 text-white hover:bg-teal-700">
+                        <div className="flex flex-col items-center gap-6 mb-6 md:flex-row md:items-center ">
+                        <button className="px-6 py-3 text-sm font-medium text-white transition-all duration-200 bg-teal-600 border-none rounded-lg cursor-pointer min-w-20 hover:bg-teal-700">
                             단어
                         </button>
                         <div className="flex flex-col gap-2">
                             {selectedClass.assignments.word.map((item, index) => (
-                            <div key={index} className="text-sm text-gray-500 bg-white px-5 py-3 rounded-lg border border-gray-200">
+                            <div key={index} className="px-5 py-3 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg">
                                 {item}
                             </div>
                             ))}
                         </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mb-6 md:flex-row flex-col md:items-center ">
-                        <button className="px-6 py-3 border-none rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 min-w-20 bg-teal-600 text-white hover:bg-teal-700">
+                        <div className="flex flex-col items-center gap-6 mb-6 md:flex-row md:items-center ">
+                        <button className="px-6 py-3 text-sm font-medium text-white transition-all duration-200 bg-teal-600 border-none rounded-lg cursor-pointer min-w-20 hover:bg-teal-700">
                             문장
                         </button>
                         <div className="flex flex-col gap-2">
                             {selectedClass.assignments.sentence.map((item, index) => (
-                            <div key={index} className="text-sm text-gray-500 bg-white px-5 py-3 rounded-lg border border-gray-200">
+                            <div key={index} className="px-5 py-3 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg">
                                 {item}
                             </div>
                             ))}
                         </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mb-6 md:flex-row flex-col md:items-center ">
-                        <button className="px-6 py-3 border-none rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 min-w-20 bg-teal-600 text-white hover:bg-teal-700">
+                        <div className="flex flex-col items-center gap-6 mb-6 md:flex-row md:items-center ">
+                        <button className="px-6 py-3 text-sm font-medium text-white transition-all duration-200 bg-teal-600 border-none rounded-lg cursor-pointer min-w-20 hover:bg-teal-700">
                             풀코딩
                         </button>
                         <div className="flex flex-col gap-2">
                             {selectedClass.assignments.fullCoding.map((item, index) => (
-                            <div key={index} className="text-sm text-gray-500 bg-white px-5 py-3 rounded-lg border border-gray-200">
+                            <div key={index} className="px-5 py-3 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg">
                                 {item}
                             </div>
                             ))}
@@ -423,49 +377,15 @@ const TeacherView = () => {
 
                     {activeView === 'students' && renderStudents()}
                 </>
-            )}
-=======
-          <div className="flex flex-wrap gap-4 items-center mb-8 text-sm md:gap-8">
-            <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700">그룹 코드 생성</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700">학생 관리</span>
-            <div className="flex-1"></div>
-            <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700">클래스에 추가</span>
-            <span className="text-gray-300">|</span>
-            <span className="text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700">폴더에 추가</span>
-          </div>
-
-          <div className="flex flex-col gap-6 items-center mb-6 md:flex-row md:items-center">
-            <button className="px-6 py-3 text-sm font-medium text-white bg-teal-600 rounded-lg border-none transition-all duration-200 cursor-pointer min-w-20 hover:bg-teal-700">
-              단어
-            </button>
-            <div className="px-5 py-3 text-sm text-gray-500 bg-white rounded-lg border border-gray-200">
-              Python 예약어 레벨 1- 20까지
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-6 items-center mb-6 md:flex-row md:items-center">
-            <button className="px-6 py-3 text-sm font-medium text-white bg-teal-600 rounded-lg border-none transition-all duration-200 cursor-pointer min-w-20 hover:bg-teal-700">
-              문장
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-6 items-center mb-6 md:flex-row md:items-center">
-            <button className="px-6 py-3 text-sm font-medium text-white bg-teal-600 rounded-lg border-none transition-all duration-200 cursor-pointer min-w-20 hover:bg-teal-700">
-              플코딩
-            </button>
-          </div>
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-        </div>
+            )}        </div>
       </div>
 
       {/* Class Modal */}
       {showModal && (
-        <div className="flex fixed top-0 right-0 bottom-0 left-0 z-50 justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm animate-fadeIn">
-          <div className="p-8 w-full max-w-sm text-center bg-white rounded-2xl shadow-xl animate-slideUp">
+        <div className="fixed top-0 bottom-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm p-8 text-center bg-white shadow-xl rounded-2xl animate-slideUp">
             <div className="mb-4">
-<<<<<<< HEAD
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              <h2 className="mb-2 text-3xl font-bold text-gray-800">
                 <span className="text-black">Code</span>
                 <span className="text-[#2DD4BF]">Run</span>
                 <span className="text-[#FFD602]">{'{ }'}</span>
@@ -473,29 +393,12 @@ const TeacherView = () => {
               <p className="text-gray-600">수업 코드 공유</p>
             </div>
 
-            <div className="text-2xl font-mono font-bold bg-gray-100 py-4 px-6 rounded-lg mb-6 text-black tracking-widest">
+            <div className="px-6 py-4 mb-6 font-mono text-2xl font-bold tracking-widest text-black bg-gray-100 rounded-lg">
               {randomCode}
             </div>
 
             <button
-              className="bg-[#13AE9D] text-white border-none py-3 px-8 rounded-lg text-base font-semibold cursor-pointer transition-colors duration-200 shadow-lg hover:bg-[#0F8A7A]"
-=======
-              <h2 className="mb-2 text-3xl font-bold text-gray-800">
-                <span className="text-blue-600">Code</span>
-                <span className="text-gray-800">Run</span>
-                <span className="text-blue-600">{'{}'}</span>
-              </h2>
-              <p className="text-gray-600">수업 코드 공유</p>
-            </div>
-            
-            <div className="px-6 py-4 mb-6 font-mono text-2xl font-bold tracking-widest text-blue-600 bg-gray-100 rounded-lg">
-              {randomCode}
-            </div>
-            
-            <button 
-              className="px-8 py-3 text-base font-semibold text-white bg-blue-600 rounded-lg border-none shadow-lg transition-colors duration-200 cursor-pointer hover:bg-blue-700"
->>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
-              onClick={closeModal}
+              className="bg-[#13AE9D] text-white border-none py-3 px-8 rounded-lg text-base font-semibold cursor-pointer transition-colors duration-200 shadow-lg hover:bg-[#0F8A7A]"              onClick={closeModal}
             >
               닫기
             </button>
@@ -505,11 +408,11 @@ const TeacherView = () => {
 
       {/* Assignment Modal */}
       {showAssignmentModal && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 animate-fadeIn">
-          <div className="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full text-center animate-slideUp">
-            <h2 className="text-2xl font-bold mb-4">과제 추가</h2>
+        <div className="fixed top-0 bottom-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg p-8 text-center bg-white shadow-xl rounded-2xl animate-slideUp">
+            <h2 className="mb-4 text-2xl font-bold">과제 추가</h2>
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">과제 선택</h3>
+              <h3 className="mb-2 text-lg font-semibold">과제 선택</h3>
               <div className="flex flex-col items-start">
                 {availableAssignments.map(assignment => (
                   <div key={assignment.id} className="mb-2">
@@ -527,7 +430,7 @@ const TeacherView = () => {
               </div>
             </div>
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">카테고리 선택</h3>
+              <h3 className="mb-2 text-lg font-semibold">카테고리 선택</h3>
               <div className="flex justify-center">
                 <div className="mr-4">
                   <input
@@ -569,7 +472,7 @@ const TeacherView = () => {
             </div>
             <div className="flex justify-end">
               <button
-                className="bg-gray-400 text-white border-none py-2 px-6 rounded-lg text-base font-semibold cursor-pointer transition-colors duration-200 mr-2 hover:bg-gray-500"
+                className="px-6 py-2 mr-2 text-base font-semibold text-white transition-colors duration-200 bg-gray-400 border-none rounded-lg cursor-pointer hover:bg-gray-500"
                 onClick={() => setShowAssignmentModal(false)}
               >
                 취소
