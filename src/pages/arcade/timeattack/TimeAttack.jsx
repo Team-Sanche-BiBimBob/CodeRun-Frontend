@@ -19,11 +19,7 @@ const CodeRunTimeAttack = () => {
   const [rankings, setRankings] = useState([]);
   const [problems, setProblems] = useState([]);
   const [filteredProblems, setFilteredProblems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [activeRankingTab, setActiveRankingTab] = useState('오늘');
-  const [showSearch, setShowSearch] = useState(true);
-  const scrollContainerRef = useRef(null);
 
   // 랭킹 데이터
   const rankingsData = {
@@ -53,16 +49,14 @@ const CodeRunTimeAttack = () => {
     ]
   };
 
-  // 초기 문제 데이터
+  // 초기 문제 데이터 - 언어당 하나씩만 (서버 ID에 맞게 수정)
   const initialProblems = [
-    { id: 1, title: "Python 반복문 예제 1", tags: ["python", "반복문"], difficulty: "문장", time: "00:00:00" },
-    { id: 2, title: "Python 출력문 예제 1", tags: ["python", "출력문"], difficulty: "풀코드", time: "00:00:00" },
-    { id: 3, title: "JavaScript 반복문 예제 1", tags: ["javascript", "반복문"], difficulty: "문장", time: "00:00:00" },
-    { id: 4, title: "Java 기초문장 예제 1", tags: ["java", "기초문장"], difficulty: "풀코드", time: "00:00:00" },
-    { id: 5, title: "Python 실제코드 예제 1", tags: ["python", "실제코드"], difficulty: "문장", time: "00:00:00" },
-    { id: 6, title: "JavaScript 출력문 예제 1", tags: ["javascript", "출력문"], difficulty: "풀코드", time: "00:00:00" },
-    { id: 7, title: "Java 반복문 예제 1", tags: ["java", "반복문"], difficulty: "문장", time: "00:00:00" },
-    { id: 8, title: "Python 기초문장 예제 1", tags: ["python", "기초문장"], difficulty: "풀코드", time: "00:00:00" }
+    { id: 1, title: "Python 문장 연습", tags: ["python"], difficulty: "문장", time: "00:00:00" },
+    { id: 2, title: "Python 풀코드 연습", tags: ["python"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 3, title: "Java 문장 연습", tags: ["java"], difficulty: "문장", time: "00:00:00" },
+    { id: 4, title: "Java 풀코드 연습", tags: ["java"], difficulty: "풀코드", time: "00:00:00" },
+    { id: 5, title: "JavaScript 문장 연습", tags: ["javascript"], difficulty: "문장", time: "00:00:00" },
+    { id: 6, title: "JavaScript 풀코드 연습", tags: ["javascript"], difficulty: "풀코드", time: "00:00:00" }
   ];
 
   useEffect(() => {
@@ -175,11 +169,16 @@ const CodeRunTimeAttack = () => {
 
   // 문제 도전하기 버튼 클릭 처리
   const handleChallengeClick = (difficulty, problem) => {
-    // 언어 ID 매핑 (WordPage와 동일한 값 사용)
+    // 언어 ID 매핑 (서버 데이터에 맞게 수정)
     const languageIdMap = {
       'python': 1,
       'java': 2,
-      'javascript': 3
+      'javascript': 5,
+      'c': 3,
+      'c++': 4,
+      'typescript': 6,
+      'go': 7,
+      'rust': 8
     };
     
     // 선택된 언어 확인 (완료된 태그 또는 문제의 태그에서)
@@ -207,36 +206,6 @@ const CodeRunTimeAttack = () => {
     }
   };
 
-  // 스크롤 감지 및 무한 스크롤
-  const handleScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    
-    if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore && !isLoading) {
-      loadMoreProblems();
-    }
-  };
-
-  const loadMoreProblems = () => {
-    setIsLoading(true);
-    
-    // 서버에서 더 많은 문제를 가져오는 시뮬레이션
-    setTimeout(() => {
-      const newProblems = Array.from({ length: 6 }, (_, i) => ({
-        id: problems.length + i + 1,
-        title: `Python 반복문 예제 ${problems.length + i + 1}`,
-        tags: ["python", "반복문"],
-        difficulty: i % 2 === 0 ? "문장" : "풀코드",
-        time: "00:00:00"
-      }));
-      
-      setProblems(prev => [...prev, ...newProblems]);
-      setIsLoading(false);
-      
-      if (problems.length >= 24) {
-        setHasMore(false);
-      }
-    }, 1000);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -360,11 +329,7 @@ const CodeRunTimeAttack = () => {
             </div>
 
             {/* 문제 목록 */}
-            <div
-              ref={scrollContainerRef}
-              onScroll={handleScroll}
-              className="p-6 overflow-y-auto bg-white shadow-sm h-96 rounded-xl"
-            >
+            <div className="p-6 overflow-y-auto bg-white shadow-sm h-96 rounded-xl">
               <div className="grid grid-cols-2 gap-4">
                 {(filteredProblems.length > 0 ? filteredProblems : problems).map((problem) => (
                   <div
@@ -399,21 +364,6 @@ const CodeRunTimeAttack = () => {
                   </div>
                 ))}
               </div>
-              
-              {isLoading && (
-                <div className="py-4 text-center">
-                  <div 
-                    className="inline-block w-6 h-6 border-b-2 rounded-full animate-spin"
-                    style={{ borderColor: '#14B8A6' }}
-                  ></div>
-                </div>
-              )}
-              
-              {!hasMore && (
-                <div className="py-4 text-center text-gray-500">
-                  모든 문제를 불러왔습니다.
-                </div>
-              )}
             </div>
           </div>
 

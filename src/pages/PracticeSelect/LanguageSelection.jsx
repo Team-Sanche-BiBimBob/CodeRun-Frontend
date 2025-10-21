@@ -119,16 +119,16 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
-      // 언어 ID 매핑 (WordPage와 동일한 값 사용)
+      // 언어 ID 매핑 (서버 데이터에 맞게 수정)
       const languageIdMap = {
         'python': 1,
         'java': 2,
-        'javascript': 3,
-        'c': 4,
-        'sql': 5,
+        'javascript': 5,
+        'c': 3,
+        'c++': 4,
         'typescript': 6,
-        'kotlin': 7,
-        'swift': 8
+        'go': 7,
+        'rust': 8
       };
       
       const numericLanguageId = languageIdMap[selectedLanguage] || 1; // 기본값은 파이썬
