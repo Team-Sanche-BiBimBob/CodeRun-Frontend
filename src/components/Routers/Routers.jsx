@@ -17,11 +17,8 @@ import ArcadeSelect from '../../pages/arcade/arcadeSelect/ArcadeSelect';
 import NotFound from '../../pages/NotFound/NotFound';
 import Study from '../../pages/study/study';
 import MyPage from '../../pages/Mypage';
-<<<<<<< HEAD
 import BattleGamePage from '../../pages/arcade/battle/BattleGamePage';
-=======
 import StudentDashboard from '../../pages/student/StudentDashboard';
->>>>>>> 79a7abe887e230bd4a9465a225d9455169955203
 
 const Routers = () => {
   return (
@@ -43,11 +40,8 @@ const Routers = () => {
       <Route path='/arcadeSelect' element={<ArcadeSelect />} />
       <Route path='/study' element={<Study />} />
       <Route path='/mypage' element={<MyPage />} />
-<<<<<<< HEAD
       <Route path="/battle-game" element={<BattleGamePage />} />
-=======
       <Route path='/student' element={<StudentDashboard />} />
->>>>>>> 79a7abe887e230bd4a9465a225d9455169955203
       <Route path="*" element={<NotFound />} />  {/* 404 라우트는 맨 마지막에 */}
     </Routes>
   );
