@@ -251,7 +251,11 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
+<<<<<<< HEAD
+    <div className="relative flex flex-col items-center justify-center h-screen pt-16 font-sans bg-teal-50">
+=======
     <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 font-sans bg-teal-50">
+>>>>>>> f8803a0363a94c5ebcc53eebb989cb8e8b75ad77
       <div className="grid items-end grid-cols-3 mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>

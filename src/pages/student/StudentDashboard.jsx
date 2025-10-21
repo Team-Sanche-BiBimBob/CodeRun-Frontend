@@ -5,20 +5,72 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showAddToFolderModal, setShowAddToFolderModal] = useState(false);
+  const [alert, setAlert] = useState({ show: false, message: '' });
+  const [prompt, setPrompt] = useState({ show: false, message: '', onConfirm: null });
+  const [promptValue, setPromptValue] = useState('');
   const [classCode, setClassCode] = useState("Co87de1R2RR22U");
   const [userRole, setUserRole] = useState("BASIC"); // "BASIC" or "PREMIUM"
+  const [selectedFolderId, setSelectedFolderId] = useState(null);
+  
+  const [studentClasses, setStudentClasses] = useState([
+    { id: 1, name: '1학년 1반' }
+  ]);
+  const [selectedStudentClassId, setSelectedStudentClassId] = useState(1); // Default to 1
 
-  const [folders, setFolders] = useState(["이용한 세트", "Python", "Js", "문장 세트 폴더"]);
+  const [folders, setFolders] = useState([
+    { id: 1, name: "숙제", content: [] },
+  ]);
+
+  const [assignments, setAssignments] = useState([
+      { id: 1, type: '단어', title: 'Python 예약어 레벨 1- 3까지', path: '/word' },
+      { id: 2, type: '문장', title: 'Python 문장 레벨 1- 3까지', path: '/sentence' },
+      { id: 3, type: '풀코딩', title: 'Python 풀코딩 레벨 1- 10까지', path: '/full' },
+      { id: 4, type: '단어', title: 'JavaScript 예약어 레벨 1- 5까지', path: '/word' },
+  ]);
+
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+
+  const showAlert = (message) => {
+    setAlert({ show: true, message });
+  };
+
+  const showPrompt = (message, onConfirm) => {
+    setPrompt({ show: true, message, onConfirm });
+  };
+
+  const handleConfirmPrompt = () => {
+    prompt.onConfirm(promptValue);
+    setPrompt({ show: false, message: '', onConfirm: null });
+    setPromptValue('');
+  };
+
+  const handleCancelPrompt = () => {
+    setPrompt({ show: false, message: '', onConfirm: null });
+    setPromptValue('');
+  };
 
   const addFolder = () => {
-    const folderName = prompt("추가할 폴더 이름을 입력하세요.");
-    if (folderName) {
-      setFolders([...folders, folderName]);
+    showPrompt("추가할 폴더 이름을 입력하세요.", (folderName) => {
+        if (folderName) {
+            setFolders([...folders, { id: folders.length > 0 ? Math.max(...folders.map(f => f.id)) + 1 : 1, name: folderName, content: [] }]);
+        }
+    });
+  };
+
+  const deleteFolder = (folderId) => {
+    if (window.confirm("정말로 이 폴더를 삭제하시겠습니까?")) {
+        setFolders(folders.filter(folder => folder.id !== folderId));
     }
   };
 
-  const deleteFolder = (folderToDelete) => {
-    setFolders(folders.filter(folder => folder !== folderToDelete));
+  const handleLeaveClass = () => {
+    if (window.confirm("정말로 클래스를 탈퇴하시겠습니까?")) {
+      setStudentClasses(studentClasses.filter(c => c.id !== selectedStudentClassId));
+      setSelectedStudentClassId(null);
+      navigate('/study');
+    }
   };
 
   const handleCreateClass = () => {
@@ -32,16 +84,151 @@ const StudentDashboard = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setShowPremiumModal(false);
+    setShowAddToFolderModal(false);
+    setSelectedFolder(null); // Reset selected folder when closing modal
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(classCode);
-    alert("클래스 코드가 복사되었습니다!");
+    showAlert("클래스 코드가 복사되었습니다!");
   };
+
+  const handleAddToFolder = () => {
+      if (selectedAssignment && selectedFolder) {
+          setFolders(folders.map(f => {
+              if (f.id === selectedFolder.id) {
+                  if (f.content.includes(selectedAssignment.title)) {
+                      showAlert("이미 폴더에 추가된 과제입니다.");
+                      return f;
+                  }
+                  return { ...f, content: [...f.content, selectedAssignment.title] };
+              }
+              return f;
+          }));
+          handleCloseModal();
+      } else {
+          showAlert("과제와 폴더를 모두 선택해주세요.");
+      }
+  };
+
+  const handleDeleteFolderContent = (folderId, content) => {
+    if (window.confirm("정말로 이 내용을 삭제하시겠습니까?")) {
+        setFolders(folders.map(f => {
+            if (f.id === folderId) {
+                return { ...f, content: f.content.filter(item => item !== content) };
+            }
+            return f;
+        }));
+    }
+  };
+
+  const openAddToFolderModal = () => {
+    const folder = folders.find(f => f.id === selectedFolderId);
+    if (folder) {
+        setSelectedFolder(folder);
+    }
+    setShowAddToFolderModal(true);
+  };
+
+  const FolderIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
+        <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+
+  const TrashIcon = ({ className, onClick }) => (
+    <svg className={`w-4 h-4 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" onClick={onClick}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  );
+
+  const renderFolderContent = () => {
+    const folder = folders.find(f => f.id === selectedFolderId);
+    if (!folder) return null;
+
+    return (
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">{folder.name}</h2>
+            <div>
+                <button className="text-gray-500 hover:text-gray-700 mr-4" onClick={openAddToFolderModal}>연습 추가</button>
+                <button className="text-gray-500 hover:text-gray-700" onClick={() => setSelectedFolderId(null)}>뒤로가기</button>
+            </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {folder.content.map((item, index) => {
+                const assignment = assignments.find(a => a.title === item);
+                return (
+                    <div key={index} className="relative">
+                        <button
+                            className="w-full bg-teal-500 text-white px-4 py-8 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+                            onClick={() => navigate(assignment ? assignment.path : '/')}
+                        >
+                            {item}
+                        </button>
+                        <button
+                            className="absolute top-2 right-2 text-white bg-red-500 rounded-full p-1 text-xs hover:bg-red-700"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteFolderContent(folder.id, item); }}
+                        >
+                            X
+                        </button>
+                    </div>
+                );
+            })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAlertModal = () => (
+    alert.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+                <div className="mb-4">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                        <span className="text-black">Code</span>
+                        <span className="text-[#2DD4BF]">Run</span>
+                        <span className="text-[#FFD602]">{'{ }'}</span>
+                    </h2>
+                </div>
+                <p className="text-gray-600 mb-6">{alert.message}</p>
+                <button
+                    className="bg-[#14B8A6] text-white border-none py-3 px-8 rounded-lg text-base font-semibold cursor-pointer transition-colors duration-200 shadow-lg hover:bg-[#0F8A7A]"
+                    onClick={() => setAlert({ show: false, message: '' })}
+                >
+                    확인
+                </button>
+            </div>
+        </div>
+    )
+  );
+
+  const renderPromptModal = () => (
+    prompt.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+                <h3 className="text-lg font-bold mb-4">{prompt.message}</h3>
+                <input
+                    type="text"
+                    className="w-full p-2 border rounded mb-4"
+                    value={promptValue}
+                    onChange={(e) => setPromptValue(e.target.value)}
+                />
+                <div className="flex justify-end">
+                    <button className="bg-gray-300 text-black px-4 py-2 rounded-lg mr-2" onClick={handleCancelPrompt}>취소</button>
+                    <button className="bg-[#14B8A6] text-white px-4 py-2 rounded-lg" onClick={handleConfirmPrompt}>확인</button>
+                </div>
+            </div>
+        </div>
+    )
+  );
+
 
   return (
     <div className="bg-white min-h-screen flex">
-      {/* 사이드바 */}
+      {renderAlertModal()}
+      {renderPromptModal()}
+      {/* Sidebar */}
       <div className="w-72 bg-white shadow-lg flex-shrink-0 min-h-screen fixed top-15">
         <div className="p-6 h-full overflow-y-auto">
           {/* 클래스 만들기 버튼 */}
@@ -63,14 +250,15 @@ const StudentDashboard = () => {
           {/* 폴더 아이템들 */}
           <div className="space-y-3 mb-6">
             {folders.map(folder => (
-              <div key={folder} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded">
+              <div key={folder.id} className={`flex items-center justify-between cursor-pointer p-2 rounded transition-colors duration-200 ${selectedFolderId === folder.id ? 'bg-teal-100' : 'hover:bg-gray-50'}`} onClick={() => {
+                  setSelectedFolderId(folder.id);
+                  setSelectedStudentClassId(null);
+              }}>
                 <div className="flex items-center">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
-                    <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <p className="text-[12px] text-black">{folder}</p>
+                  <FolderIcon />
+                  <p className="text-[12px] text-black">{folder.name}</p>
                 </div>
-                <button onClick={() => deleteFolder(folder)} className="text-black">-</button>
+                <TrashIcon className="cursor-pointer text-gray-400 hover:text-red-500" onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }} />
               </div>
             ))}
           </div>
@@ -84,9 +272,26 @@ const StudentDashboard = () => {
           </p>
 
           <div className="space-y-3 mb-6 ml-5">
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <p className="text-[12px] text-black">1학년 1반</p>
-            </div>
+            {studentClasses.map(c => (
+                <div
+                    key={c.id}
+                    className={`flex items-center justify-between cursor-pointer p-2 rounded transition-colors duration-200 ${selectedStudentClassId === c.id ? 'bg-teal-100' : 'hover:bg-gray-50'}`}
+                    onClick={() => {
+                        setSelectedStudentClassId(c.id);
+                        setSelectedFolderId(null);
+                    }}
+                >
+                    <p className="text-[12px] text-black">{c.name}</p>
+                    {selectedStudentClassId === c.id && (
+                        <button
+                            className="text-red-500 hover:text-red-700 text-xs"
+                            onClick={handleLeaveClass}
+                        >
+                            클래스 탈퇴하기
+                        </button>
+                    )}
+                </div>
+            ))}
           </div>
         </div>
       </div>
@@ -103,50 +308,64 @@ const StudentDashboard = () => {
               어제보다 한글자 더 빠르게
             </p>
           </div>
-          <div className="flex justify-between items-center m-16 mb-6 mt-1 flex-wrap gap-4 ">
-            <button className="text-[#686465] text-[16px] hover:text-[#009b84] transition-colors">
-              그룹 코드 생성 | 그룹 관리
-            </button>
-            <button className="text-[#686465] text-[16px] hover:text-[#009b84] transition-colors">
-              클래스에 추가 | 폴더에 추가
-            </button>
-          </div>
-          <div className="m-14 mt-0 bg-[#f8f9fa] p-2">
+          {selectedFolderId ? renderFolderContent() : (
+            <>
+                <div className="flex justify-between items-center m-16 mb-6 mt-1 flex-wrap gap-4 ">
+                    <button className="text-[#686465] text-[16px] hover:text-[#009b84] transition-colors">
+                    과제
+                    </button>
+                    <button className="text-[#686465] text-[16px] hover:text-[#009b84] transition-colors" onClick={() => setShowAddToFolderModal(true)}>
+                    폴더에 추가
+                    </button>
+                </div>
+                <div className="m-14 mt-0 bg-[#f8f9fa] p-2">
 
 
-          {/* 컨텐츠 리스트 */}
-          <div className="space-y-0">
-            {/* 리스트 아이템들 */}
-            <div className="bg-[#f8f9fa] border-b border-[#dddddd] p-6 flex items-center hover:bg-gray-50 transition-colors">
-              <div className="bg-[#13ae9d] h-[33px] rounded-[5px] w-[66px] flex items-center justify-center mr-6 flex-shrink-0">
-                <p className="text-white text-[16px] font-medium">단어</p>
-              </div>
-              <p className="text-[#1c1c1c] text-[16px] font-medium">Python 예약어 레벨 1- 3까지</p>
-            </div>
-
-            <div className="bg-[#f8f9fa] border-b border-[#dddddd] p-6 flex items-center hover:bg-gray-50 transition-colors">
-              <div className="bg-[#13ae9d] h-[33px] rounded-[5px] w-[66px] flex items-center justify-center mr-6 flex-shrink-0">
-                <p className="text-white text-[16px] font-medium">문장</p>
-              </div>
-              <p className="text-[#1c1c1c] text-[16px] font-medium">Python 문장 레벨 1- 3까지</p>
-            </div>
-
-            <div className="bg-[#f8f9fa] border-b border-[#dddddd] p-6 flex items-center hover:bg-gray-50 transition-colors">
-              <div className="bg-[#13ae9d] h-[33px] rounded-[5px] w-[66px] flex items-center justify-center mr-6 flex-shrink-0">
-                <p className="text-white text-[16px] font-medium">풀코딩</p>
-              </div>
-              <p className="text-[#1c1c1c] text-[16px] font-medium">Python 풀코딩 레벨 1- 10까지</p>
-            </div>
-
-            <div className="bg-[#f8f9fa] p-6 flex items-center hover:bg-gray-50 transition-colors">
-              <div className="bg-[#13ae9d] h-[33px] rounded-[5px] w-[66px] flex items-center justify-center mr-6 flex-shrink-0">
-                <p className="text-white text-[16px] font-medium">단어</p>
-              </div>
-              <p className="text-[#1c1c1c] text-[16px] font-medium">JavaScript 예약어 레벨 1- 5까지</p>
-            </div>
-          </div>
-        </div>
+                {/* 컨텐츠 리스트 */}
+                <div className="space-y-0">
+                    {assignments.map(assignment => (
+                        <div key={assignment.id} className="bg-[#f8f9fa] border-b border-[#dddddd] p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center">
+                                <div className="bg-[#13ae9d] h-[33px] rounded-[5px] w-[66px] flex items-center justify-center mr-6 flex-shrink-0">
+                                    <p className="text-white text-[16px] font-medium">{assignment.type}</p>
+                                </div>
+                                <p className="text-[#1c1c1c] text-[16px] font-medium">{assignment.title}</p>
+                            </div>
+                            <button className="bg-[#0D9488] text-white px-4 py-2 rounded-lg" onClick={() => navigate(assignment.path)}>연습하러가기</button>
+                        </div>
+                    ))}
+                </div>
+                </div>
+            </>
+          )}
       </div>
+
+      {/* Add to Folder Modal */}
+      {showAddToFolderModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl">
+                <h2 className="text-2xl font-bold mb-4">폴더에 추가</h2>
+                <div className="mb-4">
+                    <label className="block mb-2">과제 선택</label>
+                    <select className="w-full p-2 border rounded" onChange={(e) => setSelectedAssignment(assignments.find(a => a.id === parseInt(e.target.value)))}>
+                        <option value="">과제를 선택하세요</option>
+                        {assignments.map(a => <option key={a.id} value={a.id}>{a.title}</option>)}>
+                    </select>
+                </div>
+                <div className="mb-4">
+                    <label className="block mb-2">폴더 선택</label>
+                    <select className="w-full p-2 border rounded" value={selectedFolder ? selectedFolder.id : ""} onChange={(e) => setSelectedFolder(folders.find(f => f.id === parseInt(e.target.value)))}>
+                        <option value="">폴더를 선택하세요</option>
+                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}>
+                    </select>
+                </div>
+                <div className="flex justify-end">
+                    <button className="bg-gray-300 text-black px-4 py-2 rounded-lg mr-2" onClick={handleCloseModal}>취소</button>
+                    <button className="bg-[#0D9488] text-white px-4 py-2 rounded-lg" onClick={handleAddToFolder}>추가</button>
+                </div>
+            </div>
+        </div>
+      )}
 
       {/* 모달 */}
       {showModal && (
