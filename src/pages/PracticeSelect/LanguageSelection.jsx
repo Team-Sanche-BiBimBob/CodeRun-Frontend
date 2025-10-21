@@ -119,6 +119,7 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
+      console.log("Navigating with selectedLanguage:", selectedLanguage);
       navigate('/PracticeSelect', { state: { language: selectedLanguage } });
     }
   };
@@ -154,12 +155,6 @@ const LanguageSelection = () => {
             onClick={handleCompleteSelection}
           >
             선택 완료
-          </button>
-          <button
-            className="mt-4 text-sm text-gray-600 bg-transparent border-none cursor-pointer hover:text-gray-800"
-            onClick={handleSelectLater}
-          >
-            나중에 선택하기
           </button>
         </div>
       </main>

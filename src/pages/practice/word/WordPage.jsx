@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function WordPage() {
   const navigate = useNavigate();
+  const [searchParams, _] = useSearchParams();
+  const languageId = searchParams.get('languageId')
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +17,10 @@ function WordPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("WordPage received languageId:", languageId);
+
   // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
     try {
@@ -22,7 +28,7 @@ function WordPage() {
       console.log('단어 가져오기 시도 중...');
 
       const possibleUrls = [
-        '/api/problems/words',
+        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words',
       ];
 
       let lastError = null;
@@ -52,7 +58,7 @@ function WordPage() {
 
           // ✅ 객체 배열일 경우 title만 추출
           if (Array.isArray(words) && typeof words[0] === 'object') {
-            words = words.map((w) => w.title || '');
+            words = words.map((w) => w.content || '');
           }
 
           if (!Array.isArray(words) || words.length === 0) {
@@ -70,26 +76,32 @@ function WordPage() {
         }
       }
 
-      throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
-    } catch (err) {
-      console.error('타자연습 단어 가져오기 최종 실패:', err);
+      const response = await api.get(`/api/problems/words/${languageId}`);
+      const words = response.data
+        .filter(item => item.content)
+        .map(item => item.content);
 
-      // fallback 단어
+      if (words.length === 0) {
+        throw new Error('단어 데이터가 없습니다.');
+      }
+
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      setWordList(shuffled);
+      console.log('단어 로드 성공:', shuffled.length + '개');
+    } catch (error) {
+      console.error('단어 가져오기 실패:', error);
       const defaultWords = [
         'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
         'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
         'interface', 'new', 'null', 'private', 'public', 'return', 'static',
         'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
-        'variable', 'object', 'array', 'string', 'number', 'boolean', 'undefined',
-        'console', 'document', 'window',
       ];
       const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
       setWordList(shuffled);
-      console.log('기본 단어로 시작:', shuffled.length + '개');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [languageId]);
 
   useEffect(() => {
     fetchWords();
@@ -100,12 +112,9 @@ function WordPage() {
     setStartTime(new Date());
   }, [fetchWords]);
 
-  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
-
-  // 키보드에 전달할 정보 계산
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
-    
+
     if (!currentWord || userInput.length >= currentWord.length) {
       return {
         nextChar: null,
@@ -122,20 +131,17 @@ function WordPage() {
     const remainingText = currentWord.slice(nextCharIndex);
 
     return {
-      nextChar: nextChar,
-      nextWord: remainingText, // 단어 연습에서는 현재 단어의 나머지 부분
+      nextChar,
+      nextWord: remainingText,
       currentPosition: nextCharIndex,
       totalLength: currentWord.length,
-      remainingText: remainingText,
-      currentWord: currentWord
+      remainingText,
+      currentWord
     };
   }, [wordList, currentIndex, userInput]);
 
-  // 전역 키보드 이벤트 처리 - 기본 동작 차단
   const handleGlobalKeyDown = useCallback((e) => {
     if (isComplete) return;
-    
-    // ✅ 모든 키 입력에 대해 기본 동작 방지 (단, input 이벤트는 제외)
     if (e.target.tagName !== 'INPUT') {
       e.preventDefault();
     }
@@ -163,14 +169,10 @@ function WordPage() {
   };
 
   const handleKeyDown = (e) => {
-    // ✅ 스페이스바와 백스페이스 기본동작 방지
-    if (e.key === ' ') {
-      e.preventDefault();
-    }
+    if (e.key === ' ') e.preventDefault();
 
     if (e.key === 'Enter') {
-      e.preventDefault(); // Enter 기본 동작 방지
-      
+      e.preventDefault();
       if (userInput.trim() === '' || hangulRegex.test(userInput)) return;
 
       const currentWord = wordList[currentIndex];
@@ -268,23 +270,24 @@ function WordPage() {
     });
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
         <div className="text-center">
-          <div className="text-xl font-semibold text-gray-700 mb-4">
+          <div className="mb-4 text-xl font-semibold text-gray-700">
             타자연습 단어를 불러오는 중...
           </div>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );
+  }
 
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center bg-teal-50 font-sans pt-16 pb-32">
-      <div className="grid grid-cols-3 items-end mb-6">
+    <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 mt-10 font-sans bg-teal-50">
+      <div className="grid items-end grid-cols-3 mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
             entry.isCorrect ? (
@@ -292,7 +295,7 @@ function WordPage() {
                 {entry.word}
               </div>
             ) : (
-              <div key={index} className="flex whitespace-nowrap tracking-normal">
+              <div key={index} className="flex tracking-normal whitespace-nowrap">
                 {entry.word.split('').map((char, idx) => {
                   const correctChar = entry.correctWord[idx];
                   const isCorrectChar = char === correctChar;
@@ -335,7 +338,7 @@ function WordPage() {
       )}
 
       {!isComplete && (
-        <div className="mt-10 w-full flex flex-col items-center">
+        <div className="flex flex-col items-center w-full mt-10">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}

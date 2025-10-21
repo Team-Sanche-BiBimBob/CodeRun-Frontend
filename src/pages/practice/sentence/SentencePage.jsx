@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function SentencePage() {
   const navigate = useNavigate();
+  const { id } = useParams(); // URL에서 id 추출
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -15,100 +16,93 @@ function SentencePage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  // 서버에서 문장 가져오기
-  const fetchSentences = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log('문장 가져오기 시도 중...');
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("SentencePage received languageId:", languageId);
 
-      const possibleUrls = ['/api/problems/sentences'];
-      let lastError = null;
+  // 서버에서 문장 가져오기 (개선된 버전)
+const fetchSentences = useCallback(async () => {
+  try {
+    setLoading(true);
+    console.log('문장 가져오기 시도 중...');
 
-      for (const apiUrl of possibleUrls) {
-        try {
-          const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-            signal: AbortSignal.timeout(5000),
-          });
+    const possibleUrls = [
+      languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
+    ];
 
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    let lastError = null;
 
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('응답이 JSON 형식이 아닙니다');
-          }
+    for (const apiUrl of possibleUrls) {
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          signal: AbortSignal.timeout(5000),
+        });
 
-          const data = await response.json();
-          console.log('받은 데이터:', data);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-          let sentences = data.sentences || data || [];
-          if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
-            sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
-          }
-
-          if (!Array.isArray(sentences) || sentences.length === 0) {
-            throw new Error('문장 데이터가 비어있습니다');
-          }
-
-          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
-          setSentences(shuffled);
-          console.log('문장 로드 성공:', shuffled.length + '개');
-          return;
-        } catch (err) {
-          console.log(`${apiUrl} 실패:`, err.message);
-          lastError = err;
-          continue;
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('응답이 JSON 형식이 아닙니다');
         }
       }
 
-      throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
-    } catch (err) {
-      console.error('타자연습 문장 가져오기 최종 실패:', err);
-      const defaultSentences = [
-        'print("Hello world!")',
-        'for i in range(10):',
-        'console.log("Hello world!");',
-        'function greet(name) {',
-        'System.out.println("Hello world!");',
-        'public class Person {',
-        'SELECT * FROM users;',
-        'let message: string = "Hello world!";',
-        'println("Hello world!")',
-        'func greet(name: String) -> String {',
-        'const express = require("express");',
-        'import React from "react";',
-        'def calculate_sum(a, b):',
-        'try { connection.close(); }',
-        'UPDATE users SET name = ?',
-        'while (condition === true) {',
-        'async function fetchData() {',
-        'class Calculator extends Component {',
-        'catch (error) { console.error(error); }',
-        'const [state, setState] = useState();',
-        'public static void main(String[] args) {',
-        'from django.http import HttpResponse',
-        'npm install express mongoose',
-        'git add . && git commit -m "Initial commit"',
-        'docker run -d -p 3000:3000 myapp',
-        'const result = await api.getData();',
-        'if (user.isAuthenticated()) {',
-        'return res.status(200).json(data);',
-        'CREATE TABLE users (id INT PRIMARY KEY);',
-        'const handleSubmit = (e) => { e.preventDefault(); }'
-      ];
-      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
-      console.log('기본 문장으로 시작:', shuffled.length + '개');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
+  } catch (err) {
+    console.error('타자연습 문장 가져오기 최종 실패:', err);
+
+    // fallback 문장들 (더 많은 프로그래밍 관련 문장들)
+    const defaultSentences = [
+      'print("Hello world!")',
+      'for i in range(10):',
+      'console.log("Hello world!");',
+      'function greet(name) {',
+      'System.out.println("Hello world!");',
+      'public class Person {',
+      'SELECT * FROM users;',
+      'let message: string = "Hello world!";',
+      'println("Hello world!")',
+      'func greet(name: String) -> String {',
+      'const express = require("express");',
+      'import React from "react";',
+      'def calculate_sum(a, b):',
+      'try { connection.close(); }',
+      'UPDATE users SET name = ?',
+      'while (condition === true) {',
+      'async function fetchData() {',
+      'class Calculator extends Component {',
+      'catch (error) { console.error(error); }',
+      'const [state, setState] = useState();',
+      'public static void main(String[] args) {',
+      'from django.http import HttpResponse',
+      'npm install express mongoose',
+      'git add . && git commit -m "Initial commit"',
+      'docker run -d -p 3000:3000 myapp',
+      'const result = await api.getData();',
+      'if (user.isAuthenticated()) {',
+      'return res.status(200).json(data);',
+      'CREATE TABLE users (id INT PRIMARY KEY);',
+      'const handleSubmit = (e) => { e.preventDefault(); }'
+    ];
+    
+    const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+    setSentences(shuffled);
+    console.log('기본 문장으로 시작:', shuffled.length + '개');
+  } finally {
+    setLoading(false);
+  }
+}, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, []);
 
   const currentSentence = sentences[currentIndex] || '';
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
@@ -121,32 +115,30 @@ function SentencePage() {
     e.preventDefault();
 
     if (e.key === 'Backspace') {
-      setTypedChars((prev) => prev.slice(0, -1));
-      setSpaceErrorIndices((prev) => prev.slice(0, -1));
+      setTypedChars(prev => prev.slice(0, -1));
+      setSpaceErrorIndices(prev => prev.slice(0, -1));
     } else if (e.key.length === 1) {
       const expectedChar = currentSentence[typedChars.length];
       if (e.key === ' ') {
         if (expectedChar === ' ') {
-          setTypedChars((prev) => [...prev, ' ']);
-          setSpaceErrorIndices((prev) => [...prev, false]);
+          setTypedChars(prev => [...prev, ' ']);
+          setSpaceErrorIndices(prev => [...prev, false]);
         } else {
-          setTypedChars((prev) => [...prev, '']);
-          setSpaceErrorIndices((prev) => [...prev, true]);
+          setTypedChars(prev => [...prev, '']);
+          setSpaceErrorIndices(prev => [...prev, true]);
         }
       } else {
-        setTypedChars((prev) => [...prev, e.key]);
-        setSpaceErrorIndices((prev) => [...prev, false]);
+        setTypedChars(prev => [...prev, e.key]);
+        setSpaceErrorIndices(prev => [...prev, false]);
       }
     } else if (e.key === 'Enter') {
       if (typedChars.length === 0) return;
-      const userTyped = typedChars.map((c, i) =>
-        spaceErrorIndices[i] ? '' : c
-      ).join('');
+      const userTyped = typedChars.map((c, i) => spaceErrorIndices[i] ? '' : c).join('');
       const isIncomplete = userTyped !== currentSentence;
 
-      setHistory((prev) => [...prev, { sentence: currentSentence, typed: userTyped, isIncomplete }]);
+      setHistory(prev => [...prev, { sentence: currentSentence, typed: userTyped, isIncomplete }]);
       if (currentIndex === sentences.length - 1) setIsComplete(true);
-      else setCurrentIndex((prev) => prev + 1);
+      else setCurrentIndex(prev => prev + 1);
       setTypedChars([]);
       setSpaceErrorIndices([]);
     }
@@ -157,7 +149,6 @@ function SentencePage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // === 수정된 부분 ===
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
     const originalLength = original.length;
@@ -172,17 +163,10 @@ function SentencePage() {
       let displayChar = originalChar;
 
       if (typedChar !== '') {
-        if (typedChar === originalChar && !isError) {
-          colorClass = 'text-white';
-          displayChar = typedChar;
-        } else {
-          colorClass = 'text-red-500';
-          displayChar = typedChar || originalChar;
-        }
-      } else if (isError) {
-        colorClass = 'text-red-500';
-      }
-
+        if (typedChar === originalChar && !isError) colorClass = 'text-white';
+        else colorClass = 'text-red-500';
+        displayChar = typedChar || originalChar;
+      } else if (isError) colorClass = 'text-red-500';
       if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
@@ -195,8 +179,8 @@ function SentencePage() {
       );
     }
 
-    if (typedArr.length > originalLength) {
-      const extraChars = typedArr.slice(originalLength);
+    if (typedArr.length > original.length) {
+      const extraChars = typedArr.slice(original.length);
       extraChars.forEach((char, i) => {
         elements.push(
           <span key={`extra-${i}`} className="font-mono text-red-500">
@@ -206,7 +190,7 @@ function SentencePage() {
       });
     }
 
-    if (isActive && typedArr.length >= originalLength) {
+    if (isActive && typedArr.length >= original.length) {
       elements.push(
         <span
           key="cursor-end"
@@ -218,58 +202,42 @@ function SentencePage() {
     return <span className="whitespace-pre">{elements}</span>;
   };
 
-  // === 통계 관련 ===
+  // 통계 관련
   const getTotalTyped = useCallback(() => history.reduce((acc, cur) => acc + cur.typed.length, 0), [history]);
   const getCorrectTyped = useCallback(() => history.reduce((acc, cur) => {
     const correctCount = cur.typed.split('').filter((c, i) => c === cur.sentence[i]).length;
     return acc + correctCount;
   }, 0), [history]);
-
   const getAccuracy = useCallback(() => {
     const totalTyped = getTotalTyped();
     const correctTyped = getCorrectTyped();
-    const currentTypedCount = typedChars.length;
-    const currentCorrectCount = typedChars.filter((char, i) =>
-      !spaceErrorIndices[i] && char === currentSentence[i]
-    ).length;
-    const finalTotalTyped = totalTyped + currentTypedCount;
-    const finalCorrectTyped = correctTyped + currentCorrectCount;
-    return finalTotalTyped === 0 ? 0 : (finalCorrectTyped / finalTotalTyped) * 100;
+    const currentCorrectCount = typedChars.filter((c, i) => !spaceErrorIndices[i] && c === currentSentence[i]).length;
+    const finalTotal = totalTyped + typedChars.length;
+    const finalCorrect = correctTyped + currentCorrectCount;
+    return finalTotal === 0 ? 0 : (finalCorrect / finalTotal) * 100;
   }, [getTotalTyped, getCorrectTyped, typedChars, spaceErrorIndices, currentSentence]);
 
   const getElapsedTimeSec = useCallback(() => Math.floor((new Date() - startTime) / 1000), [startTime]);
   const getElapsedTime = useCallback(() => {
     const diff = getElapsedTimeSec();
-    return `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}`;
+    return `${String(Math.floor(diff / 60)).padStart(2,'0')}:${String(diff % 60).padStart(2,'0')}`;
   }, [getElapsedTimeSec]);
-
   const getTypingSpeed = useCallback(() => {
-    const elapsedSeconds = getElapsedTimeSec();
-    const completedTyped = getTotalTyped();
-    const currentTyped = typedChars.length;
-    const totalTyped = completedTyped + currentTyped;
-    return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
+    const elapsed = getElapsedTimeSec();
+    const totalTyped = getTotalTyped() + typedChars.length;
+    return elapsed === 0 ? 0 : (totalTyped / elapsed) * 60;
   }, [getElapsedTimeSec, getTotalTyped, typedChars.length]);
 
   const getNextCharInfo = useCallback(() => {
     if (!currentSentence || typedChars.length >= currentSentence.length) {
-      return {
-        nextChar: null,
-        nextWord: null,
-        currentPosition: typedChars.length,
-        totalLength: currentSentence.length,
-        remainingText: ''
-      };
+      return { nextChar: null, nextWord: null, currentPosition: typedChars.length, totalLength: currentSentence.length, remainingText: '' };
     }
     const nextCharIndex = typedChars.length;
     const nextChar = currentSentence[nextCharIndex];
     const remainingText = currentSentence.slice(nextCharIndex);
     const nextWordMatch = remainingText.match(/^(\S+)/);
     const nextWord = nextWordMatch ? nextWordMatch[1] : remainingText;
-    return {
-      nextChar, nextWord, currentPosition: nextCharIndex,
-      totalLength: currentSentence.length, remainingText, currentSentence
-    };
+    return { nextChar, nextWord, currentPosition: nextCharIndex, totalLength: currentSentence.length, remainingText, currentSentence };
   }, [currentSentence, typedChars.length]);
 
   const handleRestart = () => {
@@ -301,8 +269,8 @@ function SentencePage() {
   );
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
-      {/* ✅ 다 친 문장 (틀린 부분 빨간색 표시) */}
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
+      {/* 이전 문장 */}
       <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && (() => {
           const lastHistory = history[history.length - 1];
@@ -314,12 +282,7 @@ function SentencePage() {
             const typedChar = typed[i] || '';
             const isCorrect = typedChar === originalChar;
             elements.push(
-              <span
-                key={i}
-                className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}
-              >
-                {typedChar || originalChar}
-              </span>
+              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>{typedChar || originalChar}</span>
             );
           }
 
@@ -327,9 +290,7 @@ function SentencePage() {
             const extras = typed.slice(sentence.length);
             extras.split('').forEach((char, i) => {
               elements.push(
-                <span key={`extra-${i}`} className="font-mono text-red-500">
-                  {char}
-                </span>
+                <span key={`extra-${i}`} className="font-mono text-red-500">{char}</span>
               );
             });
           }

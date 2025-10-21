@@ -10,6 +10,22 @@ function CompletionModal({
 }) {
   if (!isOpen) return null;
 
+    // 🎯 정확도 기준 대사 로직
+    const acc = parseFloat(accuracy);
+    let message = '대단해요!'; // 기본 메시지
+  
+    if (acc >= 90) {
+      message = '대단해요!';
+    } else if (acc >= 80) {
+      message = '훌륭해요!';
+    } else if (acc >= 60) {
+      message = '잘했어요!';
+    } else if (acc >= 40) {
+      message = '노력이 필요해요!';
+    } else {
+      message = '많이 노력이 필요해보여요!';
+    }
+
   return (
     // ✅ 배경: 반투명 + 블러 효과 (뒤 배경 보임)
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-sm">
