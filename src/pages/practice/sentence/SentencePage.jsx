@@ -66,7 +66,7 @@ function SentencePage() {
     ];
 
       const possibleUrls = [
-        languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences'
+        finalLanguageId ? `/api/problems/sentences/${finalLanguageId}` : '/api/problems/sentences'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
@@ -128,7 +128,7 @@ function SentencePage() {
     } finally {
       setLoading(false);
     }
-  }, [languageId]);
+  }, [finalLanguageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 
