@@ -9,6 +9,7 @@ import SentencePage from '../../pages/practice/sentence/SentencePage';
 import Fullcode from '../../pages/practice/fullCode/FullCode';
 import CodingPlatform from '../../pages/workbook/CodingPlatform';
 import TeacherView from '../../pages/teacherView/TeacherView';
+import TeacherDashboard from '../../pages/teacher/TeacherDashboard';
 import Signup from '../../pages/auth/Signup/Signup';
 import Login from '../../pages/auth/Login/Login';
 import Battle from '../../pages/arcade/battle/Battle';
@@ -17,6 +18,7 @@ import NotFound from '../../pages/NotFound/NotFound';
 import Study from '../../pages/study/study';
 import MyPage from '../../pages/Mypage';
 import BattleGamePage from '../../pages/arcade/battle/BattleGamePage';
+import StudentDashboard from '../../pages/student/StudentDashboard';
 
 const Routers = () => {
   return (
@@ -32,12 +34,14 @@ const Routers = () => {
       <Route path="/full" element={<Fullcode />} />
       <Route path="/problem" element={<CodingPlatform />} />
       <Route path="/teacher" element={<TeacherView />} />
+      <Route path="/teacherDashboard" element={<TeacherDashboard />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path='/arcadeSelect' element={<ArcadeSelect />} />
       <Route path='/study' element={<Study />} />
       <Route path='/mypage' element={<MyPage />} />
       <Route path="/battle-game" element={<BattleGamePage />} />
+      <Route path='/student' element={<StudentDashboard />} />
       <Route path="*" element={<NotFound />} />  {/* 404 라우트는 맨 마지막에 */}
     </Routes>
   );

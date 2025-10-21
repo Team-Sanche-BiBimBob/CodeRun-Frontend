@@ -1,6 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import background from "./assets/slide3.png"
 
 export default function HeroSlide3() {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate('/arcadeSelect');
+  };
+
   return (
     <div 
       className="relative w-full h-full flex flex-col items-start bg-cover bg-center"
@@ -45,7 +52,10 @@ export default function HeroSlide3() {
         </p>
 
         {/* 버튼 */}
-        <button className="px-8 py-3 bg-black text-white text-lg font-bold rounded hover:bg-gray-900 transition-colors">
+        <button 
+          onClick={handleClick}
+          className="px-8 py-3 bg-black text-white text-lg font-bold rounded hover:bg-gray-900 transition-colors"
+        >
           아케이드 바로가기
         </button>
       </div>

@@ -1,7 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { api } from '../server';
+import { useNavigate } from 'react-router';
 
 const MyPage = () => {
+
+  const navigate = useNavigate();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('사용자');
+  const [userInfo, setUserInfo] = useState("이메일");
+
+
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const accessToken = localStorage.getItem('accessToken');
+      const userInfoString = localStorage.getItem('userInfo');
+      
+      if (accessToken && userInfoString) {
+        try {
+          const user = JSON.parse(userInfoString);
+          setIsLoggedIn(true);
+          setUserName(user.name || user.username || '사용자');
+          setUserInfo(user.email);
+        } catch (error) {
+          console.error('사용자 정보 파싱 오류:', error);
+          setIsLoggedIn(false);
+        }
+      } else {
+        navigate("/login")
+        setIsLoggedIn(false);
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
   return (
     <div className="min-h-screen bg-white">
       <h1 className="px-8 py-6 text-3xl font-bold">마이페이지</h1>
@@ -14,8 +47,8 @@ const MyPage = () => {
               <span className="text-6xl font-bold text-gray-600">U</span>
             </div>
             
-            <h2 className="mb-4 text-2xl font-bold">사용자</h2>
-            <p className="mb-12 text-gray-600">st876@dgsw.hs.kr</p>
+            <h2 className="mb-4 text-2xl font-bold">{userName}</h2>
+            <p className="mb-12 text-gray-600">{userInfo}</p>
             
             <button className="px-4 py-2 font-medium text-white bg-teal-500 rounded">
               레벨 15
@@ -23,10 +56,30 @@ const MyPage = () => {
           </div>
 
           <div className="flex flex-col items-center pt-4 border-t border-gray-300">
-            <button className="mb-3 text-sm font-medium text-red-500 hover:text-red-600">
+            <button className="mb-3 text-sm font-medium text-red-500 hover:text-red-600" onClick={()=>{
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('userInfo');
+              setIsLoggedIn(false);
+              setUserName('사용자');
+              setUserInfo(null);
+              navigate('/');
+            
+            }}>
               로그아웃
             </button>
-            <button className="text-sm font-medium text-red-500 hover:text-red-600">
+            <button className="text-sm font-medium text-red-500 hover:text-red-600" onClick={()=>{
+              api.delete("/auth/withdraw").then(()=>{
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userInfo');
+                setIsLoggedIn(false);
+                setUserName('사용자');
+                setUserInfo(null);
+                navigate('/');                
+              }).catch(err=>{
+                console.log(err)
+              })
+
+            }}>
               회원 탈퇴
             </button>
           </div>
@@ -76,7 +129,9 @@ const MyPage = () => {
               <p className="mb-4 text-lg text-gray-600">
                 "아직 아무 기록도 없어요. 첫 학습을 시작해볼까요?"
               </p>
-              <button className="px-8 py-3 font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600">
+              <button className="px-8 py-3 font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600" onClick={()=>{
+                navigate("/selectLanguage")
+              }}>
                 학습하러 가기
               </button>
             </div>
