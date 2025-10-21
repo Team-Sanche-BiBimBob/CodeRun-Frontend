@@ -88,17 +88,11 @@ const Fullcode = () => {
         }
 
         if (Array.isArray(codes) && codes.length > 0) {
-          // Fisher-Yates 셔플 알고리즘을 사용하여 완전히 랜덤하게 섞기
-          const shuffledCodes = [...codes];
-          for (let i = shuffledCodes.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffledCodes[i], shuffledCodes[j]] = [shuffledCodes[j], shuffledCodes[i]];
-          }
-          const randomIndex = Math.floor(Math.random() * shuffledCodes.length);
-          const selectedCode = shuffledCodes[randomIndex];
+          // 첫 번째 코드를 사용 (랜덤 선택 제거)
+          const selectedCode = codes[0];
           setExampleCode(selectedCode);
           setExampleLines(selectedCode.split('\n'));
-          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 랜덤 선택됨');
+          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 첫 번째 선택됨');
           setLoading(false);
           setLoadingMessage('');
           return;
@@ -124,18 +118,12 @@ const Fullcode = () => {
       }
     }
 
-    // 폴백 데이터 사용 (Fisher-Yates 셔플 알고리즘으로 완전히 랜덤하게 섞어서 선택)
+    // 폴백 데이터 사용 (첫 번째 코드 선택)
     setLoadingMessage('문제를 준비하고 있습니다...');
-    const shuffledFallbackCodes = [...fallbackCodes];
-    for (let i = shuffledFallbackCodes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledFallbackCodes[i], shuffledFallbackCodes[j]] = [shuffledFallbackCodes[j], shuffledFallbackCodes[i]];
-    }
-    const randomIndex = Math.floor(Math.random() * shuffledFallbackCodes.length);
-    const selectedCode = shuffledFallbackCodes[randomIndex];
+    const selectedCode = fallbackCodes[0];
     setExampleCode(selectedCode);
     setExampleLines(selectedCode.split('\n'));
-    console.log('폴백 데이터 사용:', fallbackCodes.length + '개 중 랜덤 선택됨');
+    console.log('폴백 데이터 사용:', fallbackCodes.length + '개 중 첫 번째 선택됨');
     setLoading(false);
     setLoadingMessage('');
   };

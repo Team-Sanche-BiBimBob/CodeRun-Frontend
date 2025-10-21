@@ -134,19 +134,11 @@ const CodeRunTimeAttack = () => {
     }
   };
 
-  // 문제집 선택 처리
-  const handleProblemSetSelect = (problemSet) => {
-    setSelectedProblemSet(problemSet);
-    // 여기서 실제로는 서버에서 해당 문제집의 랭킹을 가져올 것
-    const newRankings = [
-      { rank: 1, name: `${problemSet} 1등`, time: "00:01:23" },
-      { rank: 2, name: `${problemSet} 2등`, time: "00:01:45" },
-      { rank: 3, name: `${problemSet} 3등`, time: "00:02:10" },
-      { rank: 4, name: `${problemSet} 4등`, time: "00:02:30" },
-      { rank: 5, name: `${problemSet} 5등`, time: "00:02:55" },
-      { rank: 23, name: "me", time: "00:05:20" }
-    ];
-    setRankings(newRankings);
+  // 문제집 선택 처리 - 문제 클릭 시 바로 연습 시작
+  const handleProblemSetSelect = (problem) => {
+    console.log('handleProblemSetSelect 호출됨:', problem);
+    // 문제 객체를 받아서 바로 연습 시작
+    handleChallengeClick(problem.difficulty, problem);
   };
 
   // 태그 추가하기 버튼 클릭
@@ -169,6 +161,8 @@ const CodeRunTimeAttack = () => {
 
   // 문제 도전하기 버튼 클릭 처리
   const handleChallengeClick = (difficulty, problem) => {
+    console.log('handleChallengeClick 호출됨:', { difficulty, problem });
+    
     // 언어 ID 매핑 (서버 데이터에 맞게 수정)
     const languageIdMap = {
       'python': 1,
@@ -181,11 +175,28 @@ const CodeRunTimeAttack = () => {
       'rust': 8
     };
     
-    // 선택된 언어 확인 (완료된 태그 또는 문제의 태그에서)
-    const selectedLanguage = completedTags.find(tag => ['python', 'java', 'javascript'].includes(tag)) ||
-                            (problem && problem.tags && problem.tags.find(tag => ['python', 'java', 'javascript'].includes(tag)));
+    // 문제가 없으면 에러 처리
+    if (!problem) {
+      console.error('문제 객체가 없습니다.');
+      return;
+    }
+    
+    // 문제의 태그에서 언어 찾기
+    const allLanguages = ['python', 'java', 'javascript', 'c', 'c++', 'typescript', 'go', 'rust'];
+    const selectedLanguage = problem.tags ? 
+                            problem.tags.find(tag => allLanguages.includes(tag)) : 
+                            null;
     
     const languageId = selectedLanguage ? languageIdMap[selectedLanguage] : null;
+    
+    console.log('타임어택 디버깅:', {
+      problem,
+      problemTags: problem.tags,
+      selectedLanguage,
+      languageId,
+      difficulty,
+      problemTitle: problem.title
+    });
     
     if (difficulty === '문장') {
       if (languageId) {
@@ -335,7 +346,7 @@ const CodeRunTimeAttack = () => {
                   <div
                     key={problem.id}
                     className="p-4 transition-shadow rounded-lg cursor-pointer bg-gray-50 hover:shadow-md"
-                    onClick={() => handleProblemSetSelect(problem.title)}
+                    onClick={() => handleProblemSetSelect(problem)}
                   >
                     <h3 className="mb-3 font-semibold text-gray-800">{problem.title}</h3>
                     <div className="flex gap-2 mb-3">
