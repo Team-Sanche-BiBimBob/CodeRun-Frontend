@@ -101,9 +101,8 @@ function SentencePage() {
         }
 
         if (Array.isArray(sentences) && sentences.length > 0) {
-          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
-          setSentences(shuffled);
-          console.log('서버에서 문장 로드 성공:', shuffled.length + '개');
+          setSentences(sentences);
+          console.log('서버에서 문장 로드 성공:', sentences.length + '개');
           return;
         } else {
           throw new Error('문장 데이터가 비어있습니다');
@@ -112,19 +111,110 @@ function SentencePage() {
         console.log('API 호출 실패, 기본 문장 사용:', err.message);
       }
 
-      // 폴백 데이터 사용
-      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
-      console.log('기본 문장 사용:', shuffled.length + '개');
+      // 폴백 데이터 사용 (언어별 기본 문장)
+      let fallbackSentences = [];
+      
+      if (finalLanguageId === 1) { // Python
+        fallbackSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"',
+          'for i in range(5):',
+          '    print(i)'
+        ];
+      } else if (finalLanguageId === 2) { // Java
+        fallbackSentences = [
+          'System.out.println("Hello, World!");',
+          'public class Main {',
+          '    public static void main(String[] args) {',
+          '        System.out.println("Hello, World!");',
+          '    }',
+          '}'
+        ];
+      } else if (finalLanguageId === 5) { // JavaScript
+        fallbackSentences = [
+          'console.log("Hello, World!");',
+          'function greet(name) {',
+          '    return `Hello, ${name}!`;',
+          '}',
+          'for (let i = 0; i < 5; i++) {',
+          '    console.log(i);',
+          '}'
+        ];
+      } else {
+        // 기본값 (Python)
+        fallbackSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"'
+        ];
+      }
+      
+      setSentences(fallbackSentences);
+      console.log('기본 문장 사용:', fallbackSentences.length + '개');
     } catch (error) {
       console.error('문장 가져오기 실패:', error);
-      const defaultSentences = [
-        'print("Hello world!")',
-        'console.log("Hello world!");',
-        'function greet(name) {',
-      ];
-      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
+      
+      // 언어별 기본 문장 설정
+      let defaultSentences = [];
+      
+      if (finalLanguageId === 1) { // Python
+        defaultSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"',
+          'for i in range(5):',
+          '    print(i)',
+          'if x > 0:',
+          '    print("Positive")',
+          'class Person:',
+          '    def __init__(self, name):',
+          '        self.name = name'
+        ];
+      } else if (finalLanguageId === 2) { // Java
+        defaultSentences = [
+          'System.out.println("Hello, World!");',
+          'public class Main {',
+          '    public static void main(String[] args) {',
+          '        System.out.println("Hello, World!");',
+          '    }',
+          '}',
+          'for (int i = 0; i < 5; i++) {',
+          '    System.out.println(i);',
+          '}',
+          'if (x > 0) {',
+          '    System.out.println("Positive");',
+          '}'
+        ];
+      } else if (finalLanguageId === 5) { // JavaScript
+        defaultSentences = [
+          'console.log("Hello, World!");',
+          'function greet(name) {',
+          '    return `Hello, ${name}!`;',
+          '}',
+          'for (let i = 0; i < 5; i++) {',
+          '    console.log(i);',
+          '}',
+          'if (x > 0) {',
+          '    console.log("Positive");',
+          '}',
+          'const person = {',
+          '    name: "John",',
+          '    age: 30',
+          '};'
+        ];
+      } else {
+        // 기본값 (Python)
+        defaultSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"',
+          'for i in range(5):',
+          '    print(i)'
+        ];
+      }
+      
+      setSentences(defaultSentences);
     } finally {
       setLoading(false);
     }
