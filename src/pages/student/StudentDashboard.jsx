@@ -1,10 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const TeacherDashboard = () => {
+const StudentDashboard = () => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [classCode, setClassCode] = useState("Co87de1R2RR22U");
   const [userRole, setUserRole] = useState("BASIC"); // "BASIC" or "PREMIUM"
+
+  const [folders, setFolders] = useState(["이용한 세트", "Python", "Js", "문장 세트 폴더"]);
+
+  const addFolder = () => {
+    const folderName = prompt("추가할 폴더 이름을 입력하세요.");
+    if (folderName) {
+      setFolders([...folders, folderName]);
+    }
+  };
+
+  const deleteFolder = (folderToDelete) => {
+    setFolders(folders.filter(folder => folder !== folderToDelete));
+  };
 
   const handleCreateClass = () => {
     if (userRole === "PREMIUM") {
@@ -40,39 +55,24 @@ const TeacherDashboard = () => {
           </button>
 
           {/* 나의 폴더 섹션 */}
-          <p className="text-[#909090] text-[14px] mb-4">
-            나의 폴더
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[#909090] text-[14px]">나의 폴더</p>
+            <button onClick={addFolder} className="text-xl">+</button>
+          </div>
 
           {/* 폴더 아이템들 */}
           <div className="space-y-3 mb-6">
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
-                <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <p className="text-[12px] text-black">이용한 세트</p>
-            </div>
-
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
-                <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <p className="text-[12px] text-black">Python</p>
-            </div>
-
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
-                <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <p className="text-[12px] text-black">Js</p>
-            </div>
-
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
-                <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <p className="text-[12px] text-black">문장 세트 폴더</p>
-            </div>
+            {folders.map(folder => (
+              <div key={folder} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded">
+                <div className="flex items-center">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mr-3">
+                    <path d="M2 4H14L13 12H3L2 4Z" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <p className="text-[12px] text-black">{folder}</p>
+                </div>
+                <button onClick={() => deleteFolder(folder)} className="text-black">-</button>
+              </div>
+            ))}
           </div>
 
           {/* 구분선 */}
@@ -87,26 +87,6 @@ const TeacherDashboard = () => {
             <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
               <p className="text-[12px] text-black">1학년 1반</p>
             </div>
-
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <p className="text-[12px] text-black">1학년 2반</p>
-            </div>
-
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <p className="text-[12px] text-black">1학년 3반</p>
-            </div>
-
-            <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-              <p className="text-[12px] text-black">1학년 4반</p>
-            </div>
-          </div>
-
-          {/* 더보기 */}
-          <div className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-            <p className="text-[#929292] text-[12px] mr-2">더보기</p>
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" className="rotate-90">
-              <path d="M1 1L5 5L1 9" stroke="#929292" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
           </div>
         </div>
       </div>
@@ -233,7 +213,7 @@ const TeacherDashboard = () => {
               <div className="flex gap-4">
                 <button
                   onClick={() => {
-                    // Handle navigation to payment page
+                    navigate("/payment");
                     handleCloseModal();
                   }}
                   className="bg-[#009b84] h-[54px] rounded-[15px] w-[250px] flex items-center justify-center mx-auto hover:bg-[#007a6b] transition-colors"
@@ -259,4 +239,4 @@ const TeacherDashboard = () => {
   );
 };
 
-export default TeacherDashboard;
+export default StudentDashboard;

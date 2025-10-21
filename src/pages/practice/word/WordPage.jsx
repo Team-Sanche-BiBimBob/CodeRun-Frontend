@@ -21,6 +21,12 @@ function WordPage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const fetchWords = useCallback(async () => {
+    if (!languageId) {
+      console.error('언어 ID가 없습니다.');
+      navigate('/');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -233,10 +239,10 @@ function WordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
         <div className="text-center">
-          <div className="text-xl font-semibold text-gray-700 mb-4">
+          <div className="mb-4 text-xl font-semibold text-gray-700">
             타자연습 단어를 불러오는 중...
           </div>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
         </div>
       </div>
     );
@@ -245,7 +251,7 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center bg-teal-50 font-sans pt-16 pb-32">
+    <div className="flex relative flex-col items-center pt-16 pb-32 min-h-screen font-sans bg-teal-50">
       <div className="grid grid-cols-3 items-end mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
@@ -254,7 +260,7 @@ function WordPage() {
                 {entry.word}
               </div>
             ) : (
-              <div key={index} className="flex whitespace-nowrap tracking-normal">
+              <div key={index} className="flex tracking-normal whitespace-nowrap">
                 {entry.word.split('').map((char, idx) => {
                   const correctChar = entry.correctWord[idx];
                   const isCorrectChar = char === correctChar;
@@ -297,7 +303,7 @@ function WordPage() {
       )}
 
       {!isComplete && (
-        <div className="mt-10 w-full flex flex-col items-center">
+        <div className="flex flex-col items-center mt-10 w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}

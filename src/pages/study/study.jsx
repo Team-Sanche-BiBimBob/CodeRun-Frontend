@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/header/Header';
 import Footer from '../../components/common/footer/Footer';
 import { api } from '../../server';
 
 const Study = () => {
+    const navigate = useNavigate();
     useEffect(()=> {
        api.get("/api/auth/user").then((response)=> {
         if (response.data[0].role == "teacher") {
@@ -23,9 +25,11 @@ const Study = () => {
     const [showCode, setShowCode] = useState(false);
 
     const handleJoinRoom = () => {
-        if (inputCode.trim()) {
-            setIsJoined(true);
-            // 실제로는 서버에 참가 요청을 보내야 함
+        const codeRegex = /^[A-Za-z0-9]{6}$/;
+        if (codeRegex.test(inputCode)) {
+            navigate('/student');
+        } else {
+            alert('코드는 6글자여야 합니다.');
         }
     };
 
