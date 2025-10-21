@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 
@@ -20,6 +20,10 @@ const Fullcode = () => {
   const lastValueRef = useRef('');
   const timerRef = useRef(null);
   const isInitializedRef = useRef(false);
+
+  const location = useLocation();
+  const { language: languageId } = location.state || {}; // languageId를 가져옴
+  // console.log("Received languageId:", languageId);
 
   // 풀코드 데이터 가져오기 (서버 API 시도 후 폴백)
   const fetchFullCodes = async () => {
@@ -44,7 +48,7 @@ const Fullcode = () => {
       console.log('풀코드 가져오기 시도 중...');
 
       const possibleUrls = [
-        '/api/problems/full-code'
+        languageId ? `/api/problems/full-code/${languageId}` : '/api/problems/full-code'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용

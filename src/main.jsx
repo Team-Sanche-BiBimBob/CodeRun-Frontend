@@ -14,9 +14,7 @@ import '@fontsource/pretendard/900.css';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>  {/* 여기서 감싸기 */}
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
+  <BrowserRouter>  {/* 여기서 감싸기 */}
+    <App />
+  </BrowserRouter>
 );

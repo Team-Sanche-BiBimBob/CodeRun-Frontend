@@ -1,32 +1,38 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PracticeSelect = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+
+  // console.log("PracticeSelect received languageId:", languageId);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-8">
+    <div className="flex flex-col items-center px-4 py-8 min-h-screen bg-gray-50">
       <div className="w-full max-w-6xl">
-        <h1 className="text-2xl font-bold text-center mb-16 text-black mt-12">
+        <h1 className="mt-12 mb-16 text-2xl font-bold text-center text-black">
           학습할 타자 유형을 선택하세요.
         </h1>
 
-        <div className="relative mb-16 flex-1 flex items-center justify-center">
+        <div className="flex relative flex-1 justify-center items-center mb-16">
           <img
             src="/images/일러스트.png"
             alt="프로그래밍 선택 이미지"
-            className="w-full max-w-2xl h-80 object-contain rounded-2xl opacity-90"
+            className="object-contain w-full max-w-2xl h-80 rounded-2xl opacity-90"
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
+        <div className="flex flex-col gap-8 justify-center items-center sm:flex-row">
   {['/word', '/sentence', '/full'].map((path, i) => {
     const labels = ['단어', '문장', '풀코드'];
     return (
       <button
         key={path}
         className="px-16 py-5 border-2 rounded-xl text-2xl bg-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 min-w-[180px]"
-        onClick={() => navigate(path)}
+        onClick={() => {
+          navigate(path, { state: { language: languageId } });
+        }}
         style={{
           borderColor: '#e5e7eb',
           color: '#000',

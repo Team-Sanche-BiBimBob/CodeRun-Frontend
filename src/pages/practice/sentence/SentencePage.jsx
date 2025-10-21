@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -16,59 +16,86 @@ function SentencePage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  // 서버에서 문장 가져오기
-  const fetchSentences = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log('문장 가져오기 시도 중...');
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("SentencePage received languageId:", languageId);
 
-      if (!id) throw new Error('ID가 제공되지 않았습니다');
-      
-      const apiUrl = `/api/problems/sentences/${location.state?.id}`;
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        signal: AbortSignal.timeout(5000),
-      });
+  // 서버에서 문장 가져오기 (개선된 버전)
+const fetchSentences = useCallback(async () => {
+  try {
+    setLoading(true);
+    console.log('문장 가져오기 시도 중...');
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const possibleUrls = [
+      languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences',
+    ];
 
-      const data = await response.json();
-      console.log('받은 데이터:', data);
+    let lastError = null;
 
-      // Swagger 구조 반영: 배열 내 각 객체의 content 추출
-      let loadedSentences = Array.isArray(data) ? data.map(item => item.content || '') : [];
-      if (!loadedSentences.length) throw new Error('문장 데이터가 비어있습니다');
+    for (const apiUrl of possibleUrls) {
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          signal: AbortSignal.timeout(5000),
+        });
 
-      const shuffled = [...loadedSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
-      console.log('문장 로드 성공:', shuffled.length + '개');
-    } catch (err) {
-      console.error('타자연습 문장 가져오기 실패:', err);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      // 기본 문장 fallback
-      const defaultSentences = [
-        'print("Hello world!")', 'for i in range(10):', 'console.log("Hello world!");',
-        'function greet(name) {', 'System.out.println("Hello world!");', 'public class Person {',
-        'SELECT * FROM users;', 'let message: string = "Hello world!";', 'println("Hello world!")',
-        'func greet(name: String) -> String {', 'const express = require("express");',
-        'import React from "react";', 'def calculate_sum(a, b):', 'try { connection.close(); }',
-        'UPDATE users SET name = ?', 'while (condition === true) {', 'async function fetchData() {',
-        'class Calculator extends Component {', 'catch (error) { console.error(error); }',
-        'const [state, setState] = useState();', 'public static void main(String[] args) {',
-        'from django.http import HttpResponse', 'npm install express mongoose',
-        'git add . && git commit -m "Initial commit"', 'docker run -d -p 3000:3000 myapp',
-        'const result = await api.getData();', 'if (user.isAuthenticated()) {',
-        'return res.status(200).json(data);', 'CREATE TABLE users (id INT PRIMARY KEY);',
-        'const handleSubmit = (e) => { e.preventDefault(); }'
-      ];
-      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
-      console.log('기본 문장으로 시작:', shuffled.length + '개');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('응답이 JSON 형식이 아닙니다');
+        }
+      }
+
+    throw lastError || new Error('모든 API 엔드포인트에 연결할 수 없습니다');
+  } catch (err) {
+    console.error('타자연습 문장 가져오기 최종 실패:', err);
+
+    // fallback 문장들 (더 많은 프로그래밍 관련 문장들)
+    const defaultSentences = [
+      'print("Hello world!")',
+      'for i in range(10):',
+      'console.log("Hello world!");',
+      'function greet(name) {',
+      'System.out.println("Hello world!");',
+      'public class Person {',
+      'SELECT * FROM users;',
+      'let message: string = "Hello world!";',
+      'println("Hello world!")',
+      'func greet(name: String) -> String {',
+      'const express = require("express");',
+      'import React from "react";',
+      'def calculate_sum(a, b):',
+      'try { connection.close(); }',
+      'UPDATE users SET name = ?',
+      'while (condition === true) {',
+      'async function fetchData() {',
+      'class Calculator extends Component {',
+      'catch (error) { console.error(error); }',
+      'const [state, setState] = useState();',
+      'public static void main(String[] args) {',
+      'from django.http import HttpResponse',
+      'npm install express mongoose',
+      'git add . && git commit -m "Initial commit"',
+      'docker run -d -p 3000:3000 myapp',
+      'const result = await api.getData();',
+      'if (user.isAuthenticated()) {',
+      'return res.status(200).json(data);',
+      'CREATE TABLE users (id INT PRIMARY KEY);',
+      'const handleSubmit = (e) => { e.preventDefault(); }'
+    ];
+    
+    const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+    setSentences(shuffled);
+    console.log('기본 문장으로 시작:', shuffled.length + '개');
+  } finally {
+    setLoading(false);
+  }
+}, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
 

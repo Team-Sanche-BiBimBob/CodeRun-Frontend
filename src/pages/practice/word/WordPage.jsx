@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from '../../../server/index.js';
+import { useNavigate, useLocation } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -18,24 +17,63 @@ function WordPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  // console.log("WordPage received languageId:", languageId);
 
+  // 서버에서 단어 가져오기
   const fetchWords = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('단어 가져오기 시도 중...');
 
-      if (!languageId) {
-        console.warn('언어 ID가 없습니다. 기본 단어 사용');
-        const defaultWords = [
-          'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
-          'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
-          'interface', 'new', 'null', 'private', 'public', 'return', 'static',
-          'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
-        ];
-        const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
-        setWordList(shuffled);
-        setLoading(false);
-        return;
+      const possibleUrls = [
+        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words',
+      ];
+
+      let lastError = null;
+
+      for (const apiUrl of possibleUrls) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            signal: AbortSignal.timeout(5000),
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('응답이 JSON 형식이 아닙니다');
+          }
+
+          const data = await response.json();
+          console.log('받은 데이터:', data);
+
+          let words = data.words || data || [];
+
+          // ✅ 객체 배열일 경우 title만 추출
+          if (Array.isArray(words) && typeof words[0] === 'object') {
+            words = words.map((w) => w.content || '');
+          }
+
+          if (!Array.isArray(words) || words.length === 0) {
+            throw new Error('단어 데이터가 비어있습니다');
+          }
+
+          const shuffled = [...words].sort(() => Math.random() - 0.5);
+          setWordList(shuffled);
+          console.log('단어 로드 성공:', shuffled.length + '개');
+          return;
+        } catch (err) {
+          console.log(`${apiUrl} 실패:`, err.message);
+          lastError = err;
+          continue;
+        }
       }
 
       const response = await api.get(`/api/problems/words/${languageId}`);
@@ -64,13 +102,6 @@ function WordPage() {
       setLoading(false);
     }
   }, [languageId]);
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
 
   useEffect(() => {
     fetchWords();
