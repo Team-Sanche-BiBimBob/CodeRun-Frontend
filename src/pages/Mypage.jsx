@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import userImg from '../assets/user.jpg';
+import { toast } from 'react-toastify';
 
 const MyPage = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -20,12 +21,12 @@ const MyPage = () => {
 
   const handleLogout = () => {
     setShowLogoutModal(false);
-    alert('로그아웃되었습니다.');
+    toast.success('로그아웃되었습니다.');
   };
 
   const handleDeleteAccount = () => {
     setShowDeleteModal(false);
-    alert('회원탈퇴가 완료되었습니다.');
+    toast.success('회원탈퇴가 완료되었습니다.');
   };
 
   return (

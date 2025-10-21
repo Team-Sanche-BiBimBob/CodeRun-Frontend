@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 
 export const baseURL = import.meta.env.VITE_BASE_URL;
@@ -24,7 +25,7 @@ api.interceptors.response.use(function (response) {
 }, function (error) {
   // before catch
   if(error.response && error.response.status === 419){
-    alert('토큰이 만료되었습니다. 다시 로그인해주세요.')
+    toast.error('토큰이 만료되었습니다. 다시 로그인해주세요.')
     localStorage.removeItem('token');
   }
   return Promise.reject(error);
