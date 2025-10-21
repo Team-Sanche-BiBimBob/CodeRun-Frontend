@@ -5,11 +5,6 @@ const PaymentPage = () => {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedRecurring, setAgreedRecurring] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('구독 처리');
-  };
-
   return (
     <div className="flex min-h-screen font-sans bg-gradient-to-br from-gray-50 to-gray-100">
       {/* 사이드바 */}
@@ -62,7 +57,7 @@ const PaymentPage = () => {
 
       {/* 폼 */}
       <div className="w-3/5 h-screen p-12 overflow-auto">
-        <div className="max-w-2xl mx-auto space-y-8">
+        <form className="max-w-2xl mx-auto space-y-8">
           <div className="mb-8">
             <h2 className="mb-2 text-3xl font-bold text-gray-900">결제 정보</h2>
             <p className="text-gray-500">안전하고 간편한 결제를 진행해주세요</p>
@@ -93,7 +88,7 @@ const PaymentPage = () => {
                 <input
                   type="text"
                   placeholder="카드 번호"
-                  maxLength={19}
+                  maxLength="19"
                   className="w-full p-4 pr-12 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
                 <CreditCard className="absolute w-5 h-5 text-gray-400 -translate-y-1/2 right-4 top-1/2" />
@@ -103,14 +98,14 @@ const PaymentPage = () => {
                 <input
                   type="text"
                   placeholder="MM / YY"
-                  maxLength={7}
+                  maxLength="7"
                   className="p-4 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="CVC"
-                    maxLength={4}
+                    maxLength="4"
                     className="w-full p-4 pr-12 transition border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                   <Lock className="absolute w-5 h-5 text-gray-400 -translate-y-1/2 right-4 top-1/2" />
@@ -186,7 +181,7 @@ const PaymentPage = () => {
 
           {/* 제출 버튼 */}
           <button
-            onClick={handleSubmit}
+            type="submit"
             className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
             구독하기
@@ -196,7 +191,7 @@ const PaymentPage = () => {
             <Lock className="inline w-4 h-4 mr-1" />
             모든 결제 정보는 암호화되어 안전하게 처리됩니다
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );
