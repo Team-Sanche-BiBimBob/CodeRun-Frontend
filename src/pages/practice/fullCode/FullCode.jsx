@@ -88,11 +88,12 @@ const Fullcode = () => {
         }
 
         if (Array.isArray(codes) && codes.length > 0) {
-          // 첫 번째 코드를 사용 (랜덤 선택 제거)
-          const selectedCode = codes[0];
+          // 5개 중 랜덤으로 선택
+          const randomIndex = Math.floor(Math.random() * codes.length);
+          const selectedCode = codes[randomIndex];
           setExampleCode(selectedCode);
           setExampleLines(selectedCode.split('\n'));
-          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 첫 번째 선택됨');
+          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 ' + (randomIndex + 1) + '번째 랜덤 선택됨');
           setLoading(false);
           setLoadingMessage('');
           return;
