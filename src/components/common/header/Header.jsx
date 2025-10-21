@@ -80,26 +80,29 @@ const Header = memo(({ isLoggedIn }) => {
           {/*사용자 정보*/}
           <div className="flex items-center">
             {isLoggedIn ? (
-              <div className="flex items-center gap-3 text-gray-700">
-                <span className="hidden sm:block text-sm font-medium">{userName}</span>
-                <img 
-                  src={userImg} 
-                  alt="사용자 프로필" 
-                  className="w-8 h-8 rounded-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('userInfo');
-                    window.location.reload();
-                  }}
-                  className="ml-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
-                >
-                  로그아웃
-                </button>
-              </div>
+              <a href="/mypage">
+                <div className="flex items-center gap-3 text-gray-700">
+                  <span className="hidden sm:block text-sm font-medium">{userName}</span>
+                  <img 
+                    src={userImg} 
+                    alt="사용자 프로필" 
+                    className="w-8 h-8 rounded-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('accessToken');
+                      localStorage.removeItem('userInfo');
+                      window.location.reload();
+                    }}
+                    className="ml-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </a>
+              
             ) : (
               <>
                 <a 
