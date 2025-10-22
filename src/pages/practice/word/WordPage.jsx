@@ -67,10 +67,20 @@ function WordPage() {
           words = words.map((w) => w.content || w.word || w.title || '');
         }
 
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+          for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+          }
+          return array;
+        };
+
         if (Array.isArray(words) && words.length > 0) {
           // 서버에서 받은 모든 단어 사용
-          setWordList(words);
-          console.log('서버에서 단어 로드 성공:', words.length + '개');
+          const shuffledWords = shuffleArray([...words]); // Shuffle the words
+          setWordList(shuffledWords);
+          console.log('서버에서 단어 로드 성공:', shuffledWords.length + '개');
           setLoading(false);
           return;
         } else {
@@ -102,8 +112,9 @@ function WordPage() {
         ];
       }
       
-      setWordList(fallbackWords);
-      console.log('기본 단어 사용:', fallbackWords.length + '개');
+      const shuffledFallbackWords = shuffleArray([...fallbackWords]); // Shuffle fallback words
+      setWordList(shuffledFallbackWords);
+      console.log('기본 단어 사용:', shuffledFallbackWords.length + '개');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
       setError('서버에서 단어를 가져오는데 실패했습니다. 페이지를 새로고침해주세요.');
