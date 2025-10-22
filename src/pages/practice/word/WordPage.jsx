@@ -221,6 +221,13 @@ function WordPage() {
   );
 
   const getAccuracy = useCallback(() => {
+    const currentWord = wordList[currentIndex] || '';
+
+    // If it's the first word and the first character is correct, immediately return 100% accuracy
+    if (currentIndex === 0 && userInput.length > 0 && currentWord.length > 0 && userInput[0] === currentWord[0]) {
+      return 100;
+    }
+
     // 완료된 단어들의 정확도 계산
     let totalChars = 0;
     let correctChars = 0;
@@ -247,7 +254,6 @@ function WordPage() {
     });
     
     // 현재 입력 중인 단어 추가
-    const currentWord = wordList[currentIndex] || '';
     if (userInput.length > 0) {
       totalChars += Math.max(userInput.length, currentWord.length);
       
@@ -259,7 +265,7 @@ function WordPage() {
       }
     }
     
-    return totalChars === 0 ? 100 : (correctChars / totalChars) * 100;
+    return totalChars === 0 ? 0 : (correctChars / totalChars) * 100;
   }, [history, userInput, wordList, currentIndex]);
 
   const getElapsedTimeSec = useCallback(
