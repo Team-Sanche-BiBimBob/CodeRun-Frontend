@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../../../server/index.js';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -8,34 +7,34 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 function WordPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language: languageId } = location.state || {};
-  // console.log("WordPage received languageId:", languageId);
+  const languageId = location.state?.language || location.state?.languageId;
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [history, setHistory] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
-  // 서버에서 단어 가져오기
-  const fetchWords = useCallback(async () => {
-    if (!languageId) {
-      console.error('언어 ID가 없습니다.');
-      navigate('/');
-      return;
-    }
+  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
+  const fetchWords = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
       console.log('단어 가져오기 시도 중...');
+      
+      if (!languageId) {
+        console.warn('언어 ID가 없습니다. 기본 단어 사용');
+        throw new Error('언어 ID 없음');
+      }
 
       const possibleUrls = [
         languageId ? `/api/problems/words/${languageId}` : '/api/problems/words'
       ];
-
-      let lastError = null;
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
       const apiUrl = possibleUrls[0];
@@ -45,6 +44,7 @@ function WordPage() {
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
         const fullUrl = baseUrl + apiUrl;
         console.log(`API 요청 URL: ${fullUrl}`);
+        
         const response = await fetch(fullUrl, {
           method: 'GET',
           headers: {
@@ -63,33 +63,50 @@ function WordPage() {
 
         let words = data.words || data || [];
 
-        // 객체 배열일 경우 content 필드 추출
         if (Array.isArray(words) && typeof words[0] === 'object') {
-          words = words.map((w) => w.content || w.title || '');
+          words = words.map((w) => w.content || w.word || w.title || '');
         }
 
-        if (!Array.isArray(words) || words.length === 0) {
+        if (Array.isArray(words) && words.length > 0) {
+          // 서버에서 받은 모든 단어 사용
+          setWordList(words);
+          console.log('서버에서 단어 로드 성공:', words.length + '개');
+          setLoading(false);
+          return;
+        } else {
           throw new Error('단어 데이터가 비어있습니다');
         }
-
-        const shuffled = [...words].sort(() => Math.random() - 0.5);
-        setWordList(shuffled);
-        console.log('단어 로드 성공:', shuffled.length + '개');
-        return;
       } catch (err) {
-        console.log(`${apiUrl} 실패:`, err.message);
-        lastError = err;
+        console.log('API 호출 실패, 기본 단어 사용:', err.message);
       }
+
+      // 폴백 데이터 사용 (언어별 기본 단어)
+      let fallbackWords = [];
+      
+      if (languageId === 1) { // Python
+        fallbackWords = [
+          'print', 'def', 'if', 'else', 'for', 'while', 'class', 'import', 'return', 'lambda'
+        ];
+      } else if (languageId === 2) { // Java
+        fallbackWords = [
+          'public', 'class', 'static', 'void', 'main', 'String', 'int', 'boolean', 'if', 'for'
+        ];
+      } else if (languageId === 5) { // JavaScript
+        fallbackWords = [
+          'function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'console'
+        ];
+      } else {
+        // 기본값 (Python)
+        fallbackWords = [
+          'print', 'def', 'if', 'else', 'for', 'while', 'class', 'import', 'return', 'lambda'
+        ];
+      }
+      
+      setWordList(fallbackWords);
+      console.log('기본 단어 사용:', fallbackWords.length + '개');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
-      const defaultWords = [
-        'abstract', 'break', 'case', 'catch', 'class', 'const', 'continue',
-        'default', 'else', 'enum', 'extends', 'final', 'for', 'if', 'import',
-        'interface', 'new', 'null', 'private', 'public', 'return', 'static',
-        'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
-      ];
-      const shuffled = [...defaultWords].sort(() => Math.random() - 0.5);
-      setWordList(shuffled);
+      setError('서버에서 단어를 가져오는데 실패했습니다. 페이지를 새로고침해주세요.');
     } finally {
       setLoading(false);
     }
@@ -278,10 +295,27 @@ function WordPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
+        <div className="text-center">
+          <div className="mb-4 text-6xl text-red-500">⚠️</div>
+          <div className="mb-4 text-xl font-semibold text-gray-700">{error}</div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 text-white bg-teal-600 rounded-lg transition-colors hover:bg-teal-700"
+          >
+            페이지 새로고침
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="flex relative flex-col items-center pt-16 pb-32 mt-10 min-h-screen font-sans bg-teal-50">
+    <div className="flex relative flex-col items-center pt-16 pb-32 min-h-screen font-sans bg-teal-50">
       <div className="grid grid-cols-3 items-end mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
