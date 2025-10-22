@@ -441,6 +441,17 @@ const Fullcode = () => {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // 시간 문자열을 초로 변환하는 함수
+  const timeToSeconds = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseInt(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
   const handleRestart = () => {
     setShowCompletionModal(false);
     
@@ -488,9 +499,25 @@ const Fullcode = () => {
       }
       
       if (problemId) {
-        // 완료 시간을 sessionStorage에 임시 저장
-        sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
-        console.log('완료 시간 sessionStorage 저장:', { problemId, completionTime, languageId });
+        // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
+        const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+        
+        if (!existingTime) {
+          // 기존 기록이 없으면 저장
+          sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+          console.log('완료 시간 sessionStorage 저장:', { problemId, completionTime, languageId });
+        } else {
+          // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
+          const existingSeconds = timeToSeconds(existingTime);
+          const currentSeconds = timeToSeconds(completionTime);
+          
+          if (currentSeconds < existingSeconds) {
+            sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+            console.log('더 좋은 기록으로 업데이트:', { problemId, oldTime: existingTime, newTime: completionTime });
+          } else {
+            console.log('기존 기록이 더 좋음:', { problemId, existingTime, currentTime: completionTime });
+          }
+        }
       }
       
       if (roomId) {

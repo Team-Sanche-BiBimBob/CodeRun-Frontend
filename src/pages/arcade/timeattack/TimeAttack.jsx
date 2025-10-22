@@ -132,6 +132,21 @@ const CodeRunTimeAttack = () => {
     }));
   };
 
+  // 기록 삭제 함수
+  const deleteRecord = (problemId) => {
+    // sessionStorage에서 완료 시간 삭제
+    sessionStorage.removeItem(`problem_${problemId}_completion`);
+    
+    // 상태에서도 완료 시간 제거
+    setCompletionTimes(prev => {
+      const newTimes = { ...prev };
+      delete newTimes[problemId];
+      return newTimes;
+    });
+    
+    console.log(`문제 ${problemId} 기록 삭제됨`);
+  };
+
   // 방 완료 시간 가져오기 (API 스펙에 맞게 수정)
   const fetchRoomCompletionTimes = async () => {
     try {
@@ -215,7 +230,7 @@ const CodeRunTimeAttack = () => {
   };
 
 
-  // sessionStorage에서 완료 시간 가져오기 (실시간)
+  // sessionStorage에서 완료 시간 가져오기 (기록 유지)
   const loadCompletionTimeFromStorage = () => {
     try {
       // 모든 문제에 대해 완료 시간 확인
@@ -239,10 +254,8 @@ const CodeRunTimeAttack = () => {
         }));
         console.log('완료 시간 업데이트:', newCompletionTimes);
         
-        // 사용 후 정리 (sessionStorage는 자동으로 사라짐)
-        problemIds.forEach(problemId => {
-          sessionStorage.removeItem(`problem_${problemId}_completion`);
-        });
+        // 기록 유지를 위해 sessionStorage에서 제거하지 않음
+        // 페이지 새로고침 시에만 자동으로 사라짐
       } else {
         console.log('저장된 완료 시간이 없습니다.');
       }
@@ -613,8 +626,22 @@ const CodeRunTimeAttack = () => {
                 {(filteredProblems.length > 0 ? filteredProblems : problems).map((problem) => (
                   <div
                     key={problem.id}
-                    className="p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md"
+                    className="relative p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md"
                   >
+                    {/* 기록 삭제 버튼 */}
+                    {completionTimes[problem.id] && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteRecord(problem.id);
+                        }}
+                        className="absolute flex items-center justify-center w-6 h-6 text-red-500 transition-colors rounded-full top-2 right-2 hover:text-red-700 hover:bg-red-100"
+                        title="기록 삭제"
+                      >
+                        ✕
+                      </button>
+                    )}
+                    
                     <h3 className="mb-3 font-semibold text-gray-800">{problem.title}</h3>
                     <div className="flex gap-2 mb-3">
                       {problem.tags.map((tag, index) => (
