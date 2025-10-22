@@ -262,7 +262,8 @@ function WordPage() {
     
     // 현재 입력 중인 단어 추가
     if (userInput.length > 0) {
-      totalChars += Math.max(userInput.length, currentWord.length);
+      // totalChars는 현재 입력된 글자 수만큼만 증가
+      totalChars += userInput.length; // <--- Changed this line
       
       const minLength = Math.min(userInput.length, currentWord.length);
       for (let i = 0; i < minLength; i++) {
