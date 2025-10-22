@@ -140,9 +140,10 @@ const Fullcode = () => {
   });
 
   const handleEditorDidMount = (editor, monaco) => {
-    editorRef.current = editor;
-    
-    // 모든 언어에 대한 검증 비활성화
+    editorRef.current = editor; 
+
+    console.log('현재 Monaco Editor 언어:', monacoLanguage);
+
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: true,
@@ -251,25 +252,32 @@ const Fullcode = () => {
     if (!input) return 100;
     
     const inputLines = input.split('\n');
-    const exampleLines = exampleCode.split('\n');
+    const exampleLinesArray = exampleCode.split('\n');
     
-    let incorrectChars = 0;
-    let totalInputChars = 0;
+    let correctChars = 0;
+    let totalChars = 0;
     
-    // 모든 라인에 대해 정확도 계산
-    inputLines.forEach((inputLine, lineIndex) => {
-      const exampleLine = exampleLines[lineIndex] || '';
+    // 예시 코드 라인 수만큼만 계산
+    const linesToCheck = Math.min(inputLines.length, exampleLinesArray.length);
+    
+    for (let lineIndex = 0; lineIndex < linesToCheck; lineIndex++) {
+      const inputLine = inputLines[lineIndex] || '';
+      const exampleLine = exampleLinesArray[lineIndex] || '';
       
-      for (let i = 0; i < inputLine.length; i++) {
-        totalInputChars++;
-        if (i >= exampleLine.length || inputLine[i] !== exampleLine[i]) {
-          incorrectChars++;
+      // 예시 라인의 길이를 totalChars에 추가
+      totalChars += exampleLine.length;
+      
+      // 맞은 글자 수 카운트
+      const minLength = Math.min(inputLine.length, exampleLine.length);
+      for (let i = 0; i < minLength; i++) {
+        if (inputLine[i] === exampleLine[i]) {
+          correctChars++;
         }
       }
-    });
+    }
     
-    return totalInputChars > 0 
-      ? Math.round(((totalInputChars - incorrectChars) / totalInputChars) * 100)
+    return totalChars > 0 
+      ? Math.round((correctChars / totalChars) * 100)
       : 100;
   };
 
@@ -334,13 +342,20 @@ const Fullcode = () => {
               
               let correctChars = 0;
               let totalChars = 0;
+              
+              // 마지막 엔터로 생긴 빈 줄 제거
               const inputLines = value.split('\n');
+              // 마지막이 빈 문자열이면 제거
+              if (inputLines[inputLines.length - 1] === '') {
+                inputLines.pop();
+              }
               
               exampleLinesArray.forEach((exampleLine, i) => {
                 const inputLine = inputLines[i] || '';
                 totalChars += exampleLine.length;
-                for (let j = 0; j < Math.min(exampleLine.length, inputLine.length); j++) {
-                  if (exampleLine[j] === inputLine[j]) {
+                
+                for (let j = 0; j < exampleLine.length; j++) {
+                  if (inputLine[j] === exampleLine[j]) {
                     correctChars++;
                   }
                 }
@@ -348,10 +363,14 @@ const Fullcode = () => {
               
               const finalAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
               
+              const finalElapsedTime = elapsedTime > 0 ? elapsedTime : 1;
+              const timeInMinutes = finalElapsedTime / 60;
+              const finalTypingSpeed = Math.round(value.length / timeInMinutes);
+              
               setCompletionStats({
                 accuracy: finalAccuracy,
-                typingSpeed: calculateWPM(),
-                elapsedTime: elapsedTime
+                typingSpeed: finalTypingSpeed,
+                elapsedTime: finalElapsedTime
               });
               setShowCompletionModal(true);
               
@@ -365,7 +384,7 @@ const Fullcode = () => {
               // 새로운 풀코드 가져오기
               fetchFullCodes();
               return;
-            }
+            } 
           }
         }
       }
@@ -441,12 +460,12 @@ const Fullcode = () => {
   // 로딩 상태 표시
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="flex justify-center items-center min-h-screen bg-white">
         <div className="text-center">
           <div className="mb-4 text-xl font-semibold text-gray-700">
             {loadingMessage || '풀코드를 불러오는 중...'}
           </div>
-          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
         </div>
       </div>
     );
