@@ -1,6 +1,7 @@
 // src/pages/practice/sentence/SentencePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import axios from 'axios';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -359,6 +360,17 @@ function SentencePage() {
     return { nextChar, nextWord, currentPosition: nextCharIndex, totalLength: currentSentence.length, remainingText, currentSentence };
   }, [currentSentence, typedChars.length]);
 
+  // 시간 문자열을 초로 변환하는 함수
+  const timeToSeconds = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseInt(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
   const handleRestart = () => {
     setCurrentIndex(0);
     setTypedChars([]);
@@ -371,9 +383,88 @@ function SentencePage() {
   const handleGoHome = () => {
     // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
     if (urlLanguageId) {
+      // 완료 시간을 타임어택으로 전달
+      const completionTime = getElapsedTime();
+      const roomId = urlParams.get('roomId');
+      
+      console.log('문장 연습 완료:', { completionTime, roomId, urlLanguageId });
+      
+      // roomId가 없어도 언어 ID로 문제 ID 계산
+      const languageId = parseInt(urlLanguageId);
+      let problemId = null;
+      
+      // 언어 ID와 난이도로 문제 ID 계산
+      if (languageId === 1) { // Python
+        problemId = 1; // Python 문장 연습
+      } else if (languageId === 2) { // Java
+        problemId = 4; // Java 문장 연습
+      } else if (languageId === 5) { // JavaScript
+        problemId = 7; // JavaScript 문장 연습
+      }
+      
+      if (problemId) {
+        // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
+        const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+        
+        if (!existingTime) {
+          // 기존 기록이 없으면 저장
+          sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+          console.log('완료 시간 sessionStorage 저장:', { problemId, completionTime, languageId });
+        } else {
+          // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
+          const existingSeconds = timeToSeconds(existingTime);
+          const currentSeconds = timeToSeconds(completionTime);
+          
+          if (currentSeconds < existingSeconds) {
+            sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+            console.log('더 좋은 기록으로 업데이트:', { problemId, oldTime: existingTime, newTime: completionTime });
+          } else {
+            console.log('기존 기록이 더 좋음:', { problemId, existingTime, currentTime: completionTime });
+          }
+        }
+      }
+      
+      if (roomId) {
+        // 방 완료 시간 업데이트 API 호출
+        updateRoomCompletionTime(roomId, completionTime);
+      }
+      
       navigate('/timeattack');
     } else {
       navigate('/');
+    }
+  };
+
+  // 방 완료 시간 업데이트 (API 스펙에 맞게 수정)
+  const updateRoomCompletionTime = async (roomId, completionTime) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // API 스펙에 맞는 요청 데이터 구조
+      const requestData = {
+        completionTime: completionTime,
+        completedAt: new Date().toISOString(),
+        status: 'COMPLETED',
+        result: {
+          accuracy: getAccuracy().toFixed(2),
+          typingSpeed: getTypingSpeed().toFixed(0),
+          totalTime: completionTime
+        }
+      };
+      
+      console.log('완료 시간 업데이트 요청:', { roomId, requestData });
+      
+      const response = await axios.put(`${baseUrl}/api/rooms/${roomId}/completion`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('방 완료 시간 업데이트 성공:', response.data);
+    } catch (error) {
+      console.error('방 완료 시간 업데이트 실패:', error);
+      console.error('에러 상세:', error.response?.data);
     }
   };
 

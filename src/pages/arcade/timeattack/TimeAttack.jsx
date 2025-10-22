@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 
 
 const CodeRunTimeAttack = () => {
@@ -20,6 +21,8 @@ const CodeRunTimeAttack = () => {
   const [problems, setProblems] = useState([]);
   const [filteredProblems, setFilteredProblems] = useState([]);
   const [activeRankingTab, setActiveRankingTab] = useState('오늘');
+  const [rooms, setRooms] = useState([]);
+  const [completionTimes, setCompletionTimes] = useState({});
 
   // 랭킹 데이터
   const rankingsData = {
@@ -59,10 +62,232 @@ const CodeRunTimeAttack = () => {
     { id: 6, title: "JavaScript 풀코드 연습", tags: ["javascript"], difficulty: "풀코드", time: "00:00:00" }
   ];
 
+  // 방 목록 가져오기 (API 스펙에 맞게 수정)
+  const fetchRooms = async () => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      const response = await axios.get(`${baseUrl}/api/rooms`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        params: {
+          arcadeType: 'TIME_ATTACK', // TIME_ATTACK 타입만 필터링
+          status: 'ACTIVE' // 활성 상태만 가져오기
+        }
+      });
+      
+      setRooms(response.data);
+      console.log('방 목록:', response.data);
+    } catch (error) {
+      console.error('방 목록 가져오기 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+    }
+  };
+
+  // 방 생성하기 (API 스펙에 맞게 수정)
+  const createRoom = async (arcadeType, eventType, language, difficulty) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // API 스펙에 맞는 요청 데이터 구조
+      const requestData = {
+        title: `${language} ${difficulty} 연습`,
+        description: `${language} ${difficulty} 연습을 위한 방입니다`,
+        arcadeType: arcadeType,
+        eventType: eventType,
+        // 추가 필드들 (API 스펙에 따라 조정)
+        maxPlayers: 1,
+        isPrivate: false,
+        settings: {
+          timeLimit: 300, // 5분 제한
+          difficulty: difficulty
+        }
+      };
+      
+      console.log('방 생성 요청 데이터:', requestData);
+      
+      const response = await axios.post(`${baseUrl}/api/rooms`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('방 생성 성공:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('방 생성 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+      return null;
+    }
+  };
+
+  // 완료 시간 업데이트
+  const updateCompletionTime = (problemId, time) => {
+    setCompletionTimes(prev => ({
+      ...prev,
+      [problemId]: time
+    }));
+  };
+
+  // 기록 삭제 함수
+  const deleteRecord = (problemId) => {
+    // sessionStorage에서 완료 시간 삭제
+    sessionStorage.removeItem(`problem_${problemId}_completion`);
+    
+    // 상태에서도 완료 시간 제거
+    setCompletionTimes(prev => {
+      const newTimes = { ...prev };
+      delete newTimes[problemId];
+      return newTimes;
+    });
+    
+    console.log(`문제 ${problemId} 기록 삭제됨`);
+  };
+
+  // 방 완료 시간 가져오기 (API 스펙에 맞게 수정)
+  const fetchRoomCompletionTimes = async () => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      const response = await axios.get(`${baseUrl}/api/rooms`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        params: {
+          arcadeType: 'TIME_ATTACK',
+          status: 'COMPLETED' // 완료된 방만 가져오기
+        }
+      });
+      
+      const completionTimesMap = {};
+      response.data.forEach(room => {
+        if (room.completionTime && room.arcadeType === 'TIME_ATTACK') {
+          // 방의 이벤트 타입과 언어에 따라 문제 ID 매핑
+          const problemId = getProblemIdFromRoom(room);
+          if (problemId) {
+            completionTimesMap[problemId] = room.completionTime;
+          }
+        }
+      });
+      
+      // 실제로 변경된 데이터가 있을 때만 업데이트
+      if (Object.keys(completionTimesMap).length > 0) {
+        setCompletionTimes(prev => ({
+          ...prev,
+          ...completionTimesMap
+        }));
+        console.log('서버에서 완료 시간 업데이트:', completionTimesMap);
+      }
+      
+    } catch (error) {
+      // 에러 로그는 필요할 때만 출력
+      // console.error('완료 시간 가져오기 실패:', error);
+    }
+  };
+
+  // 방 정보에서 문제 ID 매핑 (더 정확한 매핑)
+  const getProblemIdFromRoom = (room) => {
+    // 방 제목이나 설명에서 언어와 타입을 추출
+    const title = room.title || '';
+    const description = room.description || '';
+    
+    // 언어 추출 (대소문자 구분 없이)
+    let language = '';
+    const titleLower = title.toLowerCase();
+    const descLower = description.toLowerCase();
+    
+    if (titleLower.includes('python') || descLower.includes('python')) language = 'python';
+    else if (titleLower.includes('java') || descLower.includes('java')) language = 'java';
+    else if (titleLower.includes('javascript') || descLower.includes('javascript')) language = 'javascript';
+    
+    // 타입 추출
+    let difficulty = '';
+    if (room.eventType === 'PRACTICE_SENTENCE' || title.includes('문장')) difficulty = '문장';
+    else if (room.eventType === 'PRACTICE_FULL_CODE' || title.includes('풀코드')) difficulty = '풀코드';
+    else if (room.eventType === 'PRACTICE_WORD' || title.includes('단어')) difficulty = '단어';
+    
+    // 문제 ID 매핑
+    const problemMap = {
+      'python-문장': 1,
+      'python-풀코드': 2,
+      'python-단어': 3,
+      'java-문장': 4,
+      'java-풀코드': 5,
+      'java-단어': 6,
+      'javascript-문장': 7,
+      'javascript-풀코드': 8,
+      'javascript-단어': 9
+    };
+    
+    const key = `${language}-${difficulty}`;
+    const problemId = problemMap[key];
+    console.log('방 매핑:', { title, eventType, language, difficulty, key, problemId });
+    return problemId;
+  };
+
+
+  // sessionStorage에서 완료 시간 가져오기 (기록 유지)
+  const loadCompletionTimeFromStorage = () => {
+    try {
+      // 모든 문제에 대해 완료 시간 확인
+      const problemIds = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // 모든 문제 ID
+      const newCompletionTimes = {};
+      
+      console.log('완료 시간 로드 시작...');
+      
+      problemIds.forEach(problemId => {
+        const completionTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+        if (completionTime) {
+          newCompletionTimes[problemId] = completionTime;
+          console.log(`문제 ${problemId} 완료 시간 로드:`, completionTime);
+        }
+      });
+      
+      if (Object.keys(newCompletionTimes).length > 0) {
+        setCompletionTimes(prev => ({
+          ...prev,
+          ...newCompletionTimes
+        }));
+        console.log('완료 시간 업데이트:', newCompletionTimes);
+        
+        // 기록 유지를 위해 sessionStorage에서 제거하지 않음
+        // 페이지 새로고침 시에만 자동으로 사라짐
+      } else {
+        console.log('저장된 완료 시간이 없습니다.');
+      }
+      
+    } catch (error) {
+      console.error('sessionStorage에서 완료 시간 로드 실패:', error);
+    }
+  };
+
   useEffect(() => {
     setRankings(rankingsData['오늘']);
     setProblems(initialProblems);
     setFilteredProblems([]);
+    fetchRooms();
+    
+    // 주기적으로 완료 시간 업데이트 (5초마다)
+    const interval = setInterval(fetchRoomCompletionTimes, 5000);
+    
+    // 페이지 포커스 시 완료 시간 로드
+    const handleFocus = () => {
+      loadCompletionTimeFromStorage();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    // 초기 로드 시에도 완료 시간 확인
+    loadCompletionTimeFromStorage();
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // 문제 필터링 함수
@@ -154,7 +379,7 @@ const CodeRunTimeAttack = () => {
   };
 
   // 문제 도전하기 버튼 클릭 처리
-  const handleChallengeClick = (difficulty, problem) => {
+  const handleChallengeClick = async (difficulty, problem) => {
     console.log('handleChallengeClick 호출됨:', { difficulty, problem });
     
     // 언어 ID 매핑 (서버 데이터에 맞게 수정)
@@ -191,22 +416,84 @@ const CodeRunTimeAttack = () => {
       difficulty,
       problemTitle: problem.title
     });
+
+    // 이벤트 타입 매핑
+    const eventTypeMap = {
+      '문장': 'PRACTICE_SENTENCE',
+      '풀코드': 'PRACTICE_FULL_CODE',
+      '단어': 'PRACTICE_WORD'
+    };
+
+    const eventType = eventTypeMap[difficulty];
     
-    if (difficulty === '문장') {
-      if (languageId) {
-        // sentence 페이지로 이동 (선택된 언어 ID 전달)
-        window.location.href = `/sentence?language=${languageId}`;
-      } else {
-        // 일반 sentence 페이지로 이동
-        window.location.href = '/sentence';
+    // 방 생성
+    const room = await createRoom('TIME_ATTACK', eventType, selectedLanguage || 'python', difficulty);
+    
+    if (room) {
+      console.log('방 생성 완료, 연습 페이지로 이동:', room);
+      
+      // 방 정보를 localStorage에 저장 (문제 ID와 함께)
+      const problemId = getProblemIdFromLanguageAndDifficulty(selectedLanguage, difficulty);
+      const roomData = {
+        roomId: room.roomId,
+        problemId: problemId,
+        language: selectedLanguage,
+        difficulty: difficulty,
+        eventType: eventType
+      };
+      
+      localStorage.setItem('currentRoom', JSON.stringify(roomData));
+      localStorage.setItem(`roomInfo_${room.roomId}`, JSON.stringify(roomData));
+      
+      console.log('방 정보 저장:', roomData);
+      
+      if (difficulty === '문장') {
+        if (languageId) {
+          // sentence 페이지로 이동 (선택된 언어 ID와 방 ID 전달)
+          window.location.href = `/sentence?language=${languageId}&roomId=${room.roomId}`;
+        } else {
+          // 일반 sentence 페이지로 이동
+          window.location.href = `/sentence?roomId=${room.roomId}`;
+        }
+      } else if (difficulty === '풀코드') {
+        if (languageId) {
+          // full 페이지로 이동 (선택된 언어 ID와 방 ID 전달)
+          window.location.href = `/full?language=${languageId}&roomId=${room.roomId}`;
+        } else {
+          // 일반 full 페이지로 이동
+          window.location.href = `/full?roomId=${room.roomId}`;
+        }
+      } else if (difficulty === '단어') {
+        if (languageId) {
+          // word 페이지로 이동 (선택된 언어 ID와 방 ID 전달)
+          window.location.href = `/word?language=${languageId}&roomId=${room.roomId}`;
+        } else {
+          // 일반 word 페이지로 이동
+          window.location.href = `/word?roomId=${room.roomId}`;
+        }
       }
-    } else if (difficulty === '풀코드') {
-      if (languageId) {
-        // full 페이지로 이동 (선택된 언어 ID 전달)
-        window.location.href = `/full?language=${languageId}`;
-      } else {
-        // 일반 full 페이지로 이동
-        window.location.href = '/full';
+    } else {
+      console.error('방 생성 실패, 기본 페이지로 이동');
+      
+      // 방 생성 실패 시 기본 동작
+      if (difficulty === '문장') {
+        if (languageId) {
+          window.location.href = `/sentence?language=${languageId}`;
+        } else {
+          window.location.href = '/sentence';
+        }
+      } else if (difficulty === '풀코드') {
+        if (languageId) {
+          window.location.href = `/full?language=${languageId}`;
+        } else {
+          window.location.href = '/full';
+        }
+      } else if (difficulty === '단어') {
+        if (languageId) {
+          window.location.href = `/word?language=${languageId}`;
+        } else {
+          window.location.href = '/word';
+        }
       }
     }
   };
@@ -339,8 +626,22 @@ const CodeRunTimeAttack = () => {
                 {(filteredProblems.length > 0 ? filteredProblems : problems).map((problem) => (
                   <div
                     key={problem.id}
-                    className="p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md"
+                    className="relative p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md"
                   >
+                    {/* 기록 삭제 버튼 */}
+                    {completionTimes[problem.id] && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteRecord(problem.id);
+                        }}
+                        className="absolute flex items-center justify-center w-6 h-6 text-red-500 transition-colors rounded-full top-2 right-2 hover:text-red-700 hover:bg-red-100"
+                        title="기록 삭제"
+                      >
+                        ✕
+                      </button>
+                    )}
+                    
                     <h3 className="mb-3 font-semibold text-gray-800">{problem.title}</h3>
                     <div className="flex gap-2 mb-3">
                       {problem.tags.map((tag, index) => (
@@ -353,7 +654,13 @@ const CodeRunTimeAttack = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between mb-3 text-sm text-gray-600">
-                      <span>⏱️ {problem.time}</span>
+                      <span>⏱️ {completionTimes[problem.id] || problem.time}</span>
+                      {completionTimes[problem.id] && (
+                        <span className="text-xs text-green-600">✓ 완료</span>
+                      )}
+                      <div className="text-xs text-gray-400">
+                        ID: {problem.id} | 완료시간: {completionTimes[problem.id] || '없음'}
+                      </div>
                     </div>
                     <button 
                       className="w-full py-2 mt-3 text-sm text-white transition-colors rounded-md hover:opacity-90"
