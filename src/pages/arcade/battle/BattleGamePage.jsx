@@ -59,15 +59,6 @@ useEffect(() => {
       ws.onopen = () => {
         console.log('✅ WebSocket 연결 성공 - 플레이어', playerId);
         setIsConnected(true);
-
-        // 연결 즉시 플레이어 정보 전송
-        const joinMessage = {
-          type: 'join',
-          playerId: playerId,
-          arcadeId: arcadeId
-        };
-        ws.send(JSON.stringify(joinMessage));
-        console.log('📤 Join 메시지 전송:', joinMessage);
       };
 
       ws.onmessage = (event) => {
@@ -300,7 +291,7 @@ useEffect(() => {
           }));
         }
 
-        const response = await fetch('/api/battle/result', {
+        const response = await fetch('/api/rooms/result/16', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
