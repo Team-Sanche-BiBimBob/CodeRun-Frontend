@@ -12,6 +12,9 @@ const MyPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('사용자');
   const [userInfo, setUserInfo] = useState("이메일");
+  const [learningData, setLearningData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
 
   useEffect(() => {
@@ -37,6 +40,29 @@ const MyPage = () => {
 
     checkLoginStatus();
   }, []);
+
+  useEffect(() => {
+    const fetchLearningData = async () => {
+      try {
+        const response = await api.get('/mypage');
+        setLearningData(response.data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLearningData();
+  }, []);
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen bg-white">Loading user data...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center min-h-screen font-bold text-red-500 bg-white">Error: {error.message}</div>;
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <h1 className="px-8 py-6 text-3xl font-bold">마이페이지</h1>
@@ -46,11 +72,11 @@ const MyPage = () => {
         <div className="flex flex-col justify-between p-8 rounded-lg w-80 bg-gray-50" style={{ height: '640px' }}>
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-40 h-40 mb-6 bg-gray-300 rounded-full">
-              <span className="text-6xl font-bold text-gray-600">U</span>
+              <img src={learningData?.profileImage || userImg} alt="Profile" className="object-cover w-full h-full rounded-full" />
             </div>
             
             <h2 className="mb-4 text-2xl font-bold">{userName}</h2>
-            <p className="mb-12 text-gray-600">{userInfo}</p>
+            <p className="mb-12 text-gray-600">{learningData?.userDescription || userInfo}</p>
             
             <button className="px-4 py-2 font-medium text-white bg-teal-500 rounded">
               레벨 15
@@ -127,15 +153,37 @@ const MyPage = () => {
           <div>
             <h3 className="mb-6 text-lg font-semibold">내 학습 기록 보기</h3>
             
-            <div className="p-12 text-center rounded-lg bg-gray-50">
-              <p className="mb-4 text-lg text-gray-600">
-                "아직 아무 기록도 없어요. 첫 학습을 시작해볼까요?"
-              </p>
-              <button className="px-8 py-3 font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600" onClick={()=>{
-                navigate("/selectLanguage")
-              }}>
-                학습하러 가기
-              </button>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {learningData?.recentlyStudiedLanguage || learningData?.mostStudiedLanguage ? (
+                <>
+                  {learningData.recentlyStudiedLanguage && (
+                    <div className="p-6 bg-white rounded-lg shadow-md">
+                      <h4 className="mb-3 text-lg font-bold text-teal-600">최근 학습한 언어</h4>
+                      <p className="text-xl font-semibold text-gray-800">{learningData.recentlyStudiedLanguage.name}</p>
+                      <p className="text-gray-700">진행률: {learningData.recentlyStudiedLanguageProgress}%</p>
+                    </div>
+                  )}
+
+                  {learningData.mostStudiedLanguage && (
+                    <div className="p-6 bg-white rounded-lg shadow-md">
+                      <h4 className="mb-3 text-lg font-bold text-teal-600">가장 많이 학습한 언어</h4>
+                      <p className="text-xl font-semibold text-gray-800">{learningData.mostStudiedLanguage.name}</p>
+                      <p className="text-gray-700">진행률: {learningData.mostStudiedLanguageProgress}%</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="p-12 text-center rounded-lg bg-gray-50 col-span-full">
+                  <p className="mb-4 text-lg text-gray-600">
+                    "아직 아무 기록도 없어요. 첫 학습을 시작해볼까요?”
+                  </p>
+                  <button className="px-8 py-3 font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600" onClick={()=>{
+                    navigate("/selectLanguage")
+                  }}>
+                    학습하러 가기
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
