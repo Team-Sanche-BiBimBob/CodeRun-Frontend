@@ -1,5 +1,5 @@
 // src/pages/arcade/battle/BattleGamePage.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
 function BattleGamePage() {
@@ -7,6 +7,13 @@ function BattleGamePage() {
   const [gameType, setGameType] = useState(location.state?.gameType || '단어'); // '단어' or '문장'
   const [timeLimit] = useState(location.state?.timeLimit || 60);
   const [roomName] = useState(location.state?.roomName || '테스트방');
+  const [arcadeId] = useState(location.state?.arcadeId || '1'); // 아케이드방 ID
+  const [playerId] = useState(location.state?.playerId || 1); // 1 or 2
+  
+  // 웹소켓
+  const wsRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [opponentConnected, setOpponentConnected] = useState(false);
 
   // 공통 상태
   const [isGameStarted, setIsGameStarted] = useState(false);
@@ -25,15 +32,92 @@ function BattleGamePage() {
   const [typedChars, setTypedChars] = useState([]);
   const [completedSentences, setCompletedSentences] = useState([]);
 
-  // 플레이어 정보 (내 정보 및 상대 시뮬레이션)
+  // 플레이어 정보
   const [myProgress, setMyProgress] = useState(0);
   const [opponentProgress, setOpponentProgress] = useState(0);
   const [myAccuracy, setMyAccuracy] = useState(100);
   const [mySpeed, setMySpeed] = useState(0); // WPM
   const [opponentSpeed, setOpponentSpeed] = useState(0);
-  const [opponentAccuracy] = useState(80); // 시뮬레이션 상수
+  const [opponentAccuracy, setOpponentAccuracy] = useState(100);
 
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+
+  // === 웹소켓 연결 ===
+  useEffect(() => {
+    const ws = new WebSocket(`ws://52.79.238.111:8080/api/ws/arcade?id=${arcadeId}`);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket 연결됨');
+      setIsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('받은 데이터:', data);
+
+        // 상대방 점수 업데이트 (진행도 그대로 사용)
+        if (playerId === 1 && data.player2Points !== undefined) {
+          setOpponentProgress(data.player2Points); // 0~100 진행도
+          setOpponentSpeed(data.player2Speed || 0);
+          setOpponentAccuracy(data.player2Accuracy || 100);
+        } else if (playerId === 2 && data.player1Points !== undefined) {
+          setOpponentProgress(data.player1Points); // 0~100 진행도
+          setOpponentSpeed(data.player1Speed || 0);
+          setOpponentAccuracy(data.player1Accuracy || 100);
+        }
+
+        // 게임 시작 신호 (양쪽 플레이어 모두 연결됨)
+        if (data.gameStart || data.bothConnected) {
+          setOpponentConnected(true);
+        }
+      } catch (error) {
+        console.error('메시지 파싱 오류:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket 오류:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket 연결 종료');
+      setIsConnected(false);
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, [arcadeId, playerId]);
+
+  // === 내 점수를 서버로 전송 ===
+  const sendMyProgress = useCallback(() => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+
+    const message = playerId === 1
+      ? {
+          player1Points: Math.round(myProgress), // 진행도(0~100)를 그대로 전송
+          player1Speed: mySpeed,
+          player1Accuracy: myAccuracy
+        }
+      : {
+          player2Points: Math.round(myProgress),
+          player2Speed: mySpeed,
+          player2Accuracy: myAccuracy
+        };
+
+    wsRef.current.send(JSON.stringify(message));
+  }, [myProgress, mySpeed, myAccuracy, playerId]);
+
+  // 진행도 변경 시마다 전송
+  useEffect(() => {
+    if (isGameStarted && !isGameComplete) {
+      sendMyProgress();
+    }
+  }, [myProgress, mySpeed, myAccuracy, isGameStarted, isGameComplete, sendMyProgress]);
 
   // === 초기 데이터 로드 ===
   useEffect(() => {
@@ -72,7 +156,7 @@ function BattleGamePage() {
     setMyProgress(0);
   }, [gameType]);
 
-  // === 타이머 및 상대 시뮬레이션 ===
+  // === 타이머 ===
   useEffect(() => {
     let interval = null;
     if (isGameStarted && !isGameComplete && remainingTime > 0) {
@@ -84,10 +168,6 @@ function BattleGamePage() {
           }
           return prev - 1;
         });
-
-        // 상대 시뮬레이션 (간단)
-        setOpponentProgress(prev => Math.min(100, prev + Math.random() * 3));
-        setOpponentSpeed(prev => Math.min(200, prev + Math.random() * 3));
       }, 1000);
     }
     return () => interval && clearInterval(interval);
@@ -162,18 +242,16 @@ function BattleGamePage() {
   }, [wordUserInput, currentWordIndex, typedChars, currentSentenceIndex, sentences, gameType, wordList]);
 
   // === 게임 결과 전송 ===
-useEffect(() => {
-  if (!isGameComplete) return;
+  useEffect(() => {
+    if (!isGameComplete) return;
 
-  // 승자 판정: 1번(나) 또는 2번(상대)
-  const winnerId =
-    myProgress > opponentProgress ? 1 :
-    myProgress < opponentProgress ? 2 :
-    0; // 무승부
+    const winnerId =
+      myProgress > opponentProgress ? playerId :
+      myProgress < opponentProgress ? (playerId === 1 ? 2 : 1) :
+      0;
 
-  // 서버 전송
-  const sendResult = async () => {
-    try {
+    const sendResult = async () => {
+      try {
         const response = await fetch('/api/battle/result', {
           method: 'POST',
           headers: {
@@ -193,7 +271,7 @@ useEffect(() => {
     };
 
     sendResult();
-  }, [isGameComplete]);
+  }, [isGameComplete, myProgress, opponentProgress, playerId]);
 
   // === 게임 시작 ===
   const handleStartGame = () => {
@@ -404,28 +482,41 @@ useEffect(() => {
               <span className="text-gray-600">제한 시간</span>
               <span className="font-semibold">{timeLimit}초</span>
             </div>
+            <div className="flex items-center justify-between p-3 rounded bg-gray-50">
+              <span className="text-gray-600">연결 상태</span>
+              <span className={`font-semibold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                {isConnected ? '연결됨' : '연결 중...'}
+              </span>
+            </div>
           </div>
 
           <div className="mb-6 space-y-3">
             <div className="p-4 rounded-lg bg-teal-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">나</span>
+                <span className="font-semibold">나 (플레이어 {playerId})</span>
                 <span className="px-3 py-1 text-sm text-white bg-teal-500 rounded-full">준비 완료</span>
               </div>
             </div>
             <div className="p-4 rounded-lg bg-red-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">상대</span>
-                <span className="px-3 py-1 text-sm text-white bg-red-500 rounded-full">준비 완료</span>
+                <span className="font-semibold">상대 (플레이어 {playerId === 1 ? 2 : 1})</span>
+                <span className={`px-3 py-1 text-sm text-white rounded-full ${opponentConnected ? 'bg-red-500' : 'bg-gray-400'}`}>
+                  {opponentConnected ? '준비 완료' : '대기 중...'}
+                </span>
               </div>
             </div>
           </div>
 
           <button
             onClick={handleStartGame}
-            className="w-full py-3 text-lg font-semibold text-white transition-colors bg-teal-500 rounded-lg hover:bg-teal-600"
+            disabled={!isConnected || !opponentConnected}
+            className={`w-full py-3 text-lg font-semibold text-white transition-colors rounded-lg ${
+              isConnected && opponentConnected
+                ? 'bg-teal-500 hover:bg-teal-600'
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
           >
-            게임 시작
+            {!isConnected ? '서버 연결 중...' : !opponentConnected ? '상대 대기 중...' : '게임 시작'}
           </button>
         </div>
       </div>
@@ -444,7 +535,7 @@ useEffect(() => {
           <div className="mb-6 space-y-4">
             <div className="p-4 rounded-lg bg-gray-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold">나</span>
+                <span className="text-lg font-semibold">나 (플레이어 {playerId})</span>
                 <span className="text-2xl font-bold text-teal-600">{myProgress.toFixed(0)}%</span>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
@@ -455,7 +546,7 @@ useEffect(() => {
 
             <div className="p-4 rounded-lg bg-gray-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold">상대</span>
+                <span className="text-lg font-semibold">상대 (플레이어 {playerId === 1 ? 2 : 1})</span>
                 <span className="text-2xl font-bold text-red-600">{opponentProgress.toFixed(0)}%</span>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
@@ -492,7 +583,7 @@ useEffect(() => {
         <div className="p-6 bg-white rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col items-start space-y-1">
-              <span className="text-xl font-bold">나</span>
+              <span className="text-xl font-bold">나 (P{playerId})</span>
               <span className="text-3xl font-bold text-teal-600">{myProgress.toFixed(0)}%</span>
               <span className="text-sm text-gray-600">{mySpeed} 타/분</span>
             </div>
@@ -505,7 +596,7 @@ useEffect(() => {
 
             <div className="flex flex-col items-end space-y-1">
               <span className="text-3xl font-bold text-red-600">{opponentProgress.toFixed(0)}%</span>
-              <span className="text-xl font-bold">상대</span>
+              <span className="text-xl font-bold">상대 (P{playerId === 1 ? 2 : 1})</span>
               <span className="text-sm text-gray-600">{opponentSpeed.toFixed(0)} 타/분</span>
             </div>
           </div>
