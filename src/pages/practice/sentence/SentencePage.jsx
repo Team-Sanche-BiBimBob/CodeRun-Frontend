@@ -382,7 +382,7 @@ function SentencePage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
       <div className="text-center">
         <div className="mb-4 text-xl font-semibold text-gray-700">타자연습 문장을 불러오는 중...</div>
-        <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+        <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
       </div>
     </div>
   );
@@ -455,7 +455,7 @@ function SentencePage() {
       </div>
 
       {!isComplete && (
-        <div className="flex flex-col items-center mt-10 w-full">
+        <div className="flex flex-col items-center w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
