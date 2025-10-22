@@ -18,7 +18,7 @@ function SentencePage() {
   const [startTime, setStartTime] = useState(() => new Date());
 
   const location = useLocation();
-  const { languageId } = location.state || {};
+  const { language: languageId } = location.state || {};
   
   // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
   const urlParams = new URLSearchParams(location.search);
