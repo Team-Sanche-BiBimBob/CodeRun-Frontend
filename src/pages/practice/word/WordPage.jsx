@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -7,8 +8,12 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 function WordPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const languageId = location.state?.language || location.state?.languageId;
-  const { workbookId, workbookTitle, workbookProblems } = location.state || {};
+  const { language: languageId } = location.state || {};
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,13 +42,13 @@ function WordPage() {
     try {
       console.log('단어 가져오기 시도 중...');
       
-      if (!languageId) {
+      if (!finalLanguageId) {
         console.warn('언어 ID가 없습니다. 기본 단어 사용');
         throw new Error('언어 ID 없음');
       }
 
       const possibleUrls = [
-        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words'
+        finalLanguageId ? `/api/problems/words/${finalLanguageId}` : '/api/problems/words'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
@@ -93,15 +98,15 @@ function WordPage() {
       // 폴백 데이터 사용 (언어별 기본 단어)
       let fallbackWords = [];
       
-      if (languageId === 1) { // Python
+      if (finalLanguageId === 1) { // Python
         fallbackWords = [
           'print', 'def', 'if', 'else', 'for', 'while', 'class', 'import', 'return', 'lambda'
         ];
-      } else if (languageId === 2) { // Java
+      } else if (finalLanguageId === 2) { // Java
         fallbackWords = [
           'public', 'class', 'static', 'void', 'main', 'String', 'int', 'boolean', 'if', 'for'
         ];
-      } else if (languageId === 5) { // JavaScript
+      } else if (finalLanguageId === 5) { // JavaScript
         fallbackWords = [
           'function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'console'
         ];
@@ -120,7 +125,7 @@ function WordPage() {
     } finally {
       setLoading(false);
     }
-  }, [languageId, workbookProblems]);
+  }, [finalLanguageId]);
 
   useEffect(() => {
     fetchWords();
@@ -130,6 +135,13 @@ function WordPage() {
     setIsComplete(false);
     setStartTime(new Date());
   }, [fetchWords]);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   const getNextCharInfo = useCallback(() => {
     const currentWord = wordList[currentIndex] || '';
@@ -292,6 +304,17 @@ function WordPage() {
     return elapsedSeconds === 0 ? 0 : (totalTyped / elapsedSeconds) * 60;
   }, [getElapsedTimeSec, getTotalTyped, userInput.length]);
 
+  // 시간 문자열을 초로 변환하는 함수
+  const timeToSeconds = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseInt(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
   const handleRestart = () => {
     fetchWords();
     setCurrentIndex(0);
@@ -301,7 +324,93 @@ function WordPage() {
     setStartTime(new Date());
   };
 
-  const handleGoHome = () => navigate('/');
+  const handleGoHome = () => {
+    // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
+    if (urlLanguageId) {
+      // 완료 시간을 타임어택으로 전달
+      const completionTime = getElapsedTime();
+      const roomId = urlParams.get('roomId');
+      
+      console.log('단어 연습 완료:', { completionTime, roomId, urlLanguageId });
+      
+      // roomId가 없어도 언어 ID로 문제 ID 계산
+      const languageId = parseInt(urlLanguageId);
+      let problemId = null;
+      
+      // 언어 ID와 난이도로 문제 ID 계산
+      if (languageId === 1) { // Python
+        problemId = 3; // Python 단어 연습
+      } else if (languageId === 2) { // Java
+        problemId = 6; // Java 단어 연습
+      } else if (languageId === 5) { // JavaScript
+        problemId = 9; // JavaScript 단어 연습
+      }
+      
+      if (problemId) {
+        // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
+        const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+        
+        if (!existingTime) {
+          // 기존 기록이 없으면 저장
+          sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+          console.log('완료 시간 sessionStorage 저장:', { problemId, completionTime, languageId });
+        } else {
+          // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
+          const existingSeconds = timeToSeconds(existingTime);
+          const currentSeconds = timeToSeconds(completionTime);
+          
+          if (currentSeconds < existingSeconds) {
+            sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+            console.log('더 좋은 기록으로 업데이트:', { problemId, oldTime: existingTime, newTime: completionTime });
+          } else {
+            console.log('기존 기록이 더 좋음:', { problemId, existingTime, currentTime: completionTime });
+          }
+        }
+      }
+      
+      if (roomId) {
+        // 방 완료 시간 업데이트 API 호출
+        updateRoomCompletionTime(roomId, completionTime);
+      }
+      
+      navigate('/timeattack');
+    } else {
+      navigate('/');
+    }
+  };
+
+  // 방 완료 시간 업데이트 (API 스펙에 맞게 수정)
+  const updateRoomCompletionTime = async (roomId, completionTime) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // API 스펙에 맞는 요청 데이터 구조
+      const requestData = {
+        completionTime: completionTime,
+        completedAt: new Date().toISOString(),
+        status: 'COMPLETED',
+        result: {
+          accuracy: getAccuracy().toFixed(2),
+          typingSpeed: getTypingSpeed().toFixed(0),
+          totalTime: completionTime
+        }
+      };
+      
+      console.log('완료 시간 업데이트 요청:', { roomId, requestData });
+      
+      const response = await axios.put(`${baseUrl}/api/rooms/${roomId}/completion`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('방 완료 시간 업데이트 성공:', response.data);
+    } catch (error) {
+      console.error('방 완료 시간 업데이트 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+    }
+  };
 
   const renderWord = () => {
     const currentWord = wordList[currentIndex] || '';
@@ -325,7 +434,7 @@ function WordPage() {
           <div className="mb-4 text-xl font-semibold text-gray-700">
             타자연습 단어를 불러오는 중...
           </div>
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -339,7 +448,7 @@ function WordPage() {
           <div className="mb-4 text-xl font-semibold text-gray-700">{error}</div>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 text-white bg-teal-600 rounded-lg transition-colors hover:bg-teal-700"
+            className="px-6 py-3 text-white transition-colors bg-teal-600 rounded-lg hover:bg-teal-700"
           >
             페이지 새로고침
           </button>
@@ -351,8 +460,8 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="flex relative flex-col items-center pt-16 pb-32 min-h-screen font-sans bg-teal-50">
-      <div className="grid grid-cols-3 items-end mb-6">
+    <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 font-sans bg-teal-50">
+      <div className="grid items-end grid-cols-3 mb-6">
       <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
   {history.slice(0, 2).reverse().map((entry, index) =>
     entry.isCorrect ? (
@@ -406,7 +515,7 @@ function WordPage() {
       )}
 
       {!isComplete && (
-        <div className="flex flex-col items-center mt-10 w-full">
+        <div className="flex flex-col items-center w-full mt-10">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
