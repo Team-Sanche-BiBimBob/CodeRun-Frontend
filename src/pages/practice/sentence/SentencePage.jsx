@@ -101,14 +101,10 @@ function SentencePage() {
         }
 
         if (Array.isArray(sentences) && sentences.length > 0) {
-          // 서버에서 받은 문장들 중 랜덤하게 1개만 선택
-          const randomIndex = Math.floor(Math.random() * sentences.length);
-          const selectedSentence = sentences[randomIndex];
-          setSentences([selectedSentence]);
-          console.log('서버에서 문장 로드 성공:', sentences.length + '개 중 ' + (randomIndex + 1) + '번째 랜덤 선택됨');
+          // 서버에서 받은 모든 문장 사용
+          setSentences(sentences);
+          console.log('서버에서 문장 로드 성공:', sentences.length + '개 전체 불러옴');
           return;
-        } else {
-          throw new Error('문장 데이터가 비어있습니다');
         }
       } catch (err) {
         console.log('API 호출 실패, 기본 문장 사용:', err.message);
@@ -296,7 +292,7 @@ function SentencePage() {
       if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
-        <span key={i} className={`${colorClass} relative font-mono`}>
+        <span key={i} className={`relative font-mono ${colorClass}`}>
           {displayChar}
           {isActive && isCurrent && (
             <span className="absolute left-0 top-0 h-full w-[2px] bg-black custom-blink" />
@@ -389,7 +385,7 @@ function SentencePage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
       <div className="text-center">
         <div className="mb-4 text-xl font-semibold text-gray-700">타자연습 문장을 불러오는 중...</div>
-        <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+        <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
       </div>
     </div>
   );
@@ -397,7 +393,7 @@ function SentencePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
       {/* 이전 문장 */}
-      <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
+      <div className={`flex items-center px-4 w-4/5 rounded h-[50px] ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && (() => {
           const lastHistory = history[history.length - 1];
           const { sentence, typed } = lastHistory;
@@ -426,7 +422,7 @@ function SentencePage() {
       </div>
 
       {/* 현재 문장 */}
-      <div className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
+      <div className={`flex items-center px-4 w-5/6 rounded ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
         <div className="relative w-full font-mono text-2xl">
           {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
@@ -443,7 +439,7 @@ function SentencePage() {
       </div>
 
       {!isComplete && (
-        <div className="flex flex-col items-center w-full mt-10">
+        <div className="flex flex-col items-center mt-10 w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}

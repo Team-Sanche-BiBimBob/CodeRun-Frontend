@@ -68,11 +68,9 @@ function WordPage() {
         }
 
         if (Array.isArray(words) && words.length > 0) {
-          // 서버에서 받은 단어들 중 랜덤하게 1개만 선택
-          const randomIndex = Math.floor(Math.random() * words.length);
-          const selectedWord = words[randomIndex];
-          setWordList([selectedWord]);
-          console.log('서버에서 단어 로드 성공:', words.length + '개 중 ' + (randomIndex + 1) + '번째 랜덤 선택됨');
+          // 서버에서 받은 모든 단어 사용
+          setWordList(words);
+          console.log('서버에서 단어 로드 성공:', words.length + '개');
           setLoading(false);
           return;
         } else {
@@ -291,7 +289,7 @@ function WordPage() {
           <div className="mb-4 text-xl font-semibold text-gray-700">
             타자연습 단어를 불러오는 중...
           </div>
-          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
         </div>
       </div>
     );
@@ -305,7 +303,7 @@ function WordPage() {
           <div className="mb-4 text-xl font-semibold text-gray-700">{error}</div>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 text-white transition-colors bg-teal-600 rounded-lg hover:bg-teal-700"
+            className="px-6 py-3 text-white bg-teal-600 rounded-lg transition-colors hover:bg-teal-700"
           >
             페이지 새로고침
           </button>
@@ -317,8 +315,8 @@ function WordPage() {
   const previewNext = wordList[currentIndex + 1] || '';
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen pt-16 pb-32 font-sans bg-teal-50">
-      <div className="grid items-end grid-cols-3 mb-6">
+    <div className="flex relative flex-col items-center pt-16 pb-32 min-h-screen font-sans bg-teal-50">
+      <div className="grid grid-cols-3 items-end mb-6">
         <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
           {history.slice(0, 2).reverse().map((entry, index) =>
             entry.isCorrect ? (
@@ -369,7 +367,7 @@ function WordPage() {
       )}
 
       {!isComplete && (
-        <div className="flex flex-col items-center w-full mt-10">
+        <div className="flex flex-col items-center mt-10 w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
