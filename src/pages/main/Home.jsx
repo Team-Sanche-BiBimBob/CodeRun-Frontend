@@ -44,7 +44,7 @@ const Home = () => {
     <div className="relative w-full min-h-screen mx-auto overflow-hidden bg-white">
       <HeroCarousel />
 
-      <section className="w-full h-[486px] bg-red-400 relative flex flex-col items-center justify-center text-white">
+      <section className="w-full h-[486px] relative flex flex-col items-center justify-center text-white" style={{ backgroundColor: '#FF857F' }}>
         <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
         <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
         <div className="grid grid-cols-3 gap-4 mt-8">
@@ -58,7 +58,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="w-full py-10 text-center bg-amber-300">
+      <section className="w-full py-10 text-center" style={{ backgroundColor: '#FFEC7F' }}>
         <h2 className="text-2xl font-semibold text-zinc-800">CodeRun{`{}`}</h2>
         <p className="text-3xl font-semibold text-zinc-800">
           단어 연습<span className="font-normal">으로 기본부터 튼튼하게</span>
