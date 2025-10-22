@@ -19,6 +19,10 @@ const App = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scroll to the top on route change
+  }, [location.pathname]);
+
   // 헤더 표시 경로들을 메모이제이션 (/home 경로 추가)
   const headerVisibleRoutes = useMemo(() => [
     "/",
