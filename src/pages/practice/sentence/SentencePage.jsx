@@ -1,3 +1,4 @@
+// src/pages/practice/sentence/SentencePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
@@ -220,7 +221,6 @@ function SentencePage() {
   }, [finalLanguageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
-
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'auto'; };
@@ -315,17 +315,13 @@ function SentencePage() {
 
     if (isActive && typedArr.length >= original.length) {
       elements.push(
-        <span
-          key="cursor-end"
-          className="inline-block w-[2px] h-6 bg-black custom-blink ml-1"
-        />
+        <span key="cursor-end" className="inline-block w-[2px] h-6 bg-black custom-blink ml-1" />
       );
     }
 
     return <span className="whitespace-pre">{elements}</span>;
   };
 
-  // 통계 관련
   const getTotalTyped = useCallback(() => history.reduce((acc, cur) => acc + cur.typed.length, 0), [history]);
   const getCorrectTyped = useCallback(() => history.reduce((acc, cur) => {
     const correctCount = cur.typed.split('').filter((c, i) => c === cur.sentence[i]).length;
@@ -392,23 +388,30 @@ function SentencePage() {
   );
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
       {/* 이전 문장 */}
-      <div className={`flex items-center px-4 w-4/5 rounded h-[50px] ${getBoxStyle(currentIndex - 1)}`}>
+      <div
+        className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}
+        style={{
+          overflow: 'hidden',       // 넘치는 텍스트 숨김
+          wordBreak: 'break-all',   // 긴 단어 줄바꿈
+          whiteSpace: 'pre-wrap',   // 공백 유지 + 줄바꿈 허용
+        }}
+      >
         {history.length > 0 && currentIndex > 0 && (() => {
           const lastHistory = history[history.length - 1];
           const { sentence, typed } = lastHistory;
           const elements = [];
-
           for (let i = 0; i < sentence.length; i++) {
             const originalChar = sentence[i];
             const typedChar = typed[i] || '';
             const isCorrect = typedChar === originalChar;
             elements.push(
-              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>{typedChar || originalChar}</span>
+              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>
+                {typedChar || originalChar}
+              </span>
             );
           }
-
           if (typed.length > sentence.length) {
             const extras = typed.slice(sentence.length);
             extras.split('').forEach((char, i) => {
@@ -417,14 +420,26 @@ function SentencePage() {
               );
             });
           }
-
-          return <span className="whitespace-pre">{elements}</span>;
+          return (
+            <span className="font-mono break-all whitespace-pre">
+              {elements}
+            </span>
+          );
         })()}
       </div>
 
       {/* 현재 문장 */}
-      <div className={`flex items-center px-4 w-5/6 rounded ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
-        <div className="relative w-full font-mono text-2xl">
+      <div
+        className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`}
+        style={{
+          minHeight: '70px',
+          maxWidth: '90vw',
+          overflow: 'hidden',
+          wordBreak: 'break-all',
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        <div className="relative w-full overflow-hidden font-mono text-2xl break-all whitespace-pre-wrap">
           {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
       </div>
@@ -449,10 +464,7 @@ function SentencePage() {
             totalSentences={sentences.length}
             startTime={startTime}
           />
-          <KeyBoard
-            nextCharInfo={getNextCharInfo()}
-            isTypingActive={!isComplete}
-          />
+          <KeyBoard nextCharInfo={getNextCharInfo()} isTypingActive={!isComplete} />
         </div>
       )}
 
