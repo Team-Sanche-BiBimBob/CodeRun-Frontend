@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 
 
-export const baseURL = import.meta.env.VITE_API_BASE_URL;
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
 export const api = axios.create({
   baseURL,
 });

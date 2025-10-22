@@ -9,8 +9,8 @@ export default defineConfig({
       '/api': {
         target: 'https://api.coderun.site',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        secure: true,
+        rewrite: (path) => path
       }
     }
   },
