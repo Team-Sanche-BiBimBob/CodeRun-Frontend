@@ -1,14 +1,17 @@
+// src/pages/arcade/battle/BattleGamePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 
 function BattleGamePage() {
-  const [gameType, setGameType] = useState('단어'); // '단어' or '문장'
-  const [timeLimit] = useState(60);
-  const [roomName] = useState('테스트방');
+  const location = useLocation();
+  const [gameType, setGameType] = useState(location.state?.gameType || '단어'); // '단어' or '문장'
+  const [timeLimit] = useState(location.state?.timeLimit || 60);
+  const [roomName] = useState(location.state?.roomName || '테스트방');
 
   // 공통 상태
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isGameComplete, setIsGameComplete] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(60);
+  const [remainingTime, setRemainingTime] = useState(timeLimit);
   const [firstKeyTime, setFirstKeyTime] = useState(null); // 최초 타이핑 시간
 
   // 단어 게임 상태
@@ -19,18 +22,20 @@ function BattleGamePage() {
   // 문장 게임 상태
   const [sentences, setSentences] = useState([]);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-  const [typedChars, setTypedChars] = useState([]); // '' 은 공백 오류로 들어갈 수 있음
-  const [spaceErrorIndices, setSpaceErrorIndices] = useState([]);
+  const [typedChars, setTypedChars] = useState([]);
+  const [completedSentences, setCompletedSentences] = useState([]);
 
-  // 플레이어 정보
+  // 플레이어 정보 (내 정보 및 상대 시뮬레이션)
   const [myProgress, setMyProgress] = useState(0);
   const [opponentProgress, setOpponentProgress] = useState(0);
-  const [myAccuracy] = useState(100);
-  const [opponentAccuracy] = useState(80);
-  const [mySpeed, setMySpeed] = useState(0); // 실시간 타수 (WPM)
-  const [opponentSpeed, setOpponentSpeed] = useState(0); // 상대 시뮬레이션
+  const [myAccuracy, setMyAccuracy] = useState(100);
+  const [mySpeed, setMySpeed] = useState(0); // WPM
+  const [opponentSpeed, setOpponentSpeed] = useState(0);
+  const [opponentAccuracy] = useState(80); // 시뮬레이션 상수
 
-  // 초기 데이터 로드
+  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+
+  // === 초기 데이터 로드 ===
   useEffect(() => {
     if (gameType === '단어') {
       const defaultWords = [
@@ -40,6 +45,7 @@ function BattleGamePage() {
         'switch', 'this', 'try', 'void', 'while', 'async', 'await', 'function',
       ];
       setWordList([...defaultWords].sort(() => Math.random() - 0.5));
+      setSentences([]);
     } else {
       const defaultSentences = [
         'print("Hello world!")',
@@ -54,10 +60,19 @@ function BattleGamePage() {
         'import React from "react";',
       ];
       setSentences([...defaultSentences].sort(() => Math.random() - 0.5));
+      setWordList([]);
     }
+
+    // 리셋 인게임 상태 (게임 중이 아닐 때)
+    setCurrentWordIndex(0);
+    setCurrentSentenceIndex(0);
+    setWordUserInput('');
+    setTypedChars([]);
+    setCompletedSentences([]);
+    setMyProgress(0);
   }, [gameType]);
 
-  // 타이머 (remainingTime 및 상대 시뮬레이션)
+  // === 타이머 및 상대 시뮬레이션 ===
   useEffect(() => {
     let interval = null;
     if (isGameStarted && !isGameComplete && remainingTime > 0) {
@@ -70,99 +85,171 @@ function BattleGamePage() {
           return prev - 1;
         });
 
-        // 상대 진행률/속도 시뮬레이션
+        // 상대 시뮬레이션 (간단)
         setOpponentProgress(prev => Math.min(100, prev + Math.random() * 3));
-        setOpponentSpeed(prev => Math.min(150, prev + Math.random() * 3));
+        setOpponentSpeed(prev => Math.min(200, prev + Math.random() * 3));
       }, 1000);
     }
     return () => interval && clearInterval(interval);
   }, [isGameStarted, isGameComplete, remainingTime]);
 
-  // WPM 계산 - firstKeyTime(최초 타이핑 시간)를 기준으로 계산
+  // === WPM 계산 (firstKeyTime 기준) ===
   useEffect(() => {
-    if (!firstKeyTime) return; // 아직 타자를 시작하지 않음
+    if (!firstKeyTime) return;
 
     const calcSpeed = () => {
       const now = Date.now();
       const elapsedSeconds = (now - firstKeyTime) / 1000;
-      if (elapsedSeconds < 1) return; // 너무 짧으면 노이즈 방지
+      if (elapsedSeconds < 1) return;
 
-      // 총 입력 글자 수 계산 (빈 문자열 '' 은 제외)
       let totalTyped = 0;
       if (gameType === '단어') {
+        // 완료한 단어들의 문자 수 + 현재 입력 중인 글자 수
         const completedChars = wordList.slice(0, currentWordIndex).join('').length;
         totalTyped = completedChars + wordUserInput.length;
-      } else { // 문장
-        const completedSentencesChars = sentences
+      } else {
+        const completedChars = sentences
           .slice(0, currentSentenceIndex)
           .reduce((sum, s) => sum + s.length, 0);
         const typedNonEmpty = typedChars.filter(c => c !== '').length;
-        totalTyped = completedSentencesChars + typedNonEmpty;
+        totalTyped = completedChars + typedNonEmpty;
       }
 
-      // WPM 계산: (totalChars / 5) / minutes
       const minutes = elapsedSeconds / 60;
       const wpm = minutes > 0 ? (totalTyped / 5) / minutes : 0;
       setMySpeed(Math.round(wpm));
     };
 
-    // 한 번 계산해 적용하고 (실시간성을 위해 애니메이션 프레임으로 주기적으로 업데이트)
+    // 즉시 계산 + 1초 주기 갱신
     calcSpeed();
-    const raf = window.setInterval(calcSpeed, 1000); // 1초마다 갱신
-    return () => window.clearInterval(raf);
+    const id = setInterval(calcSpeed, 1000);
+    return () => clearInterval(id);
   }, [firstKeyTime, wordList, currentWordIndex, wordUserInput, typedChars, currentSentenceIndex, sentences, gameType]);
 
+  // === 정확도 계산 ===
+  useEffect(() => {
+    let totalTyped = 0;
+    let correctTyped = 0;
+
+    if (gameType === '단어') {
+      // 완성된 단어들은 모두 정확했다고 가정(엔터/완료 시)
+      for (let i = 0; i < currentWordIndex; i++) {
+        totalTyped += wordList[i].length;
+        correctTyped += wordList[i].length;
+      }
+      // 현재 입력 중인 단어 오타 체크
+      const currentWord = wordList[currentWordIndex] || '';
+      totalTyped += wordUserInput.length;
+      for (let i = 0; i < wordUserInput.length; i++) {
+        if (wordUserInput[i] === currentWord[i]) correctTyped++;
+      }
+    } else {
+      // 완료된 문장들은 모두 올바르게 입력했다고 가정 (엔터 시)
+      for (let i = 0; i < currentSentenceIndex; i++) {
+        totalTyped += sentences[i].length;
+        correctTyped += sentences[i].length;
+      }
+      // 현재 타이핑 중인 문장 문자별 비교
+      const currentSentence = sentences[currentSentenceIndex] || '';
+      for (let i = 0; i < typedChars.length; i++) {
+        totalTyped++;
+        if (typedChars[i] === currentSentence[i]) correctTyped++;
+      }
+    }
+
+    const acc = totalTyped === 0 ? 100 : (correctTyped / totalTyped) * 100;
+    setMyAccuracy(Number(acc.toFixed(1)));
+  }, [wordUserInput, currentWordIndex, typedChars, currentSentenceIndex, sentences, gameType, wordList]);
+
+  // === 게임 결과 전송 ===
+useEffect(() => {
+  if (!isGameComplete) return;
+
+  // 승자 판정: 1번(나) 또는 2번(상대)
+  const winnerId =
+    myProgress > opponentProgress ? 1 :
+    myProgress < opponentProgress ? 2 :
+    0; // 무승부
+
+  // 서버 전송
+  const sendResult = async () => {
+    try {
+        const response = await fetch('/api/battle/result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ winnerId }),
+        });
+
+        if (!response.ok) {
+          console.error('결과 전송 실패:', response.status);
+        } else {
+          console.log('결과 전송 성공');
+        }
+      } catch (error) {
+        console.error('결과 전송 오류:', error);
+      }
+    };
+
+    sendResult();
+  }, [isGameComplete]);
+
+  // === 게임 시작 ===
   const handleStartGame = () => {
     setIsGameStarted(true);
     setIsGameComplete(false);
     setRemainingTime(timeLimit);
-    setFirstKeyTime(null); // 타이핑 시작은 사용자가 실제로 키를 누르면 시작
+    setFirstKeyTime(null);
     setMySpeed(0);
-    setOpponentSpeed(0);
-    setMyProgress(0);
+    setMyAccuracy(100);
     setOpponentProgress(0);
+    setOpponentSpeed(0);
+    setCompletedSentences([]);
+    setCurrentWordIndex(0);
+    setCurrentSentenceIndex(0);
+    setWordUserInput('');
+    setTypedChars([]);
+    setMyProgress(0);
   };
-
-  const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   // === 단어 게임 로직 ===
   const handleWordChange = (e) => {
     const value = e.target.value;
-    if (hangulRegex.test(value)) return;
-
-    // 최초 타이핑 시점 기록
+    if (hangulRegex.test(value)) return; // 한글 입력 방지
     if (!firstKeyTime) setFirstKeyTime(Date.now());
 
     const currentWord = wordList[currentWordIndex] || '';
     setWordUserInput(value);
 
+    // 자동 정답 처리
     if (value === currentWord) {
-      if (currentWordIndex === wordList.length - 1) {
+      const nextIndex = currentWordIndex + 1;
+      setMyProgress(((nextIndex) / wordList.length) * 100);
+      if (nextIndex >= wordList.length) {
         setIsGameComplete(true);
       } else {
-        setCurrentWordIndex(prev => prev + 1);
+        setCurrentWordIndex(nextIndex);
       }
       setWordUserInput('');
-      setMyProgress(((currentWordIndex + 1) / wordList.length) * 100);
     }
   };
 
   const handleWordKeyDown = (e) => {
-    if (e.key === ' ') e.preventDefault();
+    if (e.key === ' ') e.preventDefault(); // 스페이스 금지
     if (e.key === 'Enter') {
       e.preventDefault();
       if (wordUserInput.trim() === '') return;
-
-      // 최초 타이핑 시점 기록 (엔터 전에 입력이 있었을 수도 있으니 방어)
       if (!firstKeyTime) setFirstKeyTime(Date.now());
 
-      if (currentWordIndex === wordList.length - 1) {
+      const nextIndex = currentWordIndex + 1;
+      setMyProgress(((nextIndex) / wordList.length) * 100);
+      if (nextIndex >= wordList.length) {
         setIsGameComplete(true);
       } else {
-        setCurrentWordIndex(prev => prev + 1);
+        setCurrentWordIndex(nextIndex);
       }
       setWordUserInput('');
-      setMyProgress(((currentWordIndex + 1) / wordList.length) * 100);
     }
   };
 
@@ -184,44 +271,36 @@ function BattleGamePage() {
   // === 문장 게임 로직 ===
   const handleSentenceKeyDown = useCallback((e) => {
     if (e.isComposing || e.keyCode === 229) return;
-    if (!e.key || hangulRegex.test(e.key)) return;
+    if (!e.key) return;
+    if (hangulRegex.test(e.key)) return; // 한글 금지
     if (isGameComplete || sentences.length === 0) return;
 
-    // 최초 타이핑 시점 기록
     if (!firstKeyTime) setFirstKeyTime(Date.now());
-
     e.preventDefault();
 
     const currentSentence = sentences[currentSentenceIndex] || '';
 
     if (e.key === 'Backspace') {
       setTypedChars(prev => prev.slice(0, -1));
-      setSpaceErrorIndices(prev => prev.slice(0, -1));
     } else if (e.key.length === 1) {
-      const expectedChar = currentSentence[typedChars.length];
-      if (e.key === ' ') {
-        if (expectedChar === ' ') {
-          setTypedChars(prev => [...prev, ' ']);
-          setSpaceErrorIndices(prev => [...prev, false]);
-        } else {
-          setTypedChars(prev => [...prev, '']); // 오류 표시용 빈값
-          setSpaceErrorIndices(prev => [...prev, true]);
-        }
-      } else {
-        setTypedChars(prev => [...prev, e.key]);
-        setSpaceErrorIndices(prev => [...prev, false]);
-      }
+      // 문자 입력 (심지어 정답 길이 초과도 허용)
+      setTypedChars(prev => [...prev, e.key]);
     } else if (e.key === 'Enter') {
       if (typedChars.length === 0) return;
+      setCompletedSentences(prev => [...prev, {
+        original: currentSentence,
+        typed: [...typedChars]
+      }]);
 
-      if (currentSentenceIndex === sentences.length - 1) {
+      const nextIndex = currentSentenceIndex + 1;
+      setMyProgress(((nextIndex) / sentences.length) * 100);
+
+      if (nextIndex >= sentences.length) {
         setIsGameComplete(true);
       } else {
-        setCurrentSentenceIndex(prev => prev + 1);
+        setCurrentSentenceIndex(nextIndex);
+        setTypedChars([]);
       }
-      setTypedChars([]);
-      setSpaceErrorIndices([]);
-      setMyProgress(((currentSentenceIndex + 1) / sentences.length) * 100);
     }
   }, [typedChars, currentSentenceIndex, isGameComplete, sentences, firstKeyTime]);
 
@@ -234,28 +313,28 @@ function BattleGamePage() {
 
   const renderSentence = () => {
     const currentSentence = sentences[currentSentenceIndex] || '';
+    const maxLength = Math.max(currentSentence.length, typedChars.length);
+
     return (
       <span className="whitespace-pre">
-        {currentSentence.split('').map((originalChar, i) => {
-          const typedChar = typedChars[i] || '';
-          const isError = spaceErrorIndices[i];
+        {Array.from({ length: maxLength }).map((_, i) => {
+          const originalChar = currentSentence[i];
+          const typedChar = typedChars[i];
           const isCurrent = i === typedChars.length;
           let colorClass = 'text-black';
-          let displayChar = originalChar;
+          let displayChar = '';
 
-          if (typedChar !== '') {
-            if (typedChar === originalChar && !isError) {
-              colorClass = 'text-white';
-              displayChar = typedChar;
-            } else {
-              colorClass = 'text-red-500';
-              displayChar = typedChar || originalChar;
-            }
-          } else if (isError) {
-            colorClass = 'text-red-500';
+          if (i < typedChars.length) {
+            displayChar = typedChar;
+            colorClass = typedChar === originalChar ? 'text-white' : 'text-red-500';
+            if (displayChar === ' ') displayChar = '_';
+          } else {
+            displayChar = originalChar;
+            colorClass = 'text-black';
           }
 
           if (displayChar === ' ') displayChar = '\u00A0';
+          if (!displayChar && i >= currentSentence.length) return null;
 
           return (
             <span key={i} className={`${colorClass} relative font-mono`}>
@@ -270,13 +349,46 @@ function BattleGamePage() {
     );
   };
 
+  const renderCompletedSentence = (original, typed) => {
+    const maxLength = Math.max(original.length, typed.length);
+
+    return (
+      <span className="whitespace-pre">
+        {Array.from({ length: maxLength }).map((_, i) => {
+          const originalChar = original[i];
+          const typedChar = typed[i];
+          let colorClass = 'text-gray-600';
+          let displayChar = '';
+
+          if (i < typed.length) {
+            displayChar = typedChar;
+            colorClass = typedChar === originalChar ? 'text-gray-600' : 'text-red-500';
+          } else {
+            displayChar = originalChar;
+            colorClass = 'text-red-500';
+          }
+
+          if (displayChar === ' ') displayChar = '\u00A0';
+          if (!displayChar) return null;
+
+          return (
+            <span key={i} className={`${colorClass} font-mono`}>
+              {displayChar}
+            </span>
+          );
+        })}
+      </span>
+    );
+  };
+
+  // 시간 포맷
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // 게임 시작 전
+  // === 렌더링 ===
   if (!isGameStarted) {
     return (
       <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#F0FDFA]">
@@ -320,7 +432,6 @@ function BattleGamePage() {
     );
   }
 
-  // 게임 완료 화면
   if (isGameComplete) {
     const winner = myProgress > opponentProgress ? '승리!' : myProgress < opponentProgress ? '패배...' : '무승부';
     const winnerColor = myProgress > opponentProgress ? 'text-teal-600' : myProgress < opponentProgress ? 'text-red-600' : 'text-gray-600';
@@ -373,9 +484,10 @@ function BattleGamePage() {
     );
   }
 
-  // 게임 진행 화면
+  // === 게임 진행 화면 ===
   return (
     <div className="relative min-h-screen flex flex-col bg-[#F0FDFA] pt-8 pb-32">
+      {/* 상단 스탯 바: 내/상대 진행, 시간 */}
       <div className="w-full px-4 mx-auto mb-8 max-w-7xl">
         <div className="p-6 bg-white rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
@@ -388,6 +500,7 @@ function BattleGamePage() {
             <div className="text-center">
               <div className="mb-1 text-sm text-gray-600">남은 시간</div>
               <div className="text-3xl font-bold text-gray-800">{formatTime(remainingTime)}</div>
+              <div className="mt-1 text-sm text-gray-500">정확도: {myAccuracy.toFixed(1)}%</div>
             </div>
 
             <div className="flex flex-col items-end space-y-1">
@@ -437,9 +550,12 @@ function BattleGamePage() {
       {gameType === '문장' && (
         <div className="flex flex-col items-center px-4">
           <div className="w-full max-w-4xl space-y-4">
-            {currentSentenceIndex > 0 && (
+            {completedSentences.length > 0 && (
               <div className="w-full min-h-[60px] bg-white rounded-lg flex items-center px-6 py-3 opacity-50">
-                <span className="font-mono text-gray-600">{sentences[currentSentenceIndex - 1]}</span>
+                {renderCompletedSentence(
+                  completedSentences[completedSentences.length - 1].original,
+                  completedSentences[completedSentences.length - 1].typed
+                )}
               </div>
             )}
             <div className="w-full min-h-[80px] bg-teal-600 border-2 border-teal-700 rounded-lg flex items-center px-6 py-4">

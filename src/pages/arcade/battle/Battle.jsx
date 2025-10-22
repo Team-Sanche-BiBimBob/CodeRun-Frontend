@@ -14,6 +14,9 @@ function Battle() {
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
   const [battleRooms, setBattleRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // 매칭 타이머 효과
   useEffect(() => {
@@ -55,10 +58,47 @@ function Battle() {
     checkLoginStatus();
   }, []);
 
-  const handleLogin = () => {
-    navigate('/login');
-  };
+  // 서버에서 방 목록 가져오기
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const res = await fetch('/api/rooms');
+        if (!res.ok) throw new Error('방 목록 불러오기 실패');
+        const data = await res.json();
 
+        // 서버 예시:
+        // [
+        //   {
+        //     "title": "string",
+        //     "description": "string",
+        //     "roomId": 0,
+        //     "startTime": "2025-10-21T16:42:37.267Z",
+        //     "arcadeType": "TIME_ATTACK",
+        //     "eventType": "PRACTICE_WORD"
+        //   }
+        // ]
+
+        const formattedRooms = data.map((room) => ({
+          id: room.roomId ?? room.id ?? Date.now(),
+          name: room.title ?? '무제 방',
+          players: '1/2',
+          status: room.description?.includes('비밀번호') ? 'locked' : 'open', // 간단 판별 (필요시 서버 필드 사용)
+          password: room.password ?? '', // 서버에 password 필드가 있으면 사용
+          type: room.eventType === 'PRACTICE_WORD' ? '단어' : '문장',
+          timeLimit: 60,
+          createdBy: room.description?.replace('방 생성자: ', '') || '사용자',
+        }));
+
+        setBattleRooms(formattedRooms);
+      } catch (error) {
+        console.error('대결방 불러오기 실패:', error);
+      }
+    };
+
+    fetchRooms();
+  }, []);
+
+  const handleLogin = () => navigate('/login');
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userInfo');
@@ -69,69 +109,102 @@ function Battle() {
   };
 
   const handleStartMatching = () => {
-    console.log('매칭 시작!');
     setIsMatchingModalOpen(true);
   };
 
   const handleCancelMatching = () => {
-    console.log('매칭 취소!');
     setIsMatchingModalOpen(false);
   };
 
   const handleCreateRoom = () => {
-    console.log('방 생성하기 클릭!');
     setIsCreateRoomModalOpen(true);
   };
 
-  const handleCloseCreateRoomModal = () => {
-    setIsCreateRoomModalOpen(false);
-  };
+  const handleCloseCreateRoomModal = () => setIsCreateRoomModalOpen(false);
 
-  const handleSubmitCreateRoom = (e) => {
+  // 방 생성 + 서버 전송
+  const handleSubmitCreateRoom = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    
+
     const newRoom = {
       id: Date.now(),
       name: formData.get('roomName'),
       players: '1/2',
       status: formData.get('password') ? 'locked' : 'open',
+      password: formData.get('password'),
       type: formData.get('practiceType'),
-      timeLimit: formData.get('timeLimit'),
+      timeLimit: Number(formData.get('timeLimit')),
       createdBy: userName
     };
 
-    setBattleRooms(prev => [...prev, newRoom]);
-    console.log('방 생성 완료:', newRoom);
-    setIsCreateRoomModalOpen(false);
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+
+      const response = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+        },
+        body: JSON.stringify({
+          title: newRoom.name,
+          description: `방 생성자: ${userName}`,
+          arcadeType: "PVP",
+          eventType: newRoom.type === '단어' ? 'PRACTICE_WORD' : 'PRACTICE_SENTENCE',
+          player1Id: 1,
+          player2Id: 2
+        })
+      });
+
+      if (!response.ok) throw new Error('방 생성 실패');
+
+      const data = await response.json();
+      console.log('서버 방 생성 성공:', data);
+
+      // 로컬 상태에도 추가
+      setBattleRooms(prev => [...prev, newRoom]);
+      setIsCreateRoomModalOpen(false);
+
+    } catch (error) {
+      console.error('방 생성 실패:', error);
+      alert('방 생성에 실패했습니다.');
+    }
   };
 
   const handleSelectRoom = (roomId) => {
     setSelectedRoomId(selectedRoomId === roomId ? null : roomId);
   };
 
-  // ✅ 방 입장 핸들러 추가
   const handleEnterRoom = () => {
     if (!selectedRoomId) return;
-    
     const selectedRoom = battleRooms.find(room => room.id === selectedRoomId);
     if (!selectedRoom) return;
-    
-    // BattleGamePage로 라우팅
+
+    if (selectedRoom.status === 'locked') {
+      setIsPasswordModalOpen(true);
+      setPasswordInput('');
+      setPasswordError('');
+      return;
+    }
+
+    navigateToBattle(selectedRoom);
+  };
+
+  const navigateToBattle = (room) => {
     navigate('/battle-game', {
       state: {
-        gameType: selectedRoom.type,
-        timeLimit: selectedRoom.timeLimit,
-        roomName: selectedRoom.name
+        gameType: room.type,
+        timeLimit: room.timeLimit,
+        roomName: room.name
       }
     });
   };
 
-  // 시간 포맷 함수 (MM:SS)
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2,'0')}:${remainingSeconds.toString().padStart(2,'0')}`;
   };
 
   return (
@@ -342,6 +415,57 @@ function Battle() {
           </div>
         </div>
       )}
+      
+      {/* 비밀번호 입력 모달 */}
+      {isPasswordModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setIsPasswordModalOpen(false)}
+        >
+          <div 
+            className="p-6 bg-white rounded-lg w-96"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="mb-4 text-lg font-semibold">비밀번호 입력</h3>
+            <input
+              type="password"
+              className="w-full px-3 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="비밀번호를 입력하세요"
+            />
+            {passwordError && <p className="mb-2 text-sm text-red-500">{passwordError}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  const selectedRoom = battleRooms.find(room => room.id === selectedRoomId);
+                  // 서버에 실제 password가 없다면 selectedRoom.password를 빈값으로 두었을 수 있으니 검사 로직은 상황에 맞게 수정하세요.
+                  if (selectedRoom?.password && selectedRoom.password === passwordInput) {
+                    navigateToBattle(selectedRoom);
+                    setIsPasswordModalOpen(false);
+                  } else if (!selectedRoom?.password) {
+                    // 만약 로컬에 password가 없지만 status가 locked으로 온 경우 (서버 검증 필요)
+                    // 여기서는 임시로 비밀번호 검증 실패 처리
+                    setPasswordError('비밀번호가 없습니다. (서버 필드 확인 필요)');
+                  } else {
+                    setPasswordError('비밀번호가 틀렸습니다.');
+                  }
+                }}
+                className="px-4 py-2 text-white bg-teal-400 rounded-lg hover:bg-teal-500"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* 방 생성 모달 */}
       {isCreateRoomModalOpen && (
@@ -390,7 +514,6 @@ function Battle() {
                 >
                   <option value="단어">단어</option>
                   <option value="문장">문장</option>
-                  <option value="풀코드">풀코드</option>
                 </select>
               </div>
 
