@@ -1,4 +1,3 @@
-// src/pages/practice/sentence/SentencePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
@@ -67,7 +66,7 @@ function SentencePage() {
     ];
 
       const possibleUrls = [
-        finalLanguageId ? `/api/problems/sentences/${finalLanguageId}` : '/api/problems/sentences'
+        languageId ? `/api/problems/sentences/${languageId}` : '/api/problems/sentences'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
@@ -102,125 +101,37 @@ function SentencePage() {
         }
 
         if (Array.isArray(sentences) && sentences.length > 0) {
-          // 서버에서 받은 모든 문장 사용
-          setSentences(sentences);
-          console.log('서버에서 문장 로드 성공:', sentences.length + '개 전체 불러옴');
+          const shuffled = [...sentences].sort(() => Math.random() - 0.5);
+          setSentences(shuffled);
+          console.log('서버에서 문장 로드 성공:', shuffled.length + '개');
           return;
+        } else {
+          throw new Error('문장 데이터가 비어있습니다');
         }
       } catch (err) {
         console.log('API 호출 실패, 기본 문장 사용:', err.message);
       }
 
-      // 폴백 데이터 사용 (언어별 기본 문장)
-      let fallbackSentences = [];
-      
-      if (finalLanguageId === 1) { // Python
-        fallbackSentences = [
-          'print("Hello, World!")',
-          'def greet(name):',
-          '    return f"Hello, {name}!"',
-          'for i in range(5):',
-          '    print(i)'
-        ];
-      } else if (finalLanguageId === 2) { // Java
-        fallbackSentences = [
-          'System.out.println("Hello, World!");',
-          'public class Main {',
-          '    public static void main(String[] args) {',
-          '        System.out.println("Hello, World!");',
-          '    }',
-          '}'
-        ];
-      } else if (finalLanguageId === 5) { // JavaScript
-        fallbackSentences = [
-          'console.log("Hello, World!");',
-          'function greet(name) {',
-          '    return `Hello, ${name}!`;',
-          '}',
-          'for (let i = 0; i < 5; i++) {',
-          '    console.log(i);',
-          '}'
-        ];
-      } else {
-        // 기본값 (Python)
-        fallbackSentences = [
-          'print("Hello, World!")',
-          'def greet(name):',
-          '    return f"Hello, {name}!"'
-        ];
-      }
-      
-      setSentences(fallbackSentences);
-      console.log('기본 문장 사용:', fallbackSentences.length + '개');
+      // 폴백 데이터 사용
+      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
+      console.log('기본 문장 사용:', shuffled.length + '개');
     } catch (error) {
       console.error('문장 가져오기 실패:', error);
-      
-      // 언어별 기본 문장 설정
-      let defaultSentences = [];
-      
-      if (finalLanguageId === 1) { // Python
-        defaultSentences = [
-          'print("Hello, World!")',
-          'def greet(name):',
-          '    return f"Hello, {name}!"',
-          'for i in range(5):',
-          '    print(i)',
-          'if x > 0:',
-          '    print("Positive")',
-          'class Person:',
-          '    def __init__(self, name):',
-          '        self.name = name'
-        ];
-      } else if (finalLanguageId === 2) { // Java
-        defaultSentences = [
-          'System.out.println("Hello, World!");',
-          'public class Main {',
-          '    public static void main(String[] args) {',
-          '        System.out.println("Hello, World!");',
-          '    }',
-          '}',
-          'for (int i = 0; i < 5; i++) {',
-          '    System.out.println(i);',
-          '}',
-          'if (x > 0) {',
-          '    System.out.println("Positive");',
-          '}'
-        ];
-      } else if (finalLanguageId === 5) { // JavaScript
-        defaultSentences = [
-          'console.log("Hello, World!");',
-          'function greet(name) {',
-          '    return `Hello, ${name}!`;',
-          '}',
-          'for (let i = 0; i < 5; i++) {',
-          '    console.log(i);',
-          '}',
-          'if (x > 0) {',
-          '    console.log("Positive");',
-          '}',
-          'const person = {',
-          '    name: "John",',
-          '    age: 30',
-          '};'
-        ];
-      } else {
-        // 기본값 (Python)
-        defaultSentences = [
-          'print("Hello, World!")',
-          'def greet(name):',
-          '    return f"Hello, {name}!"',
-          'for i in range(5):',
-          '    print(i)'
-        ];
-      }
-      
-      setSentences(defaultSentences);
+      const defaultSentences = [
+        'print("Hello world!")',
+        'console.log("Hello world!");',
+        'function greet(name) {',
+      ];
+      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
+      setSentences(shuffled);
     } finally {
       setLoading(false);
     }
-  }, [finalLanguageId]);
+  }, [languageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'auto'; };
@@ -293,7 +204,7 @@ function SentencePage() {
       if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
-        <span key={i} className={`relative font-mono ${colorClass}`}>
+        <span key={i} className={`${colorClass} relative font-mono`}>
           {displayChar}
           {isActive && isCurrent && (
             <span className="absolute left-0 top-0 h-full w-[2px] bg-black custom-blink" />
@@ -315,13 +226,17 @@ function SentencePage() {
 
     if (isActive && typedArr.length >= original.length) {
       elements.push(
-        <span key="cursor-end" className="inline-block w-[2px] h-6 bg-black custom-blink ml-1" />
+        <span
+          key="cursor-end"
+          className="inline-block w-[2px] h-6 bg-black custom-blink ml-1"
+        />
       );
     }
 
     return <span className="whitespace-pre">{elements}</span>;
   };
 
+  // 통계 관련
   const getTotalTyped = useCallback(() => history.reduce((acc, cur) => acc + cur.typed.length, 0), [history]);
   const getCorrectTyped = useCallback(() => history.reduce((acc, cur) => {
     const correctCount = cur.typed.split('').filter((c, i) => c === cur.sentence[i]).length;
@@ -382,36 +297,29 @@ function SentencePage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
       <div className="text-center">
         <div className="mb-4 text-xl font-semibold text-gray-700">타자연습 문장을 불러오는 중...</div>
-        <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+        <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
       </div>
     </div>
   );
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
       {/* 이전 문장 */}
-      <div
-        className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}
-        style={{
-          overflow: 'hidden',       // 넘치는 텍스트 숨김
-          wordBreak: 'break-all',   // 긴 단어 줄바꿈
-          whiteSpace: 'pre-wrap',   // 공백 유지 + 줄바꿈 허용
-        }}
-      >
+      <div className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}>
         {history.length > 0 && currentIndex > 0 && (() => {
           const lastHistory = history[history.length - 1];
           const { sentence, typed } = lastHistory;
           const elements = [];
+
           for (let i = 0; i < sentence.length; i++) {
             const originalChar = sentence[i];
             const typedChar = typed[i] || '';
             const isCorrect = typedChar === originalChar;
             elements.push(
-              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>
-                {typedChar || originalChar}
-              </span>
+              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>{typedChar || originalChar}</span>
             );
           }
+
           if (typed.length > sentence.length) {
             const extras = typed.slice(sentence.length);
             extras.split('').forEach((char, i) => {
@@ -420,26 +328,14 @@ function SentencePage() {
               );
             });
           }
-          return (
-            <span className="font-mono break-all whitespace-pre">
-              {elements}
-            </span>
-          );
+
+          return <span className="whitespace-pre">{elements}</span>;
         })()}
       </div>
 
       {/* 현재 문장 */}
-      <div
-        className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`}
-        style={{
-          minHeight: '70px',
-          maxWidth: '90vw',
-          overflow: 'hidden',
-          wordBreak: 'break-all',
-          whiteSpace: 'pre-wrap',
-        }}
-      >
-        <div className="relative w-full overflow-hidden font-mono text-2xl break-all whitespace-pre-wrap">
+      <div className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
+        <div className="relative w-full font-mono text-2xl">
           {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
       </div>
@@ -455,7 +351,7 @@ function SentencePage() {
       </div>
 
       {!isComplete && (
-        <div className="flex flex-col items-center mt-10 w-full">
+        <div className="flex flex-col items-center w-full mt-10">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
@@ -464,7 +360,10 @@ function SentencePage() {
             totalSentences={sentences.length}
             startTime={startTime}
           />
-          <KeyBoard nextCharInfo={getNextCharInfo()} isTypingActive={!isComplete} />
+          <KeyBoard
+            nextCharInfo={getNextCharInfo()}
+            isTypingActive={!isComplete}
+          />
         </div>
       )}
 
