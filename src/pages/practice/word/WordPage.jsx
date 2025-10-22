@@ -8,7 +8,7 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 function WordPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { language: languageId, workbookId, workbookTitle, workbookProblems } = location.state || {};
   
   // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
   const urlParams = new URLSearchParams(location.search);
@@ -26,6 +26,16 @@ function WordPage() {
 
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
+  // 배열을 랜덤으로 섞는 함수
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   const fetchWords = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -33,8 +43,9 @@ function WordPage() {
     // 문제집에서 전달받은 문제가 있으면 그것을 사용
     if (workbookProblems && workbookProblems.length > 0) {
       console.log('문제집 단어 사용:', workbookProblems);
-      setWordList(workbookProblems);
-      console.log('문제집에서 단어 로드 성공:', workbookProblems.length + '개');
+      const shuffledWords = shuffleArray(workbookProblems);
+      setWordList(shuffledWords);
+      console.log('문제집에서 단어 로드 성공:', shuffledWords.length + '개 (랜덤 셔플)');
       setLoading(false);
       return;
     }
@@ -83,9 +94,10 @@ function WordPage() {
         }
 
         if (Array.isArray(words) && words.length > 0) {
-          // 서버에서 받은 모든 단어 사용
-          setWordList(words);
-          console.log('서버에서 단어 로드 성공:', words.length + '개');
+          // 서버에서 받은 모든 단어 사용 (랜덤 셔플)
+          const shuffledWords = shuffleArray(words);
+          setWordList(shuffledWords);
+          console.log('서버에서 단어 로드 성공:', shuffledWords.length + '개 (랜덤 셔플)');
           setLoading(false);
           return;
         } else {
@@ -117,15 +129,17 @@ function WordPage() {
         ];
       }
       
-      setWordList(fallbackWords);
-      console.log('기본 단어 사용:', fallbackWords.length + '개');
+      // 폴백 단어들도 랜덤 셔플
+      const shuffledFallbackWords = shuffleArray(fallbackWords);
+      setWordList(shuffledFallbackWords);
+      console.log('기본 단어 사용:', shuffledFallbackWords.length + '개 (랜덤 셔플)');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
       setError('서버에서 단어를 가져오는데 실패했습니다. 페이지를 새로고침해주세요.');
     } finally {
       setLoading(false);
     }
-  }, [finalLanguageId]);
+  }, [finalLanguageId, workbookProblems]);
 
   useEffect(() => {
     fetchWords();

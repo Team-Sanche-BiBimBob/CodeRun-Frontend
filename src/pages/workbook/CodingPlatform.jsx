@@ -207,9 +207,13 @@ export default function CodingPlatform() {
     try {
       // API에서 문제집의 문제들을 가져오기
       const response = await api.get(`/api/workbook-ai/problems/${problemSet.id}`);
+      console.log('=== API 응답 상세 ===');
+      console.log('문제집 ID:', problemSet.id);
       console.log('문제집 문제 데이터:', response.data);
       console.log('데이터 타입:', typeof response.data);
       console.log('배열인가?', Array.isArray(response.data));
+      console.log('데이터 길이:', response.data?.length);
+      console.log('전체 응답:', response);
       
       // 응답 데이터 구조 확인 및 처리
       let problemsData = response.data;

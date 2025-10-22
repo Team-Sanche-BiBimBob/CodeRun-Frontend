@@ -36,8 +36,9 @@ function SentencePage() {
       // 문제집에서 전달받은 문제가 있으면 그것을 사용
       if (workbookProblems && workbookProblems.length > 0) {
         console.log('문제집 문장 사용:', workbookProblems);
-        setSentences(workbookProblems);
-        console.log('문제집에서 문장 로드 성공:', workbookProblems.length + '개');
+        const shuffledSentences = shuffleArray(workbookProblems);
+        setSentences(shuffledSentences);
+        console.log('문제집에서 문장 로드 성공:', shuffledSentences.length + '개 (랜덤 셔플)');
         setLoading(false);
         return;
       }
@@ -112,9 +113,10 @@ function SentencePage() {
         }
 
         if (Array.isArray(sentences) && sentences.length > 0) {
-          // 서버에서 받은 모든 문장 사용
-          setSentences(sentences);
-          console.log('서버에서 문장 로드 성공:', sentences.length + '개 전체 불러옴');
+          // 서버에서 받은 모든 문장 사용 (랜덤 셔플)
+          const shuffledSentences = shuffleArray(sentences);
+          setSentences(shuffledSentences);
+          console.log('서버에서 문장 로드 성공:', shuffledSentences.length + '개 (랜덤 셔플)');
           return;
         }
       } catch (err) {
@@ -160,8 +162,10 @@ function SentencePage() {
         ];
       }
       
-      setSentences(fallbackSentences);
-      console.log('기본 문장 사용:', fallbackSentences.length + '개');
+      // 폴백 문장들도 랜덤 셔플
+      const shuffledFallbackSentences = shuffleArray(fallbackSentences);
+      setSentences(shuffledFallbackSentences);
+      console.log('기본 문장 사용:', shuffledFallbackSentences.length + '개 (랜덤 셔플)');
     } catch (error) {
       console.error('문장 가져오기 실패:', error);
       
@@ -224,7 +228,9 @@ function SentencePage() {
         ];
       }
       
-      setSentences(defaultSentences);
+      // 에러 케이스 문장들도 랜덤 셔플
+      const shuffledDefaultSentences = shuffleArray(defaultSentences);
+      setSentences(shuffledDefaultSentences);
     } finally {
       setLoading(false);
     }
@@ -238,6 +244,16 @@ function SentencePage() {
 
   const currentSentence = sentences[currentIndex] || '';
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+
+  // 배열을 랜덤으로 섞는 함수
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
 
   const handleKeyDown = useCallback((e) => {
     console.log('Key pressed:', e.key); // DEBUG: Add this line
