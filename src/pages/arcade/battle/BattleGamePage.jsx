@@ -4,11 +4,11 @@ import { useLocation } from 'react-router-dom';
 
 function BattleGamePage() {
   const location = useLocation();
-  const [gameType, setGameType] = useState(location.state?.gameType || '단어'); // '단어' or '문장'
+  const [gameType, setGameType] = useState(location.state?.gameType || '단어');
   const [timeLimit] = useState(location.state?.timeLimit || 60);
   const [roomName] = useState(location.state?.roomName || '테스트방');
-  const [arcadeId] = useState(location.state?.arcadeId || '1'); // 아케이드방 ID
-  const [playerId] = useState(location.state?.playerId || 1); // 1 or 2
+  const [arcadeId] = useState(location.state?.arcadeId || '1');
+  const [playerId] = useState(location.state?.playerId || 1);
   
   // 웹소켓
   const wsRef = useRef(null);
@@ -19,7 +19,7 @@ function BattleGamePage() {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [remainingTime, setRemainingTime] = useState(timeLimit);
-  const [firstKeyTime, setFirstKeyTime] = useState(null); // 최초 타이핑 시간
+  const [firstKeyTime, setFirstKeyTime] = useState(null);
 
   // 단어 게임 상태
   const [wordList, setWordList] = useState([]);
@@ -36,78 +36,123 @@ function BattleGamePage() {
   const [myProgress, setMyProgress] = useState(0);
   const [opponentProgress, setOpponentProgress] = useState(0);
   const [myAccuracy, setMyAccuracy] = useState(100);
-  const [mySpeed, setMySpeed] = useState(0); // WPM
+  const [mySpeed, setMySpeed] = useState(0);
   const [opponentSpeed, setOpponentSpeed] = useState(0);
   const [opponentAccuracy, setOpponentAccuracy] = useState(100);
 
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   // === 웹소켓 연결 ===
-  useEffect(() => {
-    const ws = new WebSocket(`ws://52.79.238.111:8080/api/ws/arcade?id=${arcadeId}`);
-    wsRef.current = ws;
+useEffect(() => {
+  let reconnectTimeout;
+  let ws;
 
-    ws.onopen = () => {
-      console.log('WebSocket 연결됨');
-      setIsConnected(true);
-    };
+  const connect = () => {
+    try {
+      // 서버 WebSocket 핸들러 경로로 변경
+      const wsUrl = `ws://15.165.206.113:8080/api/ws/pvp?id=16`;
+      console.log('WebSocket 연결 시도:', wsUrl);
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('받은 데이터:', data);
+      ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-        // 상대방 점수 업데이트 (진행도 그대로 사용)
-        if (playerId === 1 && data.player2Points !== undefined) {
-          setOpponentProgress(data.player2Points); // 0~100 진행도
-          setOpponentSpeed(data.player2Speed || 0);
-          setOpponentAccuracy(data.player2Accuracy || 100);
-        } else if (playerId === 2 && data.player1Points !== undefined) {
-          setOpponentProgress(data.player1Points); // 0~100 진행도
-          setOpponentSpeed(data.player1Speed || 0);
-          setOpponentAccuracy(data.player1Accuracy || 100);
+      ws.onopen = () => {
+        console.log('✅ WebSocket 연결 성공 - 플레이어', playerId);
+        setIsConnected(true);
+
+        // 연결 즉시 플레이어 정보 전송
+        const joinMessage = {
+          type: 'join',
+          playerId: playerId,
+          arcadeId: arcadeId
+        };
+        ws.send(JSON.stringify(joinMessage));
+        console.log('📤 Join 메시지 전송:', joinMessage);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('📥 받은 데이터:', data);
+
+          if (data.type === 'bothConnected' || data.bothConnected) {
+            setOpponentConnected(true);
+          }
+
+          if (data.type === 'gameStart' || data.gameStart) {
+            setOpponentConnected(true);
+          }
+
+          if (playerId === 1) {
+            if (data.player2Points !== undefined) setOpponentProgress(data.player2Points);
+            if (data.player2Speed !== undefined) setOpponentSpeed(data.player2Speed);
+            if (data.player2Accuracy !== undefined) setOpponentAccuracy(data.player2Accuracy);
+          } else if (playerId === 2) {
+            if (data.player1Points !== undefined) setOpponentProgress(data.player1Points);
+            if (data.player1Speed !== undefined) setOpponentSpeed(data.player1Speed);
+            if (data.player1Accuracy !== undefined) setOpponentAccuracy(data.player1Accuracy);
+          }
+        } catch (error) {
+          console.error('❌ 메시지 파싱 오류:', error);
         }
+      };
 
-        // 게임 시작 신호 (양쪽 플레이어 모두 연결됨)
-        if (data.gameStart || data.bothConnected) {
-          setOpponentConnected(true);
+      ws.onerror = (error) => {
+        console.error('❌ WebSocket 오류:', error);
+        console.log('서버 상태를 확인하세요. 연결 URL:', wsUrl);
+      };
+
+      ws.onclose = (event) => {
+        console.log('🔌 WebSocket 연결 종료:', {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean
+        });
+        setIsConnected(false);
+
+        if (!event.wasClean && event.code !== 1000) {
+          console.log('🔄 5초 후 재연결 시도...');
+          reconnectTimeout = setTimeout(connect, 5000);
         }
-      } catch (error) {
-        console.error('메시지 파싱 오류:', error);
-      }
-    };
+      };
+    } catch (error) {
+      console.error('❌ WebSocket 생성 오류:', error);
+      reconnectTimeout = setTimeout(connect, 5000);
+    }
+  };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket 오류:', error);
-    };
+  connect();
 
-    ws.onclose = () => {
-      console.log('WebSocket 연결 종료');
-      setIsConnected(false);
-    };
+  return () => {
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'leave', playerId: playerId }));
+      ws.close(1000, 'User left');
+    }
+  };
+}, [arcadeId, playerId]);
 
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, [arcadeId, playerId]);
+
 
   // === 내 점수를 서버로 전송 ===
   const sendMyProgress = useCallback(() => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
 
-    const message = playerId === 1
-      ? {
-          player1Points: Math.round(myProgress), // 진행도(0~100)를 그대로 전송
-          player1Speed: mySpeed,
-          player1Accuracy: myAccuracy
-        }
-      : {
-          player2Points: Math.round(myProgress),
-          player2Speed: mySpeed,
-          player2Accuracy: myAccuracy
-        };
+    const message = {
+      type: 'update',
+      playerId: playerId,
+      ...(playerId === 1
+        ? {
+            player1Points: Math.round(myProgress),
+            player1Speed: mySpeed,
+            player1Accuracy: myAccuracy
+          }
+        : {
+            player2Points: Math.round(myProgress),
+            player2Speed: mySpeed,
+            player2Accuracy: myAccuracy
+          })
+    };
 
     wsRef.current.send(JSON.stringify(message));
   }, [myProgress, mySpeed, myAccuracy, playerId]);
@@ -147,7 +192,6 @@ function BattleGamePage() {
       setWordList([]);
     }
 
-    // 리셋 인게임 상태 (게임 중이 아닐 때)
     setCurrentWordIndex(0);
     setCurrentSentenceIndex(0);
     setWordUserInput('');
@@ -173,7 +217,7 @@ function BattleGamePage() {
     return () => interval && clearInterval(interval);
   }, [isGameStarted, isGameComplete, remainingTime]);
 
-  // === WPM 계산 (firstKeyTime 기준) ===
+  // === WPM 계산 ===
   useEffect(() => {
     if (!firstKeyTime) return;
 
@@ -184,7 +228,6 @@ function BattleGamePage() {
 
       let totalTyped = 0;
       if (gameType === '단어') {
-        // 완료한 단어들의 문자 수 + 현재 입력 중인 글자 수
         const completedChars = wordList.slice(0, currentWordIndex).join('').length;
         totalTyped = completedChars + wordUserInput.length;
       } else {
@@ -200,7 +243,6 @@ function BattleGamePage() {
       setMySpeed(Math.round(wpm));
     };
 
-    // 즉시 계산 + 1초 주기 갱신
     calcSpeed();
     const id = setInterval(calcSpeed, 1000);
     return () => clearInterval(id);
@@ -212,24 +254,20 @@ function BattleGamePage() {
     let correctTyped = 0;
 
     if (gameType === '단어') {
-      // 완성된 단어들은 모두 정확했다고 가정(엔터/완료 시)
       for (let i = 0; i < currentWordIndex; i++) {
         totalTyped += wordList[i].length;
         correctTyped += wordList[i].length;
       }
-      // 현재 입력 중인 단어 오타 체크
       const currentWord = wordList[currentWordIndex] || '';
       totalTyped += wordUserInput.length;
       for (let i = 0; i < wordUserInput.length; i++) {
         if (wordUserInput[i] === currentWord[i]) correctTyped++;
       }
     } else {
-      // 완료된 문장들은 모두 올바르게 입력했다고 가정 (엔터 시)
       for (let i = 0; i < currentSentenceIndex; i++) {
         totalTyped += sentences[i].length;
         correctTyped += sentences[i].length;
       }
-      // 현재 타이핑 중인 문장 문자별 비교
       const currentSentence = sentences[currentSentenceIndex] || '';
       for (let i = 0; i < typedChars.length; i++) {
         totalTyped++;
@@ -252,6 +290,16 @@ function BattleGamePage() {
 
     const sendResult = async () => {
       try {
+        // 웹소켓으로도 게임 종료 알림
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({
+            type: 'gameEnd',
+            playerId: playerId,
+            winnerId: winnerId,
+            finalProgress: myProgress
+          }));
+        }
+
         const response = await fetch('/api/battle/result', {
           method: 'POST',
           headers: {
@@ -289,18 +337,25 @@ function BattleGamePage() {
     setWordUserInput('');
     setTypedChars([]);
     setMyProgress(0);
+
+    // 게임 시작 신호 전송
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'start',
+        playerId: playerId
+      }));
+    }
   };
 
   // === 단어 게임 로직 ===
   const handleWordChange = (e) => {
     const value = e.target.value;
-    if (hangulRegex.test(value)) return; // 한글 입력 방지
+    if (hangulRegex.test(value)) return;
     if (!firstKeyTime) setFirstKeyTime(Date.now());
 
     const currentWord = wordList[currentWordIndex] || '';
     setWordUserInput(value);
 
-    // 자동 정답 처리
     if (value === currentWord) {
       const nextIndex = currentWordIndex + 1;
       setMyProgress(((nextIndex) / wordList.length) * 100);
@@ -314,7 +369,7 @@ function BattleGamePage() {
   };
 
   const handleWordKeyDown = (e) => {
-    if (e.key === ' ') e.preventDefault(); // 스페이스 금지
+    if (e.key === ' ') e.preventDefault();
     if (e.key === 'Enter') {
       e.preventDefault();
       if (wordUserInput.trim() === '') return;
@@ -350,7 +405,7 @@ function BattleGamePage() {
   const handleSentenceKeyDown = useCallback((e) => {
     if (e.isComposing || e.keyCode === 229) return;
     if (!e.key) return;
-    if (hangulRegex.test(e.key)) return; // 한글 금지
+    if (hangulRegex.test(e.key)) return;
     if (isGameComplete || sentences.length === 0) return;
 
     if (!firstKeyTime) setFirstKeyTime(Date.now());
@@ -361,7 +416,6 @@ function BattleGamePage() {
     if (e.key === 'Backspace') {
       setTypedChars(prev => prev.slice(0, -1));
     } else if (e.key.length === 1) {
-      // 문자 입력 (심지어 정답 길이 초과도 허용)
       setTypedChars(prev => [...prev, e.key]);
     } else if (e.key === 'Enter') {
       if (typedChars.length === 0) return;
@@ -459,7 +513,6 @@ function BattleGamePage() {
     );
   };
 
-  // 시간 포맷
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -578,7 +631,6 @@ function BattleGamePage() {
   // === 게임 진행 화면 ===
   return (
     <div className="relative min-h-screen flex flex-col bg-[#F0FDFA] pt-8 pb-32">
-      {/* 상단 스탯 바: 내/상대 진행, 시간 */}
       <div className="w-full px-4 mx-auto mb-8 max-w-7xl">
         <div className="p-6 bg-white rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
@@ -613,7 +665,6 @@ function BattleGamePage() {
         </div>
       </div>
 
-      {/* 단어 모드 */}
       {gameType === '단어' && (
         <div className="flex flex-col items-center">
           <div className="mb-6">
@@ -637,7 +688,6 @@ function BattleGamePage() {
         </div>
       )}
 
-      {/* 문장 모드 */}
       {gameType === '문장' && (
         <div className="flex flex-col items-center px-4">
           <div className="w-full max-w-4xl space-y-4">
