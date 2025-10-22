@@ -48,36 +48,13 @@ const Home = () => {
         <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
         <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
         <div className="grid grid-cols-3 gap-4 mt-8">
-          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-            <span>1</span>
-            <span>김동현</span>
-            <span className="text-[10px]">08:07:06</span>
-          </div>
-          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-            <span>2</span>
-            <span>차동규</span>
-            <span className="text-[10px]">08:07:00</span>
-          </div>
-          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-            <span>3</span>
-            <span>서민덕</span>
-            <span className="text-[10px]">08:07:00</span>
-          </div>
-          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-            <span>4</span>
-            <span>희원</span>
-            <span className="text-[10px]">08:06:36</span>
-          </div>
-          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-            <span>5</span>
-            <span>장우</span>
-            <span className="text-[10px]">08:07:00</span>
-          </div>
-          <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-            <span>6</span>
-            <span>박세희</span>
-            <span className="text-[10px]">08:07:00</span>
-          </div>
+          {rankings.map((ranking) => (
+            <div key={ranking.rank} className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+              <span>{ranking.rank}</span>
+              <span>{ranking.name}</span>
+              <span className="text-[10px]">{ranking.time}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -129,7 +106,7 @@ const Home = () => {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {visiblePromos.map((card) => (
                   <div key={card.id} className="">
-                    <div className="w-full h-40 bg-gray-200 border border-gray-300 rounded-xl overflow-hidden">
+                    <div className="w-full h-40 overflow-hidden bg-gray-200 border border-gray-300 rounded-xl">
                       <img 
                         src={card.image} 
                         alt={card.title}
