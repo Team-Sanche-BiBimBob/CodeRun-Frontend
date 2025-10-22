@@ -1,6 +1,7 @@
 // src/pages/practice/sentence/SentencePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import axios from 'axios';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -371,9 +372,72 @@ function SentencePage() {
   const handleGoHome = () => {
     // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
     if (urlLanguageId) {
+      // 완료 시간을 타임어택으로 전달
+      const completionTime = getElapsedTime();
+      const roomId = urlParams.get('roomId');
+      
+      console.log('문장 연습 완료:', { completionTime, roomId, urlLanguageId });
+      
+      // roomId가 없어도 언어 ID로 문제 ID 계산
+      const languageId = parseInt(urlLanguageId);
+      let problemId = null;
+      
+      // 언어 ID와 난이도로 문제 ID 계산
+      if (languageId === 1) { // Python
+        problemId = 1; // Python 문장 연습
+      } else if (languageId === 2) { // Java
+        problemId = 4; // Java 문장 연습
+      } else if (languageId === 5) { // JavaScript
+        problemId = 7; // JavaScript 문장 연습
+      }
+      
+      if (problemId) {
+        // 완료 시간을 sessionStorage에 임시 저장
+        sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+        console.log('완료 시간 sessionStorage 저장:', { problemId, completionTime, languageId });
+      }
+      
+      if (roomId) {
+        // 방 완료 시간 업데이트 API 호출
+        updateRoomCompletionTime(roomId, completionTime);
+      }
+      
       navigate('/timeattack');
     } else {
       navigate('/');
+    }
+  };
+
+  // 방 완료 시간 업데이트 (API 스펙에 맞게 수정)
+  const updateRoomCompletionTime = async (roomId, completionTime) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // API 스펙에 맞는 요청 데이터 구조
+      const requestData = {
+        completionTime: completionTime,
+        completedAt: new Date().toISOString(),
+        status: 'COMPLETED',
+        result: {
+          accuracy: getAccuracy().toFixed(2),
+          typingSpeed: getTypingSpeed().toFixed(0),
+          totalTime: completionTime
+        }
+      };
+      
+      console.log('완료 시간 업데이트 요청:', { roomId, requestData });
+      
+      const response = await axios.put(`${baseUrl}/api/rooms/${roomId}/completion`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('방 완료 시간 업데이트 성공:', response.data);
+    } catch (error) {
+      console.error('방 완료 시간 업데이트 실패:', error);
+      console.error('에러 상세:', error.response?.data);
     }
   };
 
