@@ -23,11 +23,16 @@ const Study = () => {
     const [inputCode, setInputCode] = useState('');
     const [isJoined, setIsJoined] = useState(false);
     const [showCode, setShowCode] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // New state for loading
 
     const handleJoinRoom = () => {
         const codeRegex = /^[A-Za-z0-9]{6}$/;
         if (codeRegex.test(inputCode)) {
-            navigate('/student');
+            setIsLoading(true); // Start loading
+            setTimeout(() => {
+                navigate('/student');
+                setIsLoading(false); // End loading after navigation
+            }, 1000); // 1 second delay
         } else {
             alert('코드는 6글자여야 합니다.');
         }
@@ -103,14 +108,14 @@ const Study = () => {
                                         </div>
                                         <button
                                             onClick={handleJoinRoom}
-                                            disabled={!inputCode.trim()}
+                                            disabled={!inputCode.trim() || isLoading} // Disable when loading
                                             className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-                                                inputCode.trim()
+                                                inputCode.trim() && !isLoading
                                                     ? 'bg-[#009b84] text-white hover:bg-[#007a6b]'
                                                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                             }`}
                                         >
-                                            학습방 참여하기
+                                            {isLoading ? '로딩 중...' : '학습방 참여하기'} {/* Loading text */}
                                         </button>
                                     </div>
                                 </div>

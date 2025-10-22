@@ -1,5 +1,7 @@
+// src/pages/practice/sentence/SentencePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import axios from 'axios';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
@@ -16,7 +18,7 @@ function SentencePage() {
   const [startTime, setStartTime] = useState(() => new Date());
 
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { language: languageId, workbookId, workbookTitle, workbookProblems } = location.state || {};
   
   // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
   const urlParams = new URLSearchParams(location.search);
@@ -30,6 +32,15 @@ function SentencePage() {
     try {
       setLoading(true);
       console.log('문장 가져오기 시도 중...');
+
+      // 문제집에서 전달받은 문제가 있으면 그것을 사용
+      if (workbookProblems && workbookProblems.length > 0) {
+        console.log('문제집 문장 사용:', workbookProblems);
+        setSentences(workbookProblems);
+        console.log('문제집에서 문장 로드 성공:', workbookProblems.length + '개');
+        setLoading(false);
+        return;
+      }
 
       // 기본 문장 목록 (폴백 데이터)
       const defaultSentences = [
@@ -217,10 +228,9 @@ function SentencePage() {
     } finally {
       setLoading(false);
     }
-  }, [finalLanguageId]);
+  }, [finalLanguageId, workbookProblems]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
-
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'auto'; };
@@ -315,17 +325,13 @@ function SentencePage() {
 
     if (isActive && typedArr.length >= original.length) {
       elements.push(
-        <span
-          key="cursor-end"
-          className="inline-block w-[2px] h-6 bg-black custom-blink ml-1"
-        />
+        <span key="cursor-end" className="inline-block w-[2px] h-6 bg-black custom-blink ml-1" />
       );
     }
 
     return <span className="whitespace-pre">{elements}</span>;
   };
 
-  // 통계 관련
   const getTotalTyped = useCallback(() => history.reduce((acc, cur) => acc + cur.typed.length, 0), [history]);
   const getCorrectTyped = useCallback(() => history.reduce((acc, cur) => {
     const correctCount = cur.typed.split('').filter((c, i) => c === cur.sentence[i]).length;
@@ -363,6 +369,17 @@ function SentencePage() {
     return { nextChar, nextWord, currentPosition: nextCharIndex, totalLength: currentSentence.length, remainingText, currentSentence };
   }, [currentSentence, typedChars.length]);
 
+  // 시간 문자열을 초로 변환하는 함수
+  const timeToSeconds = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseInt(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
   const handleRestart = () => {
     setCurrentIndex(0);
     setTypedChars([]);
@@ -372,7 +389,99 @@ function SentencePage() {
     setStartTime(new Date());
   };
 
-  const handleGoHome = () => navigate('/');
+  const handleGoHome = () => {
+    // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
+    if (urlLanguageId) {
+      // 완료 시간을 타임어택으로 전달
+      const completionTime = getElapsedTime();
+      const roomId = urlParams.get('roomId');
+      const accuracy = getAccuracy();
+      
+      console.log('문장 연습 완료:', { completionTime, roomId, urlLanguageId, accuracy });
+      
+      // 정확도가 100%일 때만 기록 저장
+      if (accuracy === 100) {
+        // roomId가 없어도 언어 ID로 문제 ID 계산
+        const languageId = parseInt(urlLanguageId);
+        let problemId = null;
+        
+        // 언어 ID와 난이도로 문제 ID 계산
+        if (languageId === 1) { // Python
+          problemId = 1; // Python 문장 연습
+        } else if (languageId === 2) { // Java
+          problemId = 4; // Java 문장 연습
+        } else if (languageId === 5) { // JavaScript
+          problemId = 7; // JavaScript 문장 연습
+        }
+        
+        if (problemId) {
+          // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
+          const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+          
+          if (!existingTime) {
+            // 기존 기록이 없으면 저장
+            sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+            console.log('완료 시간 sessionStorage 저장 (정확도 100%):', { problemId, completionTime, languageId, accuracy });
+          } else {
+            // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
+            const existingSeconds = timeToSeconds(existingTime);
+            const currentSeconds = timeToSeconds(completionTime);
+            
+            if (currentSeconds < existingSeconds) {
+              sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+              console.log('더 좋은 기록으로 업데이트 (정확도 100%):', { problemId, oldTime: existingTime, newTime: completionTime, accuracy });
+            } else {
+              console.log('기존 기록이 더 좋음 (정확도 100%):', { problemId, existingTime, currentTime: completionTime, accuracy });
+            }
+          }
+        }
+      } else {
+        console.log('정확도가 100%가 아니어서 기록 저장하지 않음:', { accuracy });
+      }
+      
+      if (roomId) {
+        // 방 완료 시간 업데이트 API 호출
+        updateRoomCompletionTime(roomId, completionTime);
+      }
+      
+      navigate('/timeattack');
+    } else {
+      navigate('/');
+    }
+  };
+
+  // 방 완료 시간 업데이트 (API 스펙에 맞게 수정)
+  const updateRoomCompletionTime = async (roomId, completionTime) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // API 스펙에 맞는 요청 데이터 구조
+      const requestData = {
+        completionTime: completionTime,
+        completedAt: new Date().toISOString(),
+        status: 'COMPLETED',
+        result: {
+          accuracy: getAccuracy().toFixed(2),
+          typingSpeed: getTypingSpeed().toFixed(0),
+          totalTime: completionTime
+        }
+      };
+      
+      console.log('완료 시간 업데이트 요청:', { roomId, requestData });
+      
+      const response = await axios.put(`${baseUrl}/api/rooms/${roomId}/completion`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('방 완료 시간 업데이트 성공:', response.data);
+    } catch (error) {
+      console.error('방 완료 시간 업데이트 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+    }
+  };
 
   const getBoxStyle = (index) => {
     if (index === currentIndex - 1) return 'bg-white';
@@ -386,29 +495,36 @@ function SentencePage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
       <div className="text-center">
         <div className="mb-4 text-xl font-semibold text-gray-700">타자연습 문장을 불러오는 중...</div>
-        <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+        <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
       </div>
     </div>
   );
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32 mt-5">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-4 bg-[#F0FDFA] font-[Pretendard-Regular] pt-16 pb-32">
       {/* 이전 문장 */}
-      <div className={`flex items-center px-4 w-4/5 rounded h-[50px] ${getBoxStyle(currentIndex - 1)}`}>
+      <div
+        className={`w-4/5 h-[50px] rounded flex items-center px-4 ${getBoxStyle(currentIndex - 1)}`}
+        style={{
+          overflow: 'hidden',       // 넘치는 텍스트 숨김
+          wordBreak: 'break-all',   // 긴 단어 줄바꿈
+          whiteSpace: 'pre-wrap',   // 공백 유지 + 줄바꿈 허용
+        }}
+      >
         {history.length > 0 && currentIndex > 0 && (() => {
           const lastHistory = history[history.length - 1];
           const { sentence, typed } = lastHistory;
           const elements = [];
-
           for (let i = 0; i < sentence.length; i++) {
             const originalChar = sentence[i];
             const typedChar = typed[i] || '';
             const isCorrect = typedChar === originalChar;
             elements.push(
-              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>{typedChar || originalChar}</span>
+              <span key={i} className={`font-mono ${isCorrect ? 'text-black' : 'text-red-500'}`}>
+                {typedChar || originalChar}
+              </span>
             );
           }
-
           if (typed.length > sentence.length) {
             const extras = typed.slice(sentence.length);
             extras.split('').forEach((char, i) => {
@@ -417,14 +533,26 @@ function SentencePage() {
               );
             });
           }
-
-          return <span className="whitespace-pre">{elements}</span>;
+          return (
+            <span className="font-mono break-all whitespace-pre">
+              {elements}
+            </span>
+          );
         })()}
       </div>
 
       {/* 현재 문장 */}
-      <div className={`flex items-center px-4 w-5/6 rounded ${getBoxStyle(currentIndex)}`} style={{ minHeight: '70px' }}>
-        <div className="relative w-full font-mono text-2xl">
+      <div
+        className={`w-5/6 rounded flex items-center px-4 ${getBoxStyle(currentIndex)}`}
+        style={{
+          minHeight: '70px',
+          maxWidth: '90vw',
+          overflow: 'hidden',
+          wordBreak: 'break-all',
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        <div className="relative w-full overflow-hidden font-mono text-2xl break-all whitespace-pre-wrap">
           {renderComparedTextWithCursor(currentSentence, typedChars, true)}
         </div>
       </div>
@@ -440,7 +568,7 @@ function SentencePage() {
       </div>
 
       {!isComplete && (
-        <div className="flex flex-col items-center mt-10 w-full">
+        <div className="flex flex-col items-center w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}
@@ -449,10 +577,7 @@ function SentencePage() {
             totalSentences={sentences.length}
             startTime={startTime}
           />
-          <KeyBoard
-            nextCharInfo={getNextCharInfo()}
-            isTypingActive={!isComplete}
-          />
+          <KeyBoard nextCharInfo={getNextCharInfo()} isTypingActive={!isComplete} />
         </div>
       )}
 

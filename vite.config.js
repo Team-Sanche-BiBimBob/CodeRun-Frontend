@@ -6,11 +6,19 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      // WebSocket 전용 프록시 (먼저 선언)
+      '/api/ws': {
+        target: 'http://52.79.238.111:8080', // ws:// 대신 http:// 사용
+        changeOrigin: true,
+        ws: true, // WebSocket 활성화
+        rewrite: (path) => path,
+      },
+      // HTTP API 프록시
       '/api': {
         target: 'https://api.coderun.site',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        secure: true,
+        rewrite: (path) => path,
       }
     }
   },

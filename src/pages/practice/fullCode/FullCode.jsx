@@ -22,7 +22,12 @@ const Fullcode = () => {
   const isInitializedRef = useRef(false);
 
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { 
+    language: languageId, 
+    workbookId, 
+    workbookTitle, 
+    workbookProblems 
+  } = location.state || {};
   
   const urlParams = new URLSearchParams(location.search);
   const urlLanguageId = urlParams.get('language');
@@ -60,6 +65,20 @@ const Fullcode = () => {
       'const fetchData = async () => {\n  try {\n    const response = await fetch("/api/data");\n    const data = await response.json();\n    return data;\n  } catch (error) {\n    console.error("Error:", error);\n  }\n};',
       'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\nconst evenSquares = numbers\n  .filter(num => num % 2 === 0)\n  .map(num => num * num);\nconsole.log(evenSquares);'
     ];
+
+    // 문제집에서 전달받은 문제가 있으면 그것을 사용
+    if (workbookProblems && workbookProblems.length > 0) {
+      console.log('문제집 문제 사용:', workbookProblems);
+      const randomIndex = Math.floor(Math.random() * workbookProblems.length);
+      const selectedCode = workbookProblems[randomIndex];
+      setExampleCode(selectedCode);
+      setExampleLines(selectedCode.split('\n'));
+      setMonacoLanguage(getMonacoLanguage(finalLanguageId));
+      console.log('문제집에서 문제 로드 성공:', workbookProblems.length + '개 중 ' + (randomIndex + 1) + '번째 선택됨');
+      setLoading(false);
+      setLoadingMessage('');
+      return;
+    }
 
     try {
       console.log('풀코드 가져오기 시도 중...');
@@ -275,24 +294,31 @@ const Fullcode = () => {
     if (!input) return 100;
     
     const inputLines = input.split('\n');
-    const exampleLines = exampleCode.split('\n');
+    const exampleLinesArray = exampleCode.split('\n');
     
-    let incorrectChars = 0;
-    let totalInputChars = 0;
+    let correctChars = 0;
+    let totalChars = 0;
     
-    inputLines.forEach((inputLine, lineIndex) => {
-      const exampleLine = exampleLines[lineIndex] || '';
+    // 예시 코드 라인 수만큼만 계산
+    const linesToCheck = Math.min(inputLines.length, exampleLinesArray.length);
+    
+    for (let lineIndex = 0; lineIndex < linesToCheck; lineIndex++) {
+      const inputLine = inputLines[lineIndex] || '';
+      const exampleLine = exampleLinesArray[lineIndex] || '';
       
-      for (let i = 0; i < inputLine.length; i++) {
-        totalInputChars++;
-        if (i >= exampleLine.length || inputLine[i] !== exampleLine[i]) {
-          incorrectChars++;
+      // 예시 라인의 길이를 totalChars에 추가
+      totalChars += exampleLine.length;
+      
+      // 맞은 글자 수 카운트 - 예시 라인 길이만큼만 비교
+      for (let i = 0; i < exampleLine.length; i++) {
+        if (i < inputLine.length && inputLine[i] === exampleLine[i]) {
+          correctChars++;
         }
       }
-    });
+    }
     
-    return totalInputChars > 0 
-      ? Math.round(((totalInputChars - incorrectChars) / totalInputChars) * 100)
+    return totalChars > 0 
+      ? Math.round((correctChars / totalChars) * 100)
       : 100;
   };
 
@@ -355,13 +381,20 @@ const Fullcode = () => {
               
               let correctChars = 0;
               let totalChars = 0;
+              
+              // 마지막 엔터로 생긴 빈 줄 제거
               const inputLines = value.split('\n');
+              // 마지막이 빈 문자열이면 제거
+              if (inputLines[inputLines.length - 1] === '') {
+                inputLines.pop();
+              }
               
               exampleLinesArray.forEach((exampleLine, i) => {
                 const inputLine = inputLines[i] || '';
                 totalChars += exampleLine.length;
-                for (let j = 0; j < Math.min(exampleLine.length, inputLine.length); j++) {
-                  if (exampleLine[j] === inputLine[j]) {
+                
+                for (let j = 0; j < exampleLine.length; j++) {
+                  if (inputLine[j] === exampleLine[j]) {
                     correctChars++;
                   }
                 }
@@ -369,10 +402,14 @@ const Fullcode = () => {
               
               const finalAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
               
+              const finalElapsedTime = elapsedTime > 0 ? elapsedTime : 1;
+              const timeInMinutes = finalElapsedTime / 60;
+              const finalTypingSpeed = Math.round(value.length / timeInMinutes);
+              
               setCompletionStats({
                 accuracy: finalAccuracy,
-                typingSpeed: calculateWPM(),
-                elapsedTime: elapsedTime
+                typingSpeed: finalTypingSpeed,
+                elapsedTime: finalElapsedTime
               });
               setShowCompletionModal(true);
               
@@ -385,7 +422,7 @@ const Fullcode = () => {
               
               fetchFullCodes();
               return;
-            }
+            } 
           }
         }
       }
@@ -423,6 +460,17 @@ const Fullcode = () => {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // 시간 문자열을 초로 변환하는 함수
+  const timeToSeconds = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      const minutes = parseInt(parts[0]) || 0;
+      const seconds = parseInt(parts[1]) || 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
   const handleRestart = () => {
     setShowCompletionModal(false);
     
@@ -448,17 +496,107 @@ const Fullcode = () => {
 
   const handleGoHome = () => {
     setShowCompletionModal(false);
-    navigate('/');
+    // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
+    if (urlLanguageId) {
+      // 완료 시간을 타임어택으로 전달
+      const completionTime = formatTime(completionStats.elapsedTime);
+      const roomId = urlParams.get('roomId');
+      const accuracy = completionStats.accuracy;
+      
+      console.log('풀코드 연습 완료:', { completionTime, roomId, urlLanguageId, accuracy });
+      
+      // 정확도가 100%일 때만 기록 저장
+      if (accuracy === 100) {
+        // roomId가 없어도 언어 ID로 문제 ID 계산
+        const languageId = parseInt(urlLanguageId);
+        let problemId = null;
+        
+        // 언어 ID와 난이도로 문제 ID 계산
+        if (languageId === 1) { // Python
+          problemId = 2; // Python 풀코드 연습
+        } else if (languageId === 2) { // Java
+          problemId = 5; // Java 풀코드 연습
+        } else if (languageId === 5) { // JavaScript
+          problemId = 8; // JavaScript 풀코드 연습
+        }
+        
+        if (problemId) {
+          // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
+          const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+          
+          if (!existingTime) {
+            // 기존 기록이 없으면 저장
+            sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+            console.log('완료 시간 sessionStorage 저장 (정확도 100%):', { problemId, completionTime, languageId, accuracy });
+          } else {
+            // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
+            const existingSeconds = timeToSeconds(existingTime);
+            const currentSeconds = timeToSeconds(completionTime);
+            
+            if (currentSeconds < existingSeconds) {
+              sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+              console.log('더 좋은 기록으로 업데이트 (정확도 100%):', { problemId, oldTime: existingTime, newTime: completionTime, accuracy });
+            } else {
+              console.log('기존 기록이 더 좋음 (정확도 100%):', { problemId, existingTime, currentTime: completionTime, accuracy });
+            }
+          }
+        }
+      } else {
+        console.log('정확도가 100%가 아니어서 기록 저장하지 않음:', { accuracy });
+      }
+      
+      if (roomId) {
+        // 방 완료 시간 업데이트 API 호출
+        updateRoomCompletionTime(roomId, completionTime);
+      }
+      
+      navigate('/timeattack');
+    } else {
+      navigate('/');
+    }
+  };
+
+  // 방 완료 시간 업데이트 (API 스펙에 맞게 수정)
+  const updateRoomCompletionTime = async (roomId, completionTime) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // API 스펙에 맞는 요청 데이터 구조
+      const requestData = {
+        completionTime: completionTime,
+        completedAt: new Date().toISOString(),
+        status: 'COMPLETED',
+        result: {
+          accuracy: completionStats.accuracy,
+          typingSpeed: completionStats.typingSpeed,
+          totalTime: completionTime
+        }
+      };
+      
+      console.log('완료 시간 업데이트 요청:', { roomId, requestData });
+      
+      const response = await axios.put(`${baseUrl}/api/rooms/${roomId}/completion`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('방 완료 시간 업데이트 성공:', response.data);
+    } catch (error) {
+      console.error('방 완료 시간 업데이트 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-white">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
           <div className="mb-4 text-xl font-semibold text-gray-700">
             {loadingMessage || '풀코드를 불러오는 중...'}
           </div>
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -514,8 +652,8 @@ const Fullcode = () => {
                 fontSize: 12,
                 wordWrap: 'on',
                 automaticLayout: true,
-                renderWhitespace: 'selection',
-                tabSize: 1,
+                renderWhitespace: 'all',
+                tabSize: 2,
                 domReadOnly: true,
                 cursorStyle: 'hidden',
                 contextmenu: false,
@@ -568,8 +706,9 @@ const Fullcode = () => {
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 wordWrap: 'on',
-                renderWhitespace: 'selection',
-                tabSize: 1,
+                renderWhitespace: 'all',
+                tabSize: 2,
+                insertSpaces: false,
                 quickSuggestions: false,
                 suggestOnTriggerCharacters: false,
                 acceptSuggestionOnEnter: "off",
