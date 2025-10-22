@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 
@@ -21,16 +21,37 @@ const Fullcode = () => {
   const timerRef = useRef(null);
   const isInitializedRef = useRef(false);
 
-  // 풀코드 데이터 가져오기 (서버 API 시도 후 폴백)
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
+  
+  // 언어 ID를 Monaco Editor 언어로 매핑
+  const getMonacoLanguage = (langId) => {
+    const languageMap = {
+      1: 'python',
+      2: 'java',
+      3: 'c',
+      4: 'cpp',
+      5: 'javascript',
+      6: 'typescript',
+      7: 'go',
+      8: 'rust'
+    };
+    return languageMap[langId] || 'javascript';
+  };
+
+  const [monacoLanguage, setMonacoLanguage] = useState(getMonacoLanguage(finalLanguageId));
+
   const fetchFullCodes = async () => {
-    // 이미 로딩 중이면 중복 호출 방지
     if (loading) return;
     
     setLoading(true);
     setLoadingMessage('서버에서 문제를 가져오고 있습니다...');
     setError(null);
     
-    // 폴백 데이터 (서버 API가 준비되지 않은 경우 사용)
     const fallbackCodes = [
       'const numbers = [1, 2, 3, 4, 5];\nconst result = numbers.filter(num => num % 2 === 0);\nconsole.log(result);',
       'function greet(name) {\n  return `Hello, ${name}!`;\n}\nconsole.log(greet("World"));',
@@ -44,14 +65,12 @@ const Fullcode = () => {
       console.log('풀코드 가져오기 시도 중...');
 
       const possibleUrls = [
-        '/api/problems/full-code'
+        finalLanguageId ? `/api/problems/full-code/${finalLanguageId}` : '/api/problems/full-code'
       ];
 
-      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
       const apiUrl = possibleUrls[0];
       try {
         console.log(`시도 중: ${apiUrl}`);
-        // 직접 서버에 요청 (프록시 우회)
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
         const fullUrl = baseUrl + apiUrl;
         console.log(`API 요청 URL: ${fullUrl}`);
@@ -78,24 +97,21 @@ const Fullcode = () => {
         }
 
         if (Array.isArray(codes) && codes.length > 0) {
-          // Fisher-Yates 셔플 알고리즘을 사용하여 완전히 랜덤하게 섞기
-          const shuffledCodes = [...codes];
-          for (let i = shuffledCodes.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffledCodes[i], shuffledCodes[j]] = [shuffledCodes[j], shuffledCodes[i]];
-          }
-          const randomIndex = Math.floor(Math.random() * shuffledCodes.length);
-          const selectedCode = shuffledCodes[randomIndex];
+          const randomIndex = Math.floor(Math.random() * codes.length);
+          const selectedCode = codes[randomIndex];
           setExampleCode(selectedCode);
           setExampleLines(selectedCode.split('\n'));
-          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 랜덤 선택됨');
+          
+          // 언어 설정 업데이트
+          setMonacoLanguage(getMonacoLanguage(finalLanguageId));
+          
+          console.log('서버에서 풀코드 로드 성공:', codes.length + '개 중 ' + (randomIndex + 1) + '번째 랜덤 선택됨');
           setLoading(false);
           setLoadingMessage('');
           return;
         }
       } catch (err) {
         const errorMessage = err.message;
-        // AbortError (타임아웃)은 정상적인 동작이므로 에러 로그를 표시하지 않음
         if (err.name !== 'AbortError') {
           console.log(`${apiUrl} 실패:`, errorMessage);
         } else {
@@ -103,34 +119,24 @@ const Fullcode = () => {
         }
       }
 
-      // API 시도 실패 시 폴백 데이터 사용
       setLoadingMessage('기본 예제 코드를 준비하고 있습니다...');
       console.log('서버 API를 사용할 수 없어 기본 예제 코드를 사용합니다.');
       
     } catch (err) {
-      // AbortError (타임아웃)은 정상적인 동작이므로 에러 로그를 표시하지 않음
       if (err.name !== 'AbortError') {
         console.log('API 호출 중 오류 발생, 폴백 데이터 사용:', err.message);
       }
     }
 
-    // 폴백 데이터 사용 (Fisher-Yates 셔플 알고리즘으로 완전히 랜덤하게 섞어서 선택)
     setLoadingMessage('문제를 준비하고 있습니다...');
-    const shuffledFallbackCodes = [...fallbackCodes];
-    for (let i = shuffledFallbackCodes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledFallbackCodes[i], shuffledFallbackCodes[j]] = [shuffledFallbackCodes[j], shuffledFallbackCodes[i]];
-    }
-    const randomIndex = Math.floor(Math.random() * shuffledFallbackCodes.length);
-    const selectedCode = shuffledFallbackCodes[randomIndex];
+    const selectedCode = fallbackCodes[0];
     setExampleCode(selectedCode);
     setExampleLines(selectedCode.split('\n'));
-    console.log('폴백 데이터 사용:', fallbackCodes.length + '개 중 랜덤 선택됨');
+    console.log('폴백 데이터 사용:', fallbackCodes.length + '개 중 첫 번째 선택됨');
     setLoading(false);
     setLoadingMessage('');
   };
   
-  // 랜덤으로 예제 코드 선택
   const [exampleCode, setExampleCode] = useState('');
   const [exampleLines, setExampleLines] = useState([]);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -141,9 +147,8 @@ const Fullcode = () => {
   });
 
   const handleEditorDidMount = (editor, monaco) => {
-    editorRef.current = editor;
-    
-    // 모든 언어에 대한 검증 비활성화
+    editorRef.current = editor; 
+
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: true,
@@ -156,7 +161,6 @@ const Fullcode = () => {
       noSuggestionDiagnostics: true
     });
     
-    // 에디터 옵션 설정
     editor.updateOptions({
       suggestOnTriggerCharacters: false,
       quickSuggestions: false,
@@ -167,10 +171,12 @@ const Fullcode = () => {
         showClasses: false,
         showFunctions: false,
         showVariables: false,
-      }
+      },
+      autoIndent: "none",
+      formatOnType: false,
+      formatOnPaste: false
     });
 
-    // 에디터에 키다운 이벤트 리스너 추가
     editor.onKeyDown((e) => {
       if (!isComposingRef.current) {
         setTimeout(() => {
@@ -184,8 +190,27 @@ const Fullcode = () => {
         }, 0);
       }
     });
+    
+    editor.onKeyDown((e) => {
+      // 복사/붙여넣기 방지 (Ctrl+V, Cmd+V)
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      if (!isComposingRef.current) {
+        setTimeout(() => {
+          if (editorRef.current) {
+            const value = editorRef.current.getValue();
+            if (value !== lastValueRef.current) {
+              lastValueRef.current = value;
+              updateDecorations(value);
+            }
+          }
+        }, 0);
+      }
+    });
 
-    // Add custom CSS for character highlighting
     const style = document.createElement('style');
     style.textContent = `
       .code-correct-char {
@@ -198,7 +223,6 @@ const Fullcode = () => {
     document.head.appendChild(style);
   };
 
-  // 데코레이션 업데이트 함수
   const updateDecorations = (value) => {
     if (!editorRef.current || typeof monaco === 'undefined') return;
     
@@ -247,42 +271,46 @@ const Fullcode = () => {
     );
   };
 
-  // 전체 정확도 계산 함수
   const calculateOverallAccuracy = (input) => {
     if (!input) return 100;
     
     const inputLines = input.split('\n');
-    const exampleLines = exampleCode.split('\n');
+    const exampleLinesArray = exampleCode.split('\n');
     
-    let incorrectChars = 0;
-    let totalInputChars = 0;
+    let correctChars = 0;
+    let totalChars = 0;
     
-    // 모든 라인에 대해 정확도 계산
-    inputLines.forEach((inputLine, lineIndex) => {
-      const exampleLine = exampleLines[lineIndex] || '';
+    // 예시 코드 라인 수만큼만 계산
+    const linesToCheck = Math.min(inputLines.length, exampleLinesArray.length);
+    
+    for (let lineIndex = 0; lineIndex < linesToCheck; lineIndex++) {
+      const inputLine = inputLines[lineIndex] || '';
+      const exampleLine = exampleLinesArray[lineIndex] || '';
       
-      for (let i = 0; i < inputLine.length; i++) {
-        totalInputChars++;
-        if (i >= exampleLine.length || inputLine[i] !== exampleLine[i]) {
-          incorrectChars++;
+      // 예시 라인의 길이를 totalChars에 추가
+      totalChars += exampleLine.length;
+      
+      // 맞은 글자 수 카운트 - 예시 라인 길이만큼만 비교
+      for (let i = 0; i < exampleLine.length; i++) {
+        if (i < inputLine.length && inputLine[i] === exampleLine[i]) {
+          correctChars++;
         }
       }
-    });
+    }
     
-    return totalInputChars > 0 
-      ? Math.round(((totalInputChars - incorrectChars) / totalInputChars) * 100)
+    return totalChars > 0 
+      ? Math.round((correctChars / totalChars) * 100)
       : 100;
   };
 
-  // 분당 타수(Words Per Minute) 계산
   const calculateWPM = () => {
     if (elapsedTime === 0) return 0;
     const totalChars = code.length;
     const timeInMinutes = elapsedTime / 60;
-    return Math.round((totalChars / 5) / timeInMinutes);
+    // 5로 나누지 않고 직접 분당 글자수 계산
+    return Math.round(totalChars / timeInMinutes);
   };
 
-  // 타이머 정지
   const stopTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -290,7 +318,6 @@ const Fullcode = () => {
     }
   };
 
-  // Start timer when typing begins
   const startTypingTimer = () => {
     if (timerRef.current) return;
     
@@ -335,13 +362,20 @@ const Fullcode = () => {
               
               let correctChars = 0;
               let totalChars = 0;
+              
+              // 마지막 엔터로 생긴 빈 줄 제거
               const inputLines = value.split('\n');
+              // 마지막이 빈 문자열이면 제거
+              if (inputLines[inputLines.length - 1] === '') {
+                inputLines.pop();
+              }
               
               exampleLinesArray.forEach((exampleLine, i) => {
                 const inputLine = inputLines[i] || '';
                 totalChars += exampleLine.length;
-                for (let j = 0; j < Math.min(exampleLine.length, inputLine.length); j++) {
-                  if (exampleLine[j] === inputLine[j]) {
+                
+                for (let j = 0; j < exampleLine.length; j++) {
+                  if (inputLine[j] === exampleLine[j]) {
                     correctChars++;
                   }
                 }
@@ -349,10 +383,14 @@ const Fullcode = () => {
               
               const finalAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
               
+              const finalElapsedTime = elapsedTime > 0 ? elapsedTime : 1;
+              const timeInMinutes = finalElapsedTime / 60;
+              const finalTypingSpeed = Math.round(value.length / timeInMinutes);
+              
               setCompletionStats({
                 accuracy: finalAccuracy,
-                typingSpeed: calculateWPM(),
-                elapsedTime: elapsedTime
+                typingSpeed: finalTypingSpeed,
+                elapsedTime: finalElapsedTime
               });
               setShowCompletionModal(true);
               
@@ -363,10 +401,9 @@ const Fullcode = () => {
               setStartTime(null);
               lastValueRef.current = '';
               
-              // 새로운 풀코드 가져오기
               fetchFullCodes();
               return;
-            }
+            } 
           }
         }
       }
@@ -376,9 +413,7 @@ const Fullcode = () => {
     }
   };
   
-  // 컴포넌트 마운트 시 서버에서 풀코드 데이터 가져오기
   useEffect(() => {
-    // 중복 호출 방지
     if (isInitializedRef.current) return;
     isInitializedRef.current = true;
     
@@ -389,7 +424,7 @@ const Fullcode = () => {
     setAccuracy(100);
     setElapsedTime(0);
     setStartTime(null);
-  }, []); // fetchFullCodes 의존성 제거
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -397,7 +432,6 @@ const Fullcode = () => {
     };
   }, []);
   
-  // 시간 포맷팅 (초를 MM:SS 형식으로 변환)
   const formatTime = (totalSeconds) => {
     if (totalSeconds < 0) return '00:00';
     
@@ -410,7 +444,6 @@ const Fullcode = () => {
   const handleRestart = () => {
     setShowCompletionModal(false);
     
-    // 모든 상태 초기화
     setCode('');
     setKeystrokes(0);
     setAccuracy(100);
@@ -419,15 +452,12 @@ const Fullcode = () => {
     setIsTyping(false);
     lastValueRef.current = '';
     
-    // 타이머 정리
     stopTimer();
     
-    // 데코레이션 초기화
     if (editorRef.current && decorationsRef.current) {
       decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
     }
     
-    // 로딩 상태 초기화 후 새로운 풀코드 가져오기
     setLoading(false);
     setTimeout(() => {
       fetchFullCodes();
@@ -439,7 +469,6 @@ const Fullcode = () => {
     navigate('/');
   };
 
-  // 로딩 상태 표시
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-white">
@@ -453,7 +482,6 @@ const Fullcode = () => {
     );
   }
 
-
   return (
     <div className="flex flex-col gap-1 max-w-[1350px] mx-auto p-5 pt-2.5 min-h-[80vh] h-[calc(90vh-40px)]">
       <CompletionModal
@@ -465,12 +493,10 @@ const Fullcode = () => {
         onGoHome={handleGoHome}
       />
       
-      {/* Modal Overlay to prevent interactions */}
       {showCompletionModal && (
         <div className="fixed inset-0 z-40 bg-black bg-opacity-0" />
       )}
       
-      {/* Statistics Container */}
       <div className={`flex justify-around items-center bg-[#1E1E1E] rounded-lg px-1.5 py-1 mb-2 shadow-sm ${showCompletionModal ? 'pointer-events-none opacity-50' : ''}`}>
         <div className="flex items-center gap-1 text-gray-200 px-1 py-0.5">
           <div className="text-xs text-gray-400 whitespace-nowrap mr-0.5">정확도</div>
@@ -488,9 +514,7 @@ const Fullcode = () => {
         </div>
       </div>
       
-      {/* Code Editors Container */}
       <div className={`grid grid-cols-2 gap-8 flex-1 min-h-0 ${showCompletionModal ? 'opacity-50 pointer-events-none' : ''}`}>
-        {/* Example Code Display */}
         <div className="flex flex-col bg-[#1E1E1E] rounded-md overflow-hidden shadow-lg h-full">
           <div className="bg-[#1E1E1E] text-gray-200 px-4 py-2 text-sm border-b border-[#282828] font-semibold">
             예시 코드
@@ -498,7 +522,7 @@ const Fullcode = () => {
           <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-[#282828] rounded bg-[#1E1E1E]">
             <Editor
               height="100%"
-              defaultLanguage="javascript"
+              language={monacoLanguage}
               value={exampleCode}
               options={{
                 readOnly: true,
@@ -508,7 +532,7 @@ const Fullcode = () => {
                 fontSize: 12,
                 wordWrap: 'on',
                 automaticLayout: true,
-                renderWhitespace: 'selection',
+                renderWhitespace: 'all',
                 tabSize: 2,
                 domReadOnly: true,
                 cursorStyle: 'hidden',
@@ -528,7 +552,6 @@ const Fullcode = () => {
                   verticalScrollbarSize: 12,
                   horizontalScrollbarSize: 12,
                 },
-                // 스크롤을 허용하되 편집은 막기
                 selectOnLineNumbers: false,
                 selectionClipboard: false,
                 find: {
@@ -541,7 +564,6 @@ const Fullcode = () => {
           </div>
         </div>
         
-        {/* Code Input */}  
         <div className="flex flex-col bg-[#1E1E1E] rounded-md overflow-hidden shadow-lg h-full">
           <div className="bg-[#1E1E1E] text-gray-200 px-4 py-2 text-sm border-b border-[#282828] font-semibold">
             코드 입력
@@ -549,7 +571,7 @@ const Fullcode = () => {
           <div className="flex-1 overflow-hidden relative h-[70vh] min-h-[300px] border border-[#282828] rounded bg-[#1E1E1E]">
             <Editor
               height="100%"
-              defaultLanguage="javascript"
+              language={monacoLanguage}
               value={code}
               onChange={handleEditorChange}
               onMount={handleEditorDidMount}
@@ -557,14 +579,16 @@ const Fullcode = () => {
               options={{
                 autoIndent: "full",
                 formatOnType: true,
+                formatOnPaste: true,
                 bracketPairColorization: { enabled: true },
                 automaticLayout: true,
                 fontSize: 12,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 wordWrap: 'on',
-                renderWhitespace: 'selection',
+                renderWhitespace: 'all',
                 tabSize: 2,
+                insertSpaces: false,
                 quickSuggestions: false,
                 suggestOnTriggerCharacters: false,
                 acceptSuggestionOnEnter: "off",

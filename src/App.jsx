@@ -3,6 +3,7 @@ import './App.css'
 import Header from './components/common/header/Header.jsx'
 import { useState, useEffect, useMemo } from 'react';
 import Routers from './components/Routers/Routers.jsx';
+import ToastProvider from './components/common/Toast/ToastProvider.jsx';
 
 const App = () => {
   const location = useLocation();
@@ -54,9 +55,10 @@ const App = () => {
   }, [location.pathname, headerVisibleRoutes, normalizePath]);
 
   return (
-    <div style={{ paddingTop: showHeader ? '64px' : '0' }}>
+    <div className="bg-white min-h-[calc(100vh-64px)]" style={{ paddingTop: showHeader ? '64px' : '0' }}>
       {showHeader && <Header isLoggedIn={isLoggedIn} />}
       <Routers />
+      <ToastProvider />
     </div>
   );
 };

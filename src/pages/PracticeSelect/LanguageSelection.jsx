@@ -2,66 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LanguageCard from "../../components/LanguageCard/LanguageCard";
 
-/*const programmingLanguages = [
-  {
-    id: 'python',
-    name: 'Python',
-    description: '초보자에게 가장 적합한 언어로, 쉬운 문법과 다양한 활용 분야를 가지고 있습니다.',
-    difficulty: '쉬움',
-    popularity: 4,
-    recommended: true,
-  },
-  {
-    id: 'java',
-    name: 'Java',
-    description: '객체지향 프로그래밍의 대표적인 언어로, 다양한 플랫폼에서 실행 가능합니다.',
-    difficulty: '중간',
-    popularity: 5,
-  },
-  {
-    id: 'javascript',
-    name: 'JavaScript',
-    description: '웹 개발에 필수적인 언어로, 프론트엔드와 백엔드 모두에서 사용 가능합니다.',
-    difficulty: '중간',
-    popularity: 5,
-  },
-  {
-    id: 'c',
-    name: 'C',
-    description: '프로그래밍의 기초가 되는 언어로, 하드웨어에 가까운 프로그래밍이 가능합니다.',
-    difficulty: '어려움',
-    popularity: 2,
-  },
-  {
-    id: 'sql',
-    name: 'SQL',
-    description: '데이터베이스 관리에 사용되는 언어로, 데이터 분석에 필수적입니다.',
-    difficulty: '중간',
-    popularity: 2,
-  },
-  {
-    id: 'typescript',
-    name: 'TypeScript',
-    description: 'JavaScript의 슈퍼셋으로, 정적 타입을 지원하여 더 안정적인 코드 작성이 가능합니다.',
-    difficulty: '중간',
-    popularity: 3,
-  },
-  {
-    id: 'kotlin',
-    name: 'Kotlin',
-    description: '안드로이드 앱 개발에 적합한 언어로, Java보다 간결하고 현대적입니다.',
-    difficulty: '중간',
-    popularity: 4,
-  },
-  {
-    id: 'swift',
-    name: 'Swift',
-    description: 'iOS 앱 개발을 위한 애플의 언어로, 안전하고 현대적인 문법을 가지고 있습니다.',
-    difficulty: '중간',
-    popularity: 3,
-  },
-];*/
-
 const LanguageSelection = () => {
   const [languages, setLanguages] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
@@ -69,19 +9,55 @@ const LanguageSelection = () => {
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch('api/languages', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        console.log(response.status);
-        throw new Error(`서버 오류: ${response.status}`);
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        const apiUrl = `${apiBaseUrl}${apiBaseUrl.endsWith('/') ? '' : '/'}api/languages`;
+        
+        console.log('Fetching languages from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API 응답 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
+          
+          const defaultLanguages = [
+            { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
+            { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
+            { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
+            { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
+            { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
+            { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
+          ];
+          setLanguages(defaultLanguages);
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('API 응답 성공:', data);
+        setLanguages(data);
+      } catch (error) {
+        console.error('언어 목록 가져오기 실패:', error);
+        const defaultLanguages = [
+          { id: 'python', name: 'Python', description: '초보자에게 가장 적합한 언어' },
+          { id: 'java', name: 'Java', description: '객체지향 프로그래밍의 대표적인 언어' },
+          { id: 'javascript', name: 'JavaScript', description: '웹 개발에 필수적인 언어' },
+          { id: 'c', name: 'C', description: '프로그래밍의 기초가 되는 언어' },
+          { id: 'sql', name: 'SQL', description: '데이터베이스 관리에 사용되는 언어' },
+          { id: 'typescript', name: 'TypeScript', description: 'JavaScript의 슈퍼셋' },
+        ];
+        setLanguages(defaultLanguages);
       }
-      const data = await response.json();
-      console.log(data);
-      setLanguages(data);
     };
     getData();
   }, []);
@@ -92,10 +68,40 @@ const LanguageSelection = () => {
 
   const handleCompleteSelection = () => {
     if (selectedLanguage) {
-      navigate('/PracticeSelect', { state: { language: selectedLanguage } });
+      const languageIdMap = {
+        'python': 1,
+        'Python': 1,
+        'java': 2,
+        'Java': 2,
+        'javascript': 5,
+        'JavaScript': 5,
+        'c': 3,
+        'C': 3,
+        'c++': 4,
+        'C++': 4,
+        'typescript': 6,
+        'TypeScript': 6,
+        'go': 7,
+        'Go': 7,
+        'rust': 8,
+        'Rust': 8,
+      };
+      
+      // selectedLanguage가 이미 숫자면 그대로 사용, 문자열이면 매핑
+      let numericLanguageId;
+      if (typeof selectedLanguage === 'number') {
+        numericLanguageId = selectedLanguage;
+      } else if (typeof selectedLanguage === 'string') {
+        numericLanguageId = languageIdMap[selectedLanguage] || languageIdMap[selectedLanguage.toLowerCase()] || 1;
+      } else {
+        numericLanguageId = 1;
+      }
+      
+      console.log("Navigating with selectedLanguage:", selectedLanguage, "-> numericId:", numericLanguageId);
+      navigate('/PracticeSelect', { state: { language: numericLanguageId } });
     }
   };
-
+  
   const handleSelectLater = () => {
     console.log('Select later clicked');
   };
@@ -127,12 +133,6 @@ const LanguageSelection = () => {
             onClick={handleCompleteSelection}
           >
             선택 완료
-          </button>
-          <button
-            className="mt-4 text-sm text-gray-600 bg-transparent border-none cursor-pointer hover:text-gray-800"
-            onClick={handleSelectLater}
-          >
-            나중에 선택하기
           </button>
         </div>
       </main>

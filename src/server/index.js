@@ -1,7 +1,8 @@
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 
-export const baseURL = import.meta.env.VITE_BASE_URL;
+export const baseURL = import.meta.env.VITE_API_BASE_URL;
 export const api = axios.create({
   baseURL,
 });
@@ -24,8 +25,11 @@ api.interceptors.response.use(function (response) {
 }, function (error) {
   // before catch
   if(error.response && error.response.status === 419){
-    alert('토큰이 만료되었습니다. 다시 로그인해주세요.')
+    toast.error('토큰이 만료되었습니다. 다시 로그인해주세요.')
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('token');
+    // 메인 페이지로 리다이렉트
+    window.location.href = '/';
   }
   return Promise.reject(error);
 });

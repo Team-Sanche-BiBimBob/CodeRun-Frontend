@@ -1,13 +1,12 @@
 // src/pages/practice/sentence/SentencePage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import KeyBoard from '../../../components/practice/keyboard/KeyBoard';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 import RealTimeStats from '../../../components/practice/realTimeStats/RealTimestats';
 
 function SentencePage() {
   const navigate = useNavigate();
-  const { id } = useParams();
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -17,58 +16,209 @@ function SentencePage() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState(() => new Date());
 
+  const location = useLocation();
+  const { language: languageId } = location.state || {};
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
+  
+  // console.log("SentencePage received languageId:", finalLanguageId);
+
   // 서버에서 문장 가져오기
   const fetchSentences = useCallback(async () => {
     try {
       setLoading(true);
-      if (!id) throw new Error('ID가 제공되지 않았습니다');
+      console.log('문장 가져오기 시도 중...');
 
-      const apiUrl = `/api/problems/sentences/${location.state?.id}`;
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-      let loadedSentences = Array.isArray(data) ? data.map(item => item.content || '') : [];
-      if (!loadedSentences.length) throw new Error('문장 데이터가 비어있습니다');
-
-      const shuffled = [...loadedSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
-    } catch (err) {
-      console.error('타자연습 문장 가져오기 실패:', err);
+      // 기본 문장 목록 (폴백 데이터)
       const defaultSentences = [
-        'print("Hello world!")', 'for i in range(10):', 'console.log("Hello world!");',
-        'function greet(name) {', 'System.out.println("Hello world!");',
-        'public class Person {', 'SELECT * FROM users;',
-        'let message: string = "Hello world!";', 'println("Hello world!")',
-        'func greet(name: String) -> String {', 'const express = require("express");',
-        'import React from "react";', 'def calculate_sum(a, b):',
-        'try { connection.close(); }', 'UPDATE users SET name = ?',
-        'while (condition === true) {', 'async function fetchData() {',
-        'class Calculator extends Component {',
-        'catch (error) { console.error(error); }',
-        'const [state, setState] = useState();',
-        'public static void main(String[] args) {',
-        'from django.http import HttpResponse',
-        'npm install express mongoose',
-        'git add . && git commit -m "Initial commit"',
-        'docker run -d -p 3000:3000 myapp',
-        'const result = await api.getData();',
-        'if (user.isAuthenticated()) {',
-        'return res.status(200).json(data);',
-        'CREATE TABLE users (id INT PRIMARY KEY);',
-        'const handleSubmit = (e) => { e.preventDefault(); }'
+      'print("Hello world!")',
+      'for i in range(10):',
+      'console.log("Hello world!");',
+      'function greet(name) {',
+      'System.out.println("Hello world!");',
+      'public class Person {',
+      'SELECT * FROM users;',
+      'let message: string = "Hello world!";',
+      'println("Hello world!")',
+      'func greet(name: String) -> String {',
+      'const express = require("express");',
+      'import React from "react";',
+      'def calculate_sum(a, b):',
+      'try { connection.close(); }',
+      'UPDATE users SET name = ?',
+      'while (condition === true) {',
+      'async function fetchData() {',
+      'class Calculator extends Component {',
+      'catch (error) { console.error(error); }',
+      'const [state, setState] = useState();',
+      'public static void main(String[] args) {',
+      'from django.http import HttpResponse',
+      'npm install express mongoose',
+      'git add . && git commit -m "Initial commit"',
+      'docker run -d -p 3000:3000 myapp',
+      'const result = await api.getData();',
+      'if (user.isAuthenticated()) {',
+      'return res.status(200).json(data);',
+      'CREATE TABLE users (id INT PRIMARY KEY);',
+      'const handleSubmit = (e) => { e.preventDefault(); }'
+    ];
+
+      const possibleUrls = [
+        finalLanguageId ? `/api/problems/sentences/${finalLanguageId}` : '/api/problems/sentences'
       ];
-      const shuffled = [...defaultSentences].sort(() => Math.random() - 0.5);
-      setSentences(shuffled);
+
+      // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
+      const apiUrl = possibleUrls[0];
+      try {
+        console.log(`시도 중: ${apiUrl}`);
+        // 직접 서버에 요청 (프록시 우회)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+        const fullUrl = baseUrl + apiUrl;
+        console.log(`API 요청 URL: ${fullUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(10000), // 10초 타임아웃
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`${apiUrl} 성공! 받은 데이터:`, data);
+
+        let sentences = data.sentences || data || [];
+
+        if (Array.isArray(sentences) && typeof sentences[0] === 'object') {
+          sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
+        }
+
+        if (Array.isArray(sentences) && sentences.length > 0) {
+          // 서버에서 받은 모든 문장 사용
+          setSentences(sentences);
+          console.log('서버에서 문장 로드 성공:', sentences.length + '개 전체 불러옴');
+          return;
+        }
+      } catch (err) {
+        console.log('API 호출 실패, 기본 문장 사용:', err.message);
+      }
+
+      // 폴백 데이터 사용 (언어별 기본 문장)
+      let fallbackSentences = [];
+      
+      if (finalLanguageId === 1) { // Python
+        fallbackSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"',
+          'for i in range(5):',
+          '    print(i)'
+        ];
+      } else if (finalLanguageId === 2) { // Java
+        fallbackSentences = [
+          'System.out.println("Hello, World!");',
+          'public class Main {',
+          '    public static void main(String[] args) {',
+          '        System.out.println("Hello, World!");',
+          '    }',
+          '}'
+        ];
+      } else if (finalLanguageId === 5) { // JavaScript
+        fallbackSentences = [
+          'console.log("Hello, World!");',
+          'function greet(name) {',
+          '    return `Hello, ${name}!`;',
+          '}',
+          'for (let i = 0; i < 5; i++) {',
+          '    console.log(i);',
+          '}'
+        ];
+      } else {
+        // 기본값 (Python)
+        fallbackSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"'
+        ];
+      }
+      
+      setSentences(fallbackSentences);
+      console.log('기본 문장 사용:', fallbackSentences.length + '개');
+    } catch (error) {
+      console.error('문장 가져오기 실패:', error);
+      
+      // 언어별 기본 문장 설정
+      let defaultSentences = [];
+      
+      if (finalLanguageId === 1) { // Python
+        defaultSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"',
+          'for i in range(5):',
+          '    print(i)',
+          'if x > 0:',
+          '    print("Positive")',
+          'class Person:',
+          '    def __init__(self, name):',
+          '        self.name = name'
+        ];
+      } else if (finalLanguageId === 2) { // Java
+        defaultSentences = [
+          'System.out.println("Hello, World!");',
+          'public class Main {',
+          '    public static void main(String[] args) {',
+          '        System.out.println("Hello, World!");',
+          '    }',
+          '}',
+          'for (int i = 0; i < 5; i++) {',
+          '    System.out.println(i);',
+          '}',
+          'if (x > 0) {',
+          '    System.out.println("Positive");',
+          '}'
+        ];
+      } else if (finalLanguageId === 5) { // JavaScript
+        defaultSentences = [
+          'console.log("Hello, World!");',
+          'function greet(name) {',
+          '    return `Hello, ${name}!`;',
+          '}',
+          'for (let i = 0; i < 5; i++) {',
+          '    console.log(i);',
+          '}',
+          'if (x > 0) {',
+          '    console.log("Positive");',
+          '}',
+          'const person = {',
+          '    name: "John",',
+          '    age: 30',
+          '};'
+        ];
+      } else {
+        // 기본값 (Python)
+        defaultSentences = [
+          'print("Hello, World!")',
+          'def greet(name):',
+          '    return f"Hello, {name}!"',
+          'for i in range(5):',
+          '    print(i)'
+        ];
+      }
+      
+      setSentences(defaultSentences);
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [finalLanguageId]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
   useEffect(() => {
@@ -80,6 +230,7 @@ function SentencePage() {
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
 
   const handleKeyDown = useCallback((e) => {
+    console.log('Key pressed:', e.key); // DEBUG: Add this line
     if (e.isComposing || e.keyCode === 229) { e.preventDefault(); return; }
     if (hangulRegex.test(e.key)) { e.preventDefault(); return; }
     if (isComplete || sentences.length === 0) return;
@@ -123,7 +274,9 @@ function SentencePage() {
 
   const renderComparedTextWithCursor = (original, typedArr, isActive) => {
     const elements = [];
-    for (let i = 0; i < original.length; i++) {
+    const originalLength = original.length;
+
+    for (let i = 0; i < originalLength; i++) {
       const originalChar = original[i];
       const typedChar = typedArr[i] || '';
       const isError = spaceErrorIndices[i];
@@ -140,7 +293,7 @@ function SentencePage() {
       if (displayChar === ' ') displayChar = '\u00A0';
 
       elements.push(
-        <span key={i} className={`${colorClass} relative font-mono`}>
+        <span key={i} className={`relative font-mono ${colorClass}`}>
           {displayChar}
           {isActive && isCurrent && (
             <span className="absolute left-0 top-0 h-full w-[2px] bg-black custom-blink" />
@@ -229,7 +382,7 @@ function SentencePage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
       <div className="text-center">
         <div className="mb-4 text-xl font-semibold text-gray-700">타자연습 문장을 불러오는 중...</div>
-        <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+        <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
       </div>
     </div>
   );
@@ -302,7 +455,7 @@ function SentencePage() {
       </div>
 
       {!isComplete && (
-        <div className="flex flex-col items-center w-full mt-10">
+        <div className="flex flex-col items-center mt-10 w-full">
           <RealTimeStats
             accuracy={getAccuracy()}
             typingSpeed={getTypingSpeed()}

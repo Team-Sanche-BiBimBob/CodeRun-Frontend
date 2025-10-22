@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#2E2E2E] text-white py-12">
+    <footer className="bg-[#2E2E2E] text-white py-6">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12">
         {/* 로고 및 설명 */}
         <div>

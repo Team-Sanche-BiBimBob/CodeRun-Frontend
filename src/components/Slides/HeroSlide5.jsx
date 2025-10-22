@@ -5,7 +5,7 @@ export default function HeroSlide5() {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/*');
+    navigate('/payment');
   };
 
   return (
