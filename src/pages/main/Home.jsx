@@ -31,12 +31,12 @@ const Home = () => {
   }
 
   const rankings = [
-    { rank: 1, name: '오늘 밥은 뭐하게', time: '08:07:06' },
-    { rank: 2, name: '재밌게타자치고싶어요', time: '08:07:00' },
-    { rank: 3, name: '집에가기제발제바...', time: '08:07:00' },
-    { rank: 4, name: '둥글게 귀엽게', time: '08:06:36' },
-    { rank: 5, name: '민타탐탐', time: '08:07:00' },
-    { rank: 6, name: '못생긴타자총애기여엉', time: '08:07:00' },
+    { rank: 1, name: '김동현', time: '00:32:06' },
+    { rank: 2, name: '최해성', time: '00:32:50' },
+    { rank: 3, name: '서민덕', time: '00:34:00' },
+    { rank: 4, name: '서희원', time: '00:35:36' },
+    { rank: 5, name: '최장우', time: '00:36:00' },
+    { rank: 6, name: '차동규', time: '01:39:00' },
   ];
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const Home = () => {
 
 
   return (
-    <div className="relative w-full min-h-screen mx-auto bg-white">
+    <div className="overflow-hidden relative mx-auto w-full min-h-screen bg-white">
       <HeroCarousel />
 
       {/* 타임어택 랭킹 */}
@@ -72,11 +72,11 @@ const Home = () => {
         <p className="text-2xl font-semibold">기준 (실시간 랭킹 자동 갱신 주기)</p>
         <h2 className="mt-2 text-3xl font-semibold">타임어택 실시간 랭킹</h2>
         <div className="grid grid-cols-3 gap-4 mt-8">
-          {rankings.map((r) => (
-            <div key={r.rank} className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
-              <span>{r.rank}</span>
-              <span>{r.name}</span>
-              <span className="text-[10px]">{r.time}</span>
+          {rankings.map((ranking) => (
+            <div key={ranking.rank} className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
+              <span>{ranking.rank}</span>
+              <span>{ranking.name}</span>
+              <span className="text-[10px]">{ranking.time}</span>
             </div>
           ))}
         </div>
@@ -89,7 +89,7 @@ const Home = () => {
           단어 연습<span className="font-normal">으로 기본부터 튼튼하게</span>
         </p>
 
-        <div className="grid justify-center max-w-3xl grid-cols-4 gap-6 mx-auto mt-8">
+        <div className="grid grid-cols-4 gap-6 justify-center mx-auto mt-8 max-w-3xl">
           {languages.map((lang) => (
             <button
               key={lang.id}
@@ -105,22 +105,26 @@ const Home = () => {
 
       {/* 혜택 슬라이드 */}
       <section className="flex items-center w-full min-h-[60vh] bg-white">
-        <div className="w-full max-w-6xl px-6 py-12 mx-auto">
+        <div className="px-6 py-12 mx-auto w-full max-w-6xl">
           <h3 className="mb-6 text-xl font-semibold text-center text-gray-900">
             고객님께 전하는 CodeRun{`{}`}에서 드리는 혜택!
           </h3>
           <div className="relative">
             <button
               aria-label="이전"
-              onClick={() => setPromoStart((p) => (p - 1 + promoItems.length) % promoItems.length)}
-              className="absolute left-0 z-10 grid -translate-y-1/2 bg-gray-100 rounded-full shadow w-9 h-9 top-1/2 place-items-center hover:bg-gray-200"
+              onClick={() =>
+                setPromoStart((p) => (p - 1 + promoItems.length) % promoItems.length)
+              }
+              className="grid absolute left-0 top-1/2 z-10 place-items-center w-9 h-9 bg-gray-100 rounded-full shadow -translate-y-1/2 hover:bg-gray-200"
             >
               <span className="text-gray-700">‹</span>
             </button>
             <button
               aria-label="다음"
-              onClick={() => setPromoStart((p) => (p + 1) % promoItems.length)}
-              className="absolute right-0 z-10 grid -translate-y-1/2 bg-gray-100 rounded-full shadow w-9 h-9 top-1/2 place-items-center hover:bg-gray-200"
+              onClick={() =>
+                setPromoStart((p) => (p + 1) % promoItems.length)
+              }
+              className="grid absolute right-0 top-1/2 z-10 place-items-center w-9 h-9 bg-gray-100 rounded-full shadow -translate-y-1/2 hover:bg-gray-200"
             >
               <span className="text-gray-700">›</span>
             </button>
@@ -128,8 +132,12 @@ const Home = () => {
               <div key={promoStart} className="grid grid-cols-1 gap-6 md:grid-cols-3 animate-fade-in">
                 {visiblePromos.map((card) => (
                   <div key={card.id} className="">
-                    <div className="w-full h-40 overflow-hidden bg-gray-200 border border-gray-300 rounded-xl">
-                      <img src={card.image} alt={card.title} className="object-cover w-full h-full" />
+                    <div className="overflow-hidden w-full h-40 bg-gray-200 rounded-xl border border-gray-300">
+                      <img 
+                        src={card.image} 
+                        alt={card.title}
+                        className="object-cover w-full h-full"
+                      />
                     </div>
                     <div className="px-2 mt-3 text-sm text-gray-700 truncate">{card.title}</div>
                     <div className="px-2 text-xs text-gray-500 truncate">{card.caption}</div>

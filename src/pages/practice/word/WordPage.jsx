@@ -221,20 +221,46 @@ function WordPage() {
   );
 
   const getAccuracy = useCallback(() => {
-    const totalTyped = getTotalTyped();
-    const correctTyped = getCorrectTyped();
+    // 완료된 단어들의 정확도 계산
+    let totalChars = 0;
+    let correctChars = 0;
+    
+    history.forEach((entry) => {
+      if (entry.isCorrect) {
+        // 정확히 맞춘 경우
+        totalChars += entry.word.length;
+        correctChars += entry.word.length;
+      } else {
+        // 틀린 경우 - 입력한 글자 수와 정답 글자 수 중 큰 값을 total로
+        const inputLength = entry.word.length;
+        const correctLength = entry.correctWord.length;
+        totalChars += Math.max(inputLength, correctLength);
+        
+        // 맞춘 글자 수 계산
+        const minLength = Math.min(inputLength, correctLength);
+        for (let i = 0; i < minLength; i++) {
+          if (entry.word[i] === entry.correctWord[i]) {
+            correctChars++;
+          }
+        }
+      }
+    });
+    
+    // 현재 입력 중인 단어 추가
     const currentWord = wordList[currentIndex] || '';
-    const currentCorrectCount = userInput
-      .split('')
-      .filter((char, i) => char === currentWord[i]).length;
-
-    const finalTotalTyped = totalTyped + userInput.length;
-    const finalCorrectTyped = correctTyped + currentCorrectCount;
-
-    return finalTotalTyped === 0
-      ? 0
-      : (finalCorrectTyped / finalTotalTyped) * 100;
-  }, [getTotalTyped, getCorrectTyped, userInput, wordList, currentIndex]);
+    if (userInput.length > 0) {
+      totalChars += Math.max(userInput.length, currentWord.length);
+      
+      const minLength = Math.min(userInput.length, currentWord.length);
+      for (let i = 0; i < minLength; i++) {
+        if (userInput[i] === currentWord[i]) {
+          correctChars++;
+        }
+      }
+    }
+    
+    return totalChars === 0 ? 100 : (correctChars / totalChars) * 100;
+  }, [history, userInput, wordList, currentIndex]);
 
   const getElapsedTimeSec = useCallback(
     () => Math.floor((new Date() - startTime) / 1000),
@@ -317,30 +343,33 @@ function WordPage() {
   return (
     <div className="flex relative flex-col items-center pt-16 pb-32 min-h-screen font-sans bg-teal-50">
       <div className="grid grid-cols-3 items-end mb-6">
-        <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
-          {history.slice(0, 2).reverse().map((entry, index) =>
-            entry.isCorrect ? (
-              <div key={index} className="text-[#6BCABD] whitespace-nowrap">
-                {entry.word}
-              </div>
-            ) : (
-              <div key={index} className="flex tracking-normal whitespace-nowrap">
-                {entry.word.split('').map((char, idx) => {
-                  const correctChar = entry.correctWord[idx];
-                  const isCorrectChar = char === correctChar;
-                  return (
-                    <span
-                      key={idx}
-                      className={isCorrectChar ? 'text-black' : 'text-red-500'}
-                    >
-                      {char}
-                    </span>
-                  );
-                })}
-              </div>
-            )
-          )}
-        </div>
+      <div className="text-5xl flex flex-row items-center space-x-6 justify-end pr-6 mb-10 max-w-[350px] overflow-hidden">
+  {history.slice(0, 2).reverse().map((entry, index) =>
+    entry.isCorrect ? (
+      <div key={index} className="text-[#6BCABD] whitespace-nowrap">
+        {entry.word}
+      </div>
+    ) : (
+      <div key={index} className="flex tracking-normal whitespace-nowrap">
+        {entry.correctWord.split('').map((correctChar, idx) => {
+          const userChar = entry.word[idx];
+          let color = 'text-red-500'; // 기본값 빨간색 (안 친 부분)
+          
+          if (userChar !== undefined) {
+            // 입력한 부분
+            color = userChar === correctChar ? 'text-black' : 'text-red-500';
+          }
+          
+          return (
+            <span key={idx} className={color}>
+              {userChar !== undefined ? userChar : correctChar}
+            </span>
+          );
+        })}
+      </div>
+    )
+  )}
+</div>
 
         <div className="bg-teal-500 w-[349px] h-[122px] rounded-xl shadow-md flex justify-center items-center text-5xl font-medium tracking-wider text-white z-10">
           {renderWord()}
