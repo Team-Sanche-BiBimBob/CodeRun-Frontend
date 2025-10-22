@@ -386,42 +386,48 @@ function SentencePage() {
       // 완료 시간을 타임어택으로 전달
       const completionTime = getElapsedTime();
       const roomId = urlParams.get('roomId');
+      const accuracy = getAccuracy();
       
-      console.log('문장 연습 완료:', { completionTime, roomId, urlLanguageId });
+      console.log('문장 연습 완료:', { completionTime, roomId, urlLanguageId, accuracy });
       
-      // roomId가 없어도 언어 ID로 문제 ID 계산
-      const languageId = parseInt(urlLanguageId);
-      let problemId = null;
-      
-      // 언어 ID와 난이도로 문제 ID 계산
-      if (languageId === 1) { // Python
-        problemId = 1; // Python 문장 연습
-      } else if (languageId === 2) { // Java
-        problemId = 4; // Java 문장 연습
-      } else if (languageId === 5) { // JavaScript
-        problemId = 7; // JavaScript 문장 연습
-      }
-      
-      if (problemId) {
-        // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
-        const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+      // 정확도가 100%일 때만 기록 저장
+      if (accuracy === 100) {
+        // roomId가 없어도 언어 ID로 문제 ID 계산
+        const languageId = parseInt(urlLanguageId);
+        let problemId = null;
         
-        if (!existingTime) {
-          // 기존 기록이 없으면 저장
-          sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
-          console.log('완료 시간 sessionStorage 저장:', { problemId, completionTime, languageId });
-        } else {
-          // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
-          const existingSeconds = timeToSeconds(existingTime);
-          const currentSeconds = timeToSeconds(completionTime);
+        // 언어 ID와 난이도로 문제 ID 계산
+        if (languageId === 1) { // Python
+          problemId = 1; // Python 문장 연습
+        } else if (languageId === 2) { // Java
+          problemId = 4; // Java 문장 연습
+        } else if (languageId === 5) { // JavaScript
+          problemId = 7; // JavaScript 문장 연습
+        }
+        
+        if (problemId) {
+          // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
+          const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
           
-          if (currentSeconds < existingSeconds) {
+          if (!existingTime) {
+            // 기존 기록이 없으면 저장
             sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
-            console.log('더 좋은 기록으로 업데이트:', { problemId, oldTime: existingTime, newTime: completionTime });
+            console.log('완료 시간 sessionStorage 저장 (정확도 100%):', { problemId, completionTime, languageId, accuracy });
           } else {
-            console.log('기존 기록이 더 좋음:', { problemId, existingTime, currentTime: completionTime });
+            // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
+            const existingSeconds = timeToSeconds(existingTime);
+            const currentSeconds = timeToSeconds(completionTime);
+            
+            if (currentSeconds < existingSeconds) {
+              sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+              console.log('더 좋은 기록으로 업데이트 (정확도 100%):', { problemId, oldTime: existingTime, newTime: completionTime, accuracy });
+            } else {
+              console.log('기존 기록이 더 좋음 (정확도 100%):', { problemId, existingTime, currentTime: completionTime, accuracy });
+            }
           }
         }
+      } else {
+        console.log('정확도가 100%가 아니어서 기록 저장하지 않음:', { accuracy });
       }
       
       if (roomId) {
