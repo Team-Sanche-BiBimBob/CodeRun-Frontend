@@ -275,24 +275,31 @@ const Fullcode = () => {
     if (!input) return 100;
     
     const inputLines = input.split('\n');
-    const exampleLines = exampleCode.split('\n');
+    const exampleLinesArray = exampleCode.split('\n');
     
-    let incorrectChars = 0;
-    let totalInputChars = 0;
+    let correctChars = 0;
+    let totalChars = 0;
     
-    inputLines.forEach((inputLine, lineIndex) => {
-      const exampleLine = exampleLines[lineIndex] || '';
+    // 예시 코드 라인 수만큼만 계산
+    const linesToCheck = Math.min(inputLines.length, exampleLinesArray.length);
+    
+    for (let lineIndex = 0; lineIndex < linesToCheck; lineIndex++) {
+      const inputLine = inputLines[lineIndex] || '';
+      const exampleLine = exampleLinesArray[lineIndex] || '';
       
-      for (let i = 0; i < inputLine.length; i++) {
-        totalInputChars++;
-        if (i >= exampleLine.length || inputLine[i] !== exampleLine[i]) {
-          incorrectChars++;
+      // 예시 라인의 길이를 totalChars에 추가
+      totalChars += exampleLine.length;
+      
+      // 맞은 글자 수 카운트 - 예시 라인 길이만큼만 비교
+      for (let i = 0; i < exampleLine.length; i++) {
+        if (i < inputLine.length && inputLine[i] === exampleLine[i]) {
+          correctChars++;
         }
       }
-    });
+    }
     
-    return totalInputChars > 0 
-      ? Math.round(((totalInputChars - incorrectChars) / totalInputChars) * 100)
+    return totalChars > 0 
+      ? Math.round((correctChars / totalChars) * 100)
       : 100;
   };
 
@@ -355,13 +362,20 @@ const Fullcode = () => {
               
               let correctChars = 0;
               let totalChars = 0;
+              
+              // 마지막 엔터로 생긴 빈 줄 제거
               const inputLines = value.split('\n');
+              // 마지막이 빈 문자열이면 제거
+              if (inputLines[inputLines.length - 1] === '') {
+                inputLines.pop();
+              }
               
               exampleLinesArray.forEach((exampleLine, i) => {
                 const inputLine = inputLines[i] || '';
                 totalChars += exampleLine.length;
-                for (let j = 0; j < Math.min(exampleLine.length, inputLine.length); j++) {
-                  if (exampleLine[j] === inputLine[j]) {
+                
+                for (let j = 0; j < exampleLine.length; j++) {
+                  if (inputLine[j] === exampleLine[j]) {
                     correctChars++;
                   }
                 }
@@ -369,10 +383,14 @@ const Fullcode = () => {
               
               const finalAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
               
+              const finalElapsedTime = elapsedTime > 0 ? elapsedTime : 1;
+              const timeInMinutes = finalElapsedTime / 60;
+              const finalTypingSpeed = Math.round(value.length / timeInMinutes);
+              
               setCompletionStats({
                 accuracy: finalAccuracy,
-                typingSpeed: calculateWPM(),
-                elapsedTime: elapsedTime
+                typingSpeed: finalTypingSpeed,
+                elapsedTime: finalElapsedTime
               });
               setShowCompletionModal(true);
               
@@ -385,7 +403,7 @@ const Fullcode = () => {
               
               fetchFullCodes();
               return;
-            }
+            } 
           }
         }
       }
@@ -514,8 +532,8 @@ const Fullcode = () => {
                 fontSize: 12,
                 wordWrap: 'on',
                 automaticLayout: true,
-                renderWhitespace: 'selection',
-                tabSize: 1,
+                renderWhitespace: 'all',
+                tabSize: 2,
                 domReadOnly: true,
                 cursorStyle: 'hidden',
                 contextmenu: false,
@@ -568,8 +586,9 @@ const Fullcode = () => {
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 wordWrap: 'on',
-                renderWhitespace: 'selection',
-                tabSize: 1,
+                renderWhitespace: 'all',
+                tabSize: 2,
+                insertSpaces: false,
                 quickSuggestions: false,
                 suggestOnTriggerCharacters: false,
                 acceptSuggestionOnEnter: "off",

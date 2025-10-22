@@ -65,7 +65,7 @@ export default function HeroCarousel() {
           <button
             key={idx}
             onClick={() => goTo(idx)}
-            className={`w-4 h-4 rounded-full transition-all ${
+            className={`w-2 h-2 rounded-full transition-all ${
               current === idx ? "bg-black" : "bg-white"
             }`}
           ></button>

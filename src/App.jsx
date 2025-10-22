@@ -55,7 +55,7 @@ const App = () => {
   }, [location.pathname, headerVisibleRoutes, normalizePath]);
 
   return (
-    <div style={{ paddingTop: showHeader ? '64px' : '0' }}>
+    <div className="bg-white min-h-[calc(100vh-64px)]" style={{ paddingTop: showHeader ? '64px' : '0' }}>
       {showHeader && <Header isLoggedIn={isLoggedIn} />}
       <Routers />
       <ToastProvider />
