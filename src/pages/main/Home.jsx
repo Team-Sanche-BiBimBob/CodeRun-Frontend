@@ -10,12 +10,12 @@ const Home = () => {
   const [languages, setLanguages] = useState([]);
 
   const rankings = [
-    { rank: 1, name: '오늘 밥은 뭐하게', time: '08:07:06' },
-    { rank: 2, name: '재밌게타자치고싶어요', time: '08:07:00' },
-    { rank: 3, name: '집에가기제발제바...', time: '08:07:00' },
-    { rank: 4, name: '둥글게 귀엽게', time: '08:06:36' },
-    { rank: 5, name: '민타탐탐', time: '08:07:00' },
-    { rank: 6, name: '못생긴타자총애기여엉', time: '08:07:00' },
+    { rank: 1, name: '김동현', time: '08:07:06' },
+    { rank: 2, name: '차동규', time: '08:07:00' },
+    { rank: 3, name: '서민덕', time: '08:07:00' },
+    { rank: 4, name: '희원', time: '08:06:36' },
+    { rank: 5, name: '장우', time: '08:07:00' },
+    { rank: 6, name: '박세희', time: '08:07:00' },
   ];
 
   useEffect(() => {
@@ -50,32 +50,32 @@ const Home = () => {
         <div className="grid grid-cols-3 gap-4 mt-8">
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>1</span>
-            <span>오늘 밥은 뭐하게</span>
+            <span>김동현</span>
             <span className="text-[10px]">08:07:06</span>
           </div>
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>2</span>
-            <span>재밌게타자치고싶어요</span>
+            <span>차동규</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>3</span>
-            <span>집에가기제발제바...</span>
+            <span>서민덕</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>4</span>
-            <span>둥글게 귀엽게</span>
+            <span>희원</span>
             <span className="text-[10px]">08:06:36</span>
           </div>
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>5</span>
-            <span>민타탐탐</span>
+            <span>장우</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
           <div className="w-80 h-20 bg-white rounded-[10px] text-black flex items-center justify-between px-4">
             <span>6</span>
-            <span>못생긴타자총애기여엉</span>
+            <span>박세희</span>
             <span className="text-[10px]">08:07:00</span>
           </div>
         </div>
@@ -104,7 +104,7 @@ const Home = () => {
       <section className="flex items-center w-full min-h-[60vh] bg-white">
         <div className="w-full max-w-6xl px-6 py-12 mx-auto">
           <h3 className="mb-6 text-xl font-semibold text-center text-gray-900">
-            고객님께 전하는 Code{`{}`}에서 드리는 혜택!
+            고객님께 전하는 CodeRun{`{}`}에서 드리는 혜택!
           </h3>
           <div className="relative">
             <button
