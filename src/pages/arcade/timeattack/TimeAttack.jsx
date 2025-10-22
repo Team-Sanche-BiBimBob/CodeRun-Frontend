@@ -271,8 +271,8 @@ const CodeRunTimeAttack = () => {
     setFilteredProblems([]);
     fetchRooms();
     
-    // 주기적으로 완료 시간 업데이트 (5초마다)
-    const interval = setInterval(fetchRoomCompletionTimes, 5000);
+    // 초기 로드 시에만 완료 시간 확인
+    fetchRoomCompletionTimes();
     
     // 페이지 포커스 시 완료 시간 로드
     const handleFocus = () => {
@@ -285,7 +285,6 @@ const CodeRunTimeAttack = () => {
     loadCompletionTimeFromStorage();
     
     return () => {
-      clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
