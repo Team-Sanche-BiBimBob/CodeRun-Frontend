@@ -440,12 +440,12 @@ const Fullcode = () => {
   // 로딩 상태 표시
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="flex justify-center items-center min-h-screen bg-white">
         <div className="text-center">
           <div className="mb-4 text-xl font-semibold text-gray-700">
             {loadingMessage || '풀코드를 불러오는 중...'}
           </div>
-          <div className="w-12 h-12 mx-auto border-b-2 border-teal-600 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-teal-600 animate-spin"></div>
         </div>
       </div>
     );
