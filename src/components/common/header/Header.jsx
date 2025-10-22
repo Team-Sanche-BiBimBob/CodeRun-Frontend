@@ -1,10 +1,11 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { memo, useMemo, useState, useEffect } from 'react';
 import logo from '../../../assets/logo.svg';
 import userImg from '../../../assets/user.jpg';
 
 const Header = memo(({ isLoggedIn }) => {
   const location = useLocation();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [userName, setUserName] = useState('사용자');
 
   // 사용자 정보 가져오기
@@ -84,7 +85,10 @@ const Header = memo(({ isLoggedIn }) => {
           {/*사용자 정보*/}
           <div className="flex items-center">
             {isLoggedIn ? (
-              <a href="/mypage">
+              <div // Changed <a> to <div>
+                onClick={() => navigate('/mypage')} // Added onClick for navigation
+                className="cursor-pointer" // Added cursor-pointer for better UX
+              >
                 <div className="flex gap-3 items-center text-gray-700">
                   <span className="hidden text-sm font-medium sm:block">{userName}</span>
                   <img 
@@ -96,6 +100,7 @@ const Header = memo(({ isLoggedIn }) => {
                   />
                   <button
                     onClick={(e) => {
+                      e.stopPropagation(); // Prevent div's onClick from firing
                       e.preventDefault();
                       localStorage.removeItem('accessToken');
                       localStorage.removeItem('userInfo');
@@ -107,7 +112,7 @@ const Header = memo(({ isLoggedIn }) => {
                     로그아웃
                   </button>
                 </div>
-              </a>
+              </div>
               
             ) : (
               <>

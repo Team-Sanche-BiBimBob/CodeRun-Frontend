@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../server";
 import { toast } from "react-toastify";
+import { jwtDecode } from 'jwt-decode';
 
 import backgroundImage from "../../../assets/login-background.png";
 import { ArrowLeft } from "lucide-react";
@@ -39,8 +40,10 @@ const Login = () => {
       })
       .then((response) => {
         localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken); // Store refreshToken
         // 사용자 정보 저장 (실제 API 응답에 따라 조정 필요)
         const userInfo = {
+          id: response.data.id, // Added user ID
           name: response.data.name || response.data.username || email.split('@')[0],
           email: email,
           role: response.data.role
@@ -51,8 +54,9 @@ const Login = () => {
         window.dispatchEvent(new Event('storage'));
         
         toast.success("로그인에 성공했습니다.");
-        // home.jsx로 이동
-        navigate('/home');
+        
+        // Navigate to Mypage after successful login
+        navigate('/mypage');
       })
       .catch((error) => {
         console.error("서버 에러 ", error);
