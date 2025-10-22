@@ -101,20 +101,10 @@ function SentencePage() {
           sentences = sentences.map((s) => s.content || s.sentence || s.title || '');
         }
 
-        // Helper function to shuffle an array
-        const shuffleArray = (array) => {
-          for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-          }
-          return array;
-        };
-
         if (Array.isArray(sentences) && sentences.length > 0) {
           // 서버에서 받은 모든 문장 사용
-          const shuffledSentences = shuffleArray([...sentences]); // Shuffle the sentences
-          setSentences(shuffledSentences);
-          console.log('서버에서 문장 로드 성공:', shuffledSentences.length + '개 전체 불러옴');
+          setSentences(sentences);
+          console.log('서버에서 문장 로드 성공:', sentences.length + '개 전체 불러옴');
           return;
         }
       } catch (err) {
@@ -160,9 +150,8 @@ function SentencePage() {
         ];
       }
       
-      const shuffledFallbackSentences = shuffleArray([...fallbackSentences]); // Shuffle fallback sentences
-      setSentences(shuffledFallbackSentences);
-      console.log('기본 문장 사용:', shuffledFallbackSentences.length + '개');
+      setSentences(fallbackSentences);
+      console.log('기본 문장 사용:', fallbackSentences.length + '개');
     } catch (error) {
       console.error('문장 가져오기 실패:', error);
       
@@ -225,8 +214,7 @@ function SentencePage() {
         ];
       }
       
-      const shuffledDefaultSentences = shuffleArray([...defaultSentences]); // Shuffle default sentences
-      setSentences(shuffledDefaultSentences);
+      setSentences(defaultSentences);
     } finally {
       setLoading(false);
     }
@@ -380,7 +368,14 @@ function SentencePage() {
     setStartTime(new Date());
   };
 
-  const handleGoHome = () => navigate('/');
+  const handleGoHome = () => {
+    // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
+    if (urlLanguageId) {
+      navigate('/timeattack');
+    } else {
+      navigate('/');
+    }
+  };
 
   const getBoxStyle = (index) => {
     if (index === currentIndex - 1) return 'bg-white';

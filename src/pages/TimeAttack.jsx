@@ -123,20 +123,20 @@ const Competition = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 서브 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center space-x-8">
-          <span className="text-teal-600 font-medium">타임어택</span>
+      <div className="px-6 py-3 bg-white border-b border-gray-200">
+        <div className="flex items-center max-w-6xl mx-auto space-x-8">
+          <span className="font-medium text-teal-600">타임어택</span>
         </div>
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-6xl px-6 py-8 mx-auto">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* 왼쪽 - 게임 설정 */}
           <div className="space-y-6">
             {/* 단어/문제집 섹션 */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-2xl font-bold text-gray-800 text-center mb-8">타임어택</h3>
+            <div className="p-6 bg-white border border-gray-200 rounded-lg">
+              <h3 className="mb-8 text-2xl font-bold text-center text-gray-800">타임어택</h3>
               
               <div className="space-y-4">
                 <div 
@@ -159,7 +159,7 @@ const Competition = () => {
 
                 {/* 문제집 선택 시 문제집 목록 표시 */}
                 {type === '문제집' && (
-                  <div className="mt-4 space-y-2 pl-4">
+                  <div className="pl-4 mt-4 space-y-2">
                     {problemSets.length > 0 ? (
                       problemSets.map((set) => (
                         <div
@@ -191,7 +191,7 @@ const Competition = () => {
               <h3 className="text-xl font-bold text-gray-800">
                 랭킹
                 {type === '문제집' && selectedProblemSet && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
+                  <span className="ml-2 text-sm font-normal text-gray-600">
                     - {selectedProblemSet.name}
                   </span>
                 )}
@@ -234,11 +234,11 @@ const Competition = () => {
             
             <div className="space-y-2">
               {loading ? (
-                <div className="bg-white rounded-lg p-8 text-center text-gray-500 border border-gray-200">
+                <div className="p-8 text-center text-gray-500 bg-white border border-gray-200 rounded-lg">
                   로딩중...
                 </div>
               ) : type === '문제집' && !selectedProblemSet ? (
-                <div className="bg-white rounded-lg p-8 text-center text-gray-500 border border-gray-200">
+                <div className="p-8 text-center text-gray-500 bg-white border border-gray-200 rounded-lg">
                   문제집을 선택해주세요
                 </div>
               ) : rankings.length > 0 ? (
@@ -259,7 +259,7 @@ const Competition = () => {
                         } text-white rounded flex items-center justify-center font-bold text-sm`}>
                           {item.rank}
                         </div>
-                        <span className="text-gray-700 font-medium">{item.username}</span>
+                        <span className="font-medium text-gray-700">{item.username}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-gray-500" />
@@ -278,7 +278,7 @@ const Competition = () => {
                   )}
                 </>
               ) : (
-                <div className="bg-white rounded-lg p-8 text-center text-gray-500 border border-gray-200">
+                <div className="p-8 text-center text-gray-500 bg-white border border-gray-200 rounded-lg">
                   랭킹 데이터가 없습니다
                 </div>
               )}
@@ -287,13 +287,13 @@ const Competition = () => {
             <div className="flex justify-end pt-4">
               <button 
                 onClick={handleStartGame}
-                className="bg-teal-500 text-white py-3 px-8 rounded-lg font-medium hover:bg-teal-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="px-8 py-3 font-medium text-white transition-colors bg-teal-500 rounded-lg hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 disabled={type === '문제집' && !selectedProblemSet}
               >
                 도전하기
               </button>
             </div>
-          </div>
+          </div>ç
         </div>
       </div>
     </div>

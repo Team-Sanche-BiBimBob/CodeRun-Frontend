@@ -7,7 +7,12 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 function WordPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const languageId = location.state?.language || location.state?.languageId;
+  const { language: languageId } = location.state || {};
+  
+  // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
+  const urlParams = new URLSearchParams(location.search);
+  const urlLanguageId = urlParams.get('language');
+  const finalLanguageId = languageId || (urlLanguageId ? parseInt(urlLanguageId) : null);
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,13 +32,13 @@ function WordPage() {
     try {
       console.log('단어 가져오기 시도 중...');
       
-      if (!languageId) {
+      if (!finalLanguageId) {
         console.warn('언어 ID가 없습니다. 기본 단어 사용');
         throw new Error('언어 ID 없음');
       }
 
       const possibleUrls = [
-        languageId ? `/api/problems/words/${languageId}` : '/api/problems/words'
+        finalLanguageId ? `/api/problems/words/${finalLanguageId}` : '/api/problems/words'
       ];
 
       // 첫 번째 API만 시도하고 실패하면 바로 폴백 사용
@@ -67,20 +72,10 @@ function WordPage() {
           words = words.map((w) => w.content || w.word || w.title || '');
         }
 
-        // Helper function to shuffle an array
-        const shuffleArray = (array) => {
-          for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-          }
-          return array;
-        };
-
         if (Array.isArray(words) && words.length > 0) {
           // 서버에서 받은 모든 단어 사용
-          const shuffledWords = shuffleArray([...words]); // Shuffle the words
-          setWordList(shuffledWords);
-          console.log('서버에서 단어 로드 성공:', shuffledWords.length + '개');
+          setWordList(words);
+          console.log('서버에서 단어 로드 성공:', words.length + '개');
           setLoading(false);
           return;
         } else {
@@ -93,15 +88,15 @@ function WordPage() {
       // 폴백 데이터 사용 (언어별 기본 단어)
       let fallbackWords = [];
       
-      if (languageId === 1) { // Python
+      if (finalLanguageId === 1) { // Python
         fallbackWords = [
           'print', 'def', 'if', 'else', 'for', 'while', 'class', 'import', 'return', 'lambda'
         ];
-      } else if (languageId === 2) { // Java
+      } else if (finalLanguageId === 2) { // Java
         fallbackWords = [
           'public', 'class', 'static', 'void', 'main', 'String', 'int', 'boolean', 'if', 'for'
         ];
-      } else if (languageId === 5) { // JavaScript
+      } else if (finalLanguageId === 5) { // JavaScript
         fallbackWords = [
           'function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'console'
         ];
@@ -112,16 +107,15 @@ function WordPage() {
         ];
       }
       
-      const shuffledFallbackWords = shuffleArray([...fallbackWords]); // Shuffle fallback words
-      setWordList(shuffledFallbackWords);
-      console.log('기본 단어 사용:', shuffledFallbackWords.length + '개');
+      setWordList(fallbackWords);
+      console.log('기본 단어 사용:', fallbackWords.length + '개');
     } catch (error) {
       console.error('단어 가져오기 실패:', error);
       setError('서버에서 단어를 가져오는데 실패했습니다. 페이지를 새로고침해주세요.');
     } finally {
       setLoading(false);
     }
-  }, [languageId]);
+  }, [finalLanguageId]);
 
   useEffect(() => {
     fetchWords();
@@ -239,13 +233,6 @@ function WordPage() {
   );
 
   const getAccuracy = useCallback(() => {
-    const currentWord = wordList[currentIndex] || '';
-
-    // If it's the first word and the first character is correct, immediately return 100% accuracy
-    if (currentIndex === 0 && userInput.length > 0 && currentWord.length > 0 && userInput[0] === currentWord[0]) {
-      return 100;
-    }
-
     // 완료된 단어들의 정확도 계산
     let totalChars = 0;
     let correctChars = 0;
@@ -272,9 +259,9 @@ function WordPage() {
     });
     
     // 현재 입력 중인 단어 추가
+    const currentWord = wordList[currentIndex] || '';
     if (userInput.length > 0) {
-      // totalChars는 현재 입력된 글자 수만큼만 증가
-      totalChars += userInput.length; // <--- Changed this line
+      totalChars += Math.max(userInput.length, currentWord.length);
       
       const minLength = Math.min(userInput.length, currentWord.length);
       for (let i = 0; i < minLength; i++) {
@@ -284,7 +271,7 @@ function WordPage() {
       }
     }
     
-    return totalChars === 0 ? 0 : (correctChars / totalChars) * 100;
+    return totalChars === 0 ? 100 : (correctChars / totalChars) * 100;
   }, [history, userInput, wordList, currentIndex]);
 
   const getElapsedTimeSec = useCallback(
@@ -316,7 +303,14 @@ function WordPage() {
     setStartTime(new Date());
   };
 
-  const handleGoHome = () => navigate('/');
+  const handleGoHome = () => {
+    // URL 파라미터에서 language가 있으면 타임어택에서 온 것으로 간주
+    if (urlLanguageId) {
+      navigate('/timeattack');
+    } else {
+      navigate('/');
+    }
+  };
 
   const renderWord = () => {
     const currentWord = wordList[currentIndex] || '';
