@@ -10,12 +10,12 @@ const Home = () => {
   const [languages, setLanguages] = useState([]);
 
   const rankings = [
-    { rank: 1, name: '김동현', time: '08:07:06' },
-    { rank: 2, name: '차동규', time: '08:07:00' },
-    { rank: 3, name: '서민덕', time: '08:07:00' },
-    { rank: 4, name: '희원', time: '08:06:36' },
-    { rank: 5, name: '장우', time: '08:07:00' },
-    { rank: 6, name: '박세희', time: '08:07:00' },
+    { rank: 1, name: '김동현', time: '00:32:06' },
+    { rank: 2, name: '최해성', time: '00:32:50' },
+    { rank: 3, name: '서민덕', time: '00:34:00' },
+    { rank: 4, name: '서희원', time: '00:35:36' },
+    { rank: 5, name: '최장우', time: '00:36:00' },
+    { rank: 6, name: '차동규', time: '01:39:00' },
   ];
 
   useEffect(() => {
