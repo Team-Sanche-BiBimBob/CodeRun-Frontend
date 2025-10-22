@@ -22,7 +22,7 @@ const Fullcode = () => {
   const isInitializedRef = useRef(false);
 
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { languageId } = location.state || {};
   
   const urlParams = new URLSearchParams(location.search);
   const urlLanguageId = urlParams.get('language');

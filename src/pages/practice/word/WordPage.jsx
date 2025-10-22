@@ -8,7 +8,7 @@ import RealTimeStats from '../../../components/practice/realTimeStats/RealTimest
 function WordPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { languageId } = location.state || {};
   
   // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
   const urlParams = new URLSearchParams(location.search);
