@@ -17,7 +17,7 @@ function SentencePage() {
   const [startTime, setStartTime] = useState(() => new Date());
 
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { language: languageId, workbookId, workbookTitle, workbookProblems } = location.state || {};
   
   // URL 파라미터에서 언어 ID 가져오기 (타임어택에서 전달된 경우)
   const urlParams = new URLSearchParams(location.search);
@@ -31,6 +31,15 @@ function SentencePage() {
     try {
       setLoading(true);
       console.log('문장 가져오기 시도 중...');
+
+      // 문제집에서 전달받은 문제가 있으면 그것을 사용
+      if (workbookProblems && workbookProblems.length > 0) {
+        console.log('문제집 문장 사용:', workbookProblems);
+        setSentences(workbookProblems);
+        console.log('문제집에서 문장 로드 성공:', workbookProblems.length + '개');
+        setLoading(false);
+        return;
+      }
 
       // 기본 문장 목록 (폴백 데이터)
       const defaultSentences = [
@@ -218,7 +227,7 @@ function SentencePage() {
     } finally {
       setLoading(false);
     }
-  }, [finalLanguageId]);
+  }, [finalLanguageId, workbookProblems]);
 
   useEffect(() => { fetchSentences(); }, [fetchSentences]);
   useEffect(() => {

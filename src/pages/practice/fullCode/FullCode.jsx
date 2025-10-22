@@ -22,7 +22,12 @@ const Fullcode = () => {
   const isInitializedRef = useRef(false);
 
   const location = useLocation();
-  const { language: languageId } = location.state || {};
+  const { 
+    language: languageId, 
+    workbookId, 
+    workbookTitle, 
+    workbookProblems 
+  } = location.state || {};
   
   const urlParams = new URLSearchParams(location.search);
   const urlLanguageId = urlParams.get('language');
@@ -60,6 +65,20 @@ const Fullcode = () => {
       'const fetchData = async () => {\n  try {\n    const response = await fetch("/api/data");\n    const data = await response.json();\n    return data;\n  } catch (error) {\n    console.error("Error:", error);\n  }\n};',
       'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\nconst evenSquares = numbers\n  .filter(num => num % 2 === 0)\n  .map(num => num * num);\nconsole.log(evenSquares);'
     ];
+
+    // 문제집에서 전달받은 문제가 있으면 그것을 사용
+    if (workbookProblems && workbookProblems.length > 0) {
+      console.log('문제집 문제 사용:', workbookProblems);
+      const randomIndex = Math.floor(Math.random() * workbookProblems.length);
+      const selectedCode = workbookProblems[randomIndex];
+      setExampleCode(selectedCode);
+      setExampleLines(selectedCode.split('\n'));
+      setMonacoLanguage(getMonacoLanguage(finalLanguageId));
+      console.log('문제집에서 문제 로드 성공:', workbookProblems.length + '개 중 ' + (randomIndex + 1) + '번째 선택됨');
+      setLoading(false);
+      setLoadingMessage('');
+      return;
+    }
 
     try {
       console.log('풀코드 가져오기 시도 중...');

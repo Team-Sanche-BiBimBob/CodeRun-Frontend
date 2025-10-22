@@ -8,6 +8,7 @@ function WordPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const languageId = location.state?.language || location.state?.languageId;
+  const { workbookId, workbookTitle, workbookProblems } = location.state || {};
 
   const [wordList, setWordList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,15 @@ function WordPage() {
   const fetchWords = useCallback(async () => {
     setLoading(true);
     setError(null);
+    
+    // 문제집에서 전달받은 문제가 있으면 그것을 사용
+    if (workbookProblems && workbookProblems.length > 0) {
+      console.log('문제집 단어 사용:', workbookProblems);
+      setWordList(workbookProblems);
+      console.log('문제집에서 단어 로드 성공:', workbookProblems.length + '개');
+      setLoading(false);
+      return;
+    }
     
     try {
       console.log('단어 가져오기 시도 중...');
@@ -110,7 +120,7 @@ function WordPage() {
     } finally {
       setLoading(false);
     }
-  }, [languageId]);
+  }, [languageId, workbookProblems]);
 
   useEffect(() => {
     fetchWords();
