@@ -147,27 +147,27 @@ const StudentDashboard = () => {
     if (!folder) return null;
 
     return (
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
+      <div className="p-6 bg-white rounded-lg shadow-md">
+        <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">{folder.name}</h2>
             <div>
-                <button className="text-gray-500 hover:text-gray-700 mr-4" onClick={openAddToFolderModal}>연습 추가</button>
+                <button className="mr-4 text-gray-500 hover:text-gray-700" onClick={openAddToFolderModal}>연습 추가</button>
                 <button className="text-gray-500 hover:text-gray-700" onClick={() => setSelectedFolderId(null)}>뒤로가기</button>
             </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {folder.content.map((item, index) => {
                 const assignment = assignments.find(a => a.title === item);
                 return (
                     <div key={index} className="relative">
                         <button
-                            className="w-full bg-teal-500 text-white px-4 py-8 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+                            className="w-full px-4 py-8 text-white bg-teal-500 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
                             onClick={() => navigate('/selectLanguage')}
                         >
                             {item}
                         </button>
                         <button
-                            className="absolute top-2 right-2 text-white bg-red-500 rounded-full p-1 text-xs hover:bg-red-700"
+                            className="absolute p-1 text-xs text-white bg-red-500 rounded-full top-2 right-2 hover:bg-red-700"
                             onClick={(e) => { e.stopPropagation(); handleDeleteFolderContent(folder.id, item); }}
                         >
                             X
@@ -182,16 +182,16 @@ const StudentDashboard = () => {
 
   const renderAlertModal = () => (
     alert.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
-            <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+            <div className="w-full max-w-sm p-8 text-center bg-white shadow-xl rounded-2xl">
                 <div className="mb-4">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                    <h2 className="mb-2 text-3xl font-bold text-gray-800">
                         <span className="text-black">Code</span>
                         <span className="text-[#2DD4BF]">Run</span>
                         <span className="text-[#FFD602]">{'{ }'}</span>
                     </h2>
                 </div>
-                <p className="text-gray-600 mb-6">{alert.message}</p>
+                <p className="mb-6 text-gray-600">{alert.message}</p>
                 <button
                     className="bg-[#14B8A6] text-white border-none py-3 px-8 rounded-lg text-base font-semibold cursor-pointer transition-colors duration-200 shadow-lg hover:bg-[#0F8A7A]"
                     onClick={() => setAlert({ show: false, message: '' })}
@@ -205,17 +205,17 @@ const StudentDashboard = () => {
 
   const renderPromptModal = () => (
     prompt.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                <h3 className="text-lg font-bold mb-4">{prompt.message}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="p-6 text-center bg-white rounded-lg shadow-xl">
+                <h3 className="mb-4 text-lg font-bold">{prompt.message}</h3>
                 <input
                     type="text"
-                    className="w-full p-2 border rounded mb-4"
+                    className="w-full p-2 mb-4 border rounded"
                     value={promptValue}
                     onChange={(e) => setPromptValue(e.target.value)}
                 />
                 <div className="flex justify-end">
-                    <button className="bg-gray-300 text-black px-4 py-2 rounded-lg mr-2" onClick={handleCancelPrompt}>취소</button>
+                    <button className="px-4 py-2 mr-2 text-black bg-gray-300 rounded-lg" onClick={handleCancelPrompt}>취소</button>
                     <button className="bg-[#14B8A6] text-white px-4 py-2 rounded-lg" onClick={handleConfirmPrompt}>확인</button>
                 </div>
             </div>
@@ -225,12 +225,12 @@ const StudentDashboard = () => {
 
 
   return (
-    <div className="bg-white min-h-screen flex">
+    <div className="flex min-h-screen bg-white">
       {renderAlertModal()}
       {renderPromptModal()}
       {/* Sidebar */}
-      <div className="w-72 bg-white shadow-lg flex-shrink-0 min-h-screen fixed top-15">
-        <div className="p-6 h-full overflow-y-auto">
+      <div className="fixed flex-shrink-0 min-h-screen bg-white shadow-lg w-72 top-15">
+        <div className="h-full p-6 overflow-y-auto">
           {/* 클래스 만들기 버튼 */}
           <button
             onClick={handleCreateClass}
@@ -248,7 +248,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* 폴더 아이템들 */}
-          <div className="space-y-3 mb-6">
+          <div className="mb-6 space-y-3">
             {folders.map(folder => (
               <div key={folder.id} className={`flex items-center justify-between cursor-pointer p-2 rounded transition-colors duration-200 ${selectedFolderId === folder.id ? 'bg-teal-100' : 'hover:bg-gray-50'}`} onClick={() => {
                   setSelectedFolderId(folder.id);
@@ -258,7 +258,7 @@ const StudentDashboard = () => {
                   <FolderIcon />
                   <p className="text-[12px] text-black">{folder.name}</p>
                 </div>
-                <TrashIcon className="cursor-pointer text-gray-400 hover:text-red-500" onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }} />
+                <TrashIcon className="text-gray-400 cursor-pointer hover:text-red-500" onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }} />
               </div>
             ))}
           </div>
@@ -271,7 +271,7 @@ const StudentDashboard = () => {
             나의 클래스
           </p>
 
-          <div className="space-y-3 mb-6 ml-5">
+          <div className="mb-6 ml-5 space-y-3">
             {studentClasses.map(c => (
                 <div
                     key={c.id}
@@ -284,7 +284,7 @@ const StudentDashboard = () => {
                     <p className="text-[12px] text-black">{c.name}</p>
                     {selectedStudentClassId === c.id && (
                         <button
-                            className="text-red-500 hover:text-red-700 text-xs"
+                            className="text-xs text-red-500 hover:text-red-700"
                             onClick={handleLeaveClass}
                         >
                             클래스 탈퇴하기
@@ -310,7 +310,7 @@ const StudentDashboard = () => {
           </div>
           {selectedFolderId ? renderFolderContent() : (
             <>
-                <div className="flex justify-between items-center m-16 mb-6 mt-1 flex-wrap gap-4 ">
+                <div className="flex flex-wrap items-center justify-between gap-4 m-16 mt-1 mb-6 ">
                     <button className="text-[#686465] text-[16px] hover:text-[#009b84] transition-colors">
                     과제
                     </button>
@@ -342,25 +342,25 @@ const StudentDashboard = () => {
 
       {/* Add to Folder Modal */}
       {showAddToFolderModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl">
-                <h2 className="text-2xl font-bold mb-4">폴더에 추가</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="p-8 bg-white rounded-lg shadow-xl">
+                <h2 className="mb-4 text-2xl font-bold">폴더에 추가</h2>
                 <div className="mb-4">
                     <label className="block mb-2">과제 선택</label>
                     <select className="w-full p-2 border rounded" onChange={(e) => setSelectedAssignment(assignments.find(a => a.id === parseInt(e.target.value)))}>
                         <option value="">과제를 선택하세요</option>
-                        {assignments.map(a => <option key={a.id} value={a.id}>{a.title}</option>)}>
+                        {assignments.map(a => <option key={a.id} value={a.id}>{a.title}</option>)}
                     </select>
                 </div>
                 <div className="mb-4">
                     <label className="block mb-2">폴더 선택</label>
                     <select className="w-full p-2 border rounded" value={selectedFolder ? selectedFolder.id : ""} onChange={(e) => setSelectedFolder(folders.find(f => f.id === parseInt(e.target.value)))}>
                         <option value="">폴더를 선택하세요</option>
-                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}>
+                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                     </select>
                 </div>
                 <div className="flex justify-end">
-                    <button className="bg-gray-300 text-black px-4 py-2 rounded-lg mr-2" onClick={handleCloseModal}>취소</button>
+                    <button className="px-4 py-2 mr-2 text-black bg-gray-300 rounded-lg" onClick={handleCloseModal}>취소</button>
                     <button className="bg-[#0D9488] text-white px-4 py-2 rounded-lg" onClick={handleAddToFolder}>추가</button>
                 </div>
             </div>
@@ -374,10 +374,10 @@ const StudentDashboard = () => {
           <div className="fixed inset-0 bg-[rgba(18,18,18,0.3)] z-40" />
 
           {/* 모달 컨텐츠 */}
-          <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="fixed z-50 transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
             <div className="bg-white rounded-[30px] w-[90vw] max-w-[675px] h-[408px] relative p-8">
               {/* 로고 */}
-              <div className="text-center mb-8">
+              <div className="mb-8 text-center">
                 <span className="font-semibold text-[40px]">
                   <span className="text-[#121212]">Code</span>
                   <span className="text-teal-400">Run</span>
@@ -394,7 +394,7 @@ const StudentDashboard = () => {
               </p>
 
               {/* 클래스 코드 */}
-              <div className="text-center mb-8">
+              <div className="mb-8 text-center">
                 <p className="font-semibold text-[48px] text-black break-all">
                   {classCode}
                 </p>
@@ -423,10 +423,10 @@ const StudentDashboard = () => {
           <div className="fixed inset-0 bg-[rgba(18,18,18,0.3)] z-40" />
 
           {/* 모달 컨텐츠 */}
-          <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="fixed z-50 transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
             <div className="bg-white rounded-[30px] w-[90vw] max-w-[675px] h-auto relative p-8 flex flex-col items-center">
-              <h2 className="text-2xl font-bold mb-4">프리미엄 기능입니다</h2>
-              <p className="text-center mb-8">
+              <h2 className="mb-4 text-2xl font-bold">프리미엄 기능입니다</h2>
+              <p className="mb-8 text-center">
                 클래스 만들기는 프리미엄 사용자만 이용할 수 있습니다.
               </p>
               <div className="flex gap-4">
