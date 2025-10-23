@@ -13,11 +13,19 @@ const Header = memo(({ isLoggedIn }) => {
   // JWT 토큰에서 사용자 정보 추출
   const decodeJWT = (token) => {
     try {
-      if (!token) return null;
+      if (!token) {
+        console.log('Header - 토큰이 없습니다');
+        return null;
+      }
+
+      console.log('Header - 디코딩할 토큰:', token.substring(0, 50) + '...');
 
       // JWT 토큰을 '.'으로 분리 (header.payload.signature)
       const parts = token.split('.');
-      if (parts.length !== 3) return null;
+      if (parts.length !== 3) {
+        console.log('Header - 토큰 형식이 올바르지 않습니다');
+        return null;
+      }
 
       // payload 부분을 base64 디코딩 (URL-safe base64 처리)
       const payload = parts[1];
@@ -29,13 +37,14 @@ const Header = memo(({ isLoggedIn }) => {
       try {
         const decodedPayload = atob(paddedPayload);
         const parsedPayload = JSON.parse(decodedPayload);
+        console.log('Header - 디코딩된 토큰 페이로드:', parsedPayload);
         return parsedPayload;
       } catch (e) {
-        console.error('Base64 디코딩 실패:', e);
+        console.error('Header - Base64 디코딩 실패:', e);
         return null;
       }
     } catch (error) {
-      console.error('JWT 토큰 디코딩 실패:', error);
+      console.error('Header - JWT 토큰 디코딩 실패:', error);
       return null;
     }
   };
@@ -44,12 +53,18 @@ const Header = memo(({ isLoggedIn }) => {
   const getUserFromToken = () => {
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) return null;
+      console.log('Header - accessToken 존재 여부:', !!token);
+      
+      if (!token) {
+        console.log('Header - accessToken이 없습니다');
+        return null;
+      }
 
       const decoded = decodeJWT(token);
+      console.log('Header - 토큰에서 추출된 정보:', decoded);
       return decoded;
     } catch (error) {
-      console.error('토큰에서 사용자 정보 추출 실패:', error);
+      console.error('Header - 토큰에서 사용자 정보 추출 실패:', error);
       return null;
     }
   };
@@ -123,16 +138,47 @@ const Header = memo(({ isLoggedIn }) => {
 
   // 네비게이션 아이템들을 메모이제이션하여 성능 최적화
   const navigation = useMemo(() => {
+    // 1. JWT 토큰에서 사용자 정보 추출
     const tokenUser = getUserFromToken();
+    console.log('Header - 토큰에서 가져온 사용자 정보:', tokenUser);
 
-    // 토큰에서 정보를 가져올 수 없으면 localStorage에서 가져오기
-    let user = tokenUser;
-    if (!user) {
-      const userInfo = localStorage.getItem('userInfo');
-      user = userInfo ? JSON.parse(userInfo) : {};
+    // 2. localStorage에서 사용자 정보 가져오기
+    const userInfo = localStorage.getItem('userInfo');
+    let localStorageUser = null;
+    if (userInfo) {
+      try {
+        localStorageUser = JSON.parse(userInfo);
+        console.log('Header - localStorage에서 가져온 사용자 정보:', localStorageUser);
+      } catch (error) {
+        console.error('Header - localStorage 파싱 오류:', error);
+      }
     }
 
-    const studyHref = user.role === 'PREMIUM' ? '/teacher' : '/study';
+    // 3. 사용자 정보 통합 (토큰 우선, localStorage 보조)
+    let user = {};
+    
+    if (tokenUser) {
+      user = {
+        ...tokenUser,
+        role: tokenUser.role || tokenUser.userRole || localStorageUser?.role
+      };
+    } else if (localStorageUser) {
+      user = localStorageUser;
+    }
+
+    console.log('Header - 최종 사용자 정보:', user);
+
+    // 디버깅을 위한 로그 추가
+    console.log('Header - 사용자 정보:', user);
+    console.log('Header - 사용자 role:', user.role);
+    console.log('Header - role 타입:', typeof user.role);
+    
+    // role 값을 정확히 비교하기 위해 trim()과 toUpperCase() 사용
+    const userRole = user.role ? user.role.toString().trim().toUpperCase() : '';
+    console.log('Header - 정리된 role:', userRole);
+    
+    const studyHref = userRole === 'PREMIUM' ? '/teacher' : '/study';
+    console.log('Header - 설정된 studyHref:', studyHref);
 
     const navItems = [
       { name: '홈', href: '/', current: false },
