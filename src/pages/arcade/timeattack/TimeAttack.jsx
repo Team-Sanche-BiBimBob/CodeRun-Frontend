@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 
 const CodeRunTimeAttack = () => {
@@ -49,7 +50,9 @@ const CodeRunTimeAttack = () => {
       });
       
       console.log(`${period} 랭킹 성공:`, response.data);
-      return response.data.rankings || response.data || [];
+      const rankings = response.data.rankings || response.data || [];
+      console.log('가져온 랭킹 데이터:', rankings);
+      return rankings;
     } catch (error) {
       console.error(`${period} 랭킹 가져오기 실패:`, error);
       // 서버에서 가져오기 실패 시 기본 데이터 사용
@@ -85,7 +88,9 @@ const CodeRunTimeAttack = () => {
         { rank: 6, username: "차동규", score: 1938 }
       ]
     };
-    return defaultData[period] || [];
+    const rankings = defaultData[period] || [];
+    console.log('기본 랭킹 데이터:', rankings);
+    return rankings;
   };
 
   // 시간을 초로 변환하는 함수 (score 표시용)
@@ -93,6 +98,58 @@ const CodeRunTimeAttack = () => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // 랭킹 점수 서버에 저장
+  const saveRankingScore = async (score, rankPeriod = 'DAILY') => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // 시간을 초로 변환 (예: "01:30" -> 90초, "00:30:15" -> 1815초)
+      const timeToSeconds = (timeStr) => {
+        const parts = timeStr.split(':');
+        if (parts.length === 2) {
+          // MM:SS 형식
+          const minutes = parseInt(parts[0]) || 0;
+          const seconds = parseInt(parts[1]) || 0;
+          return minutes * 60 + seconds;
+        } else if (parts.length === 3) {
+          // HH:MM:SS 형식
+          const hours = parseInt(parts[0]) || 0;
+          const minutes = parseInt(parts[1]) || 0;
+          const seconds = parseInt(parts[2]) || 0;
+          return hours * 3600 + minutes * 60 + seconds;
+        }
+        return 0;
+      };
+      
+      const scoreInSeconds = timeToSeconds(score);
+      
+      const requestData = {
+        userId: 0, // 임시 사용자 ID (실제로는 로그인한 사용자 ID 사용)
+        score: scoreInSeconds,
+        rankPeriod: rankPeriod
+      };
+      
+      console.log('타임어택 랭킹 점수 저장 요청:', requestData);
+      
+      const response = await axios.post(`${baseUrl}/api/arcade/rank`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('타임어택 랭킹 점수 저장 성공:', response.data);
+      
+      // 랭킹 저장 성공 시 localStorage에 플래그 설정
+      localStorage.setItem('rankingUpdated', Date.now().toString());
+      
+      return response.data;
+    } catch (error) {
+      console.error('타임어택 랭킹 점수 저장 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+    }
   };
 
   // 초기 문제 데이터 - 언어당 하나씩만 (서버 ID에 맞게 수정)
@@ -297,6 +354,12 @@ const CodeRunTimeAttack = () => {
         }));
         console.log('완료 시간 업데이트:', newCompletionTimes);
         
+        // 완료 시간이 업데이트되면 랭킹에도 저장
+        Object.entries(newCompletionTimes).forEach(([problemId, completionTime]) => {
+          console.log(`문제 ${problemId} 완료 시간을 랭킹에 저장:`, completionTime);
+          saveRankingScore(completionTime, 'DAILY');
+        });
+        
         // 기록 유지를 위해 sessionStorage에서 제거하지 않음
         // 페이지 새로고침 시에만 자동으로 사라짐
       } else {
@@ -330,6 +393,27 @@ const CodeRunTimeAttack = () => {
     const handleFocus = () => {
       loadCompletionTimeFromStorage();
       fetchRoomCompletionTimes(); // 포커스 시에도 서버에서 최신 데이터 가져오기
+      
+      // 랭킹 업데이트 플래그 확인
+      const rankingUpdated = localStorage.getItem('rankingUpdated');
+      if (rankingUpdated) {
+        console.log('랭킹 업데이트 감지됨, 랭킹 새로고침 중...');
+        localStorage.removeItem('rankingUpdated'); // 플래그 제거
+        
+        // 랭킹 즉시 새로고침
+        const refreshRankings = async () => {
+          const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
+          const period = periodMap[activeRankingTab];
+          if (selectedProblem) {
+            const rankingsData = await fetchRankings(period, selectedProblem.id);
+            setRankings(rankingsData);
+          } else {
+            const rankingsData = await fetchRankings(period);
+            setRankings(rankingsData);
+          }
+        };
+        refreshRankings();
+      }
     };
     
     window.addEventListener('focus', handleFocus);
@@ -819,41 +903,49 @@ const CodeRunTimeAttack = () => {
               </div>
 
               <div className="space-y-3">
-                {rankings.map((rank, index) => {
-                  // 'me' 항목 바로 전에 점 3개 표시
-                  const showDots = rank.username === 'me' && rank.rank > 6;
-                  
-                  return (
-                    <React.Fragment key={index}>
-                      {showDots && (
-                        <div className="py-2 text-center">
-                          <span className="text-lg text-gray-400">⋮</span>
-                        </div>
-                      )}
-                      <div
-                        className={`flex items-center gap-3 p-3 rounded-lg ${
-                          rank.username === 'me' 
-                            ? 'border' 
-                            : 'bg-gray-50'
-                        }`}
-                        style={rank.username === 'me' ? { backgroundColor: '#F0FDFA', borderColor: '#14B8A6' } : {}}
-                      >
+                {rankings && rankings.length > 0 ? (
+                  rankings.map((rank, index) => {
+                    // 'me' 항목 바로 전에 점 3개 표시
+                    const showDots = rank.username === 'me' && rank.rank > 6;
+                    
+                    return (
+                      <React.Fragment key={index}>
+                        {showDots && (
+                          <div className="py-2 text-center">
+                            <span className="text-lg text-gray-400">⋮</span>
+                          </div>
+                        )}
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
-                            rank.rank <= 3 ? '' : 'bg-gray-400'
+                          className={`flex items-center gap-3 p-3 rounded-lg ${
+                            rank.username === 'me' 
+                              ? 'border' 
+                              : 'bg-gray-50'
                           }`}
-                          style={rank.rank <= 3 ? { backgroundColor: '#14B8A6' } : {}}
+                          style={rank.username === 'me' ? { backgroundColor: '#F0FDFA', borderColor: '#14B8A6' } : {}}
                         >
-                          {rank.rank}
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
+                              rank.rank <= 3 ? '' : 'bg-gray-400'
+                            }`}
+                            style={rank.rank <= 3 ? { backgroundColor: '#14B8A6' } : {}}
+                          >
+                            {rank.rank}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-800">{rank.username}</div>
+                            <div className="text-sm text-gray-600">⏱️ {formatScore(rank.score)}</div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-800">{rank.username}</div>
-                          <div className="text-sm text-gray-600">⏱️ {formatScore(rank.score)}</div>
-                        </div>
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
+                      </React.Fragment>
+                    );
+                  })
+                ) : (
+                  <div className="py-8 text-center text-gray-500">
+                    <div className="mb-2 text-4xl">🏆</div>
+                    <div>아직 랭킹 데이터가 없습니다</div>
+                    <div className="mt-1 text-sm">연습을 완료하면 랭킹에 표시됩니다</div>
+                  </div>
+                )}
               </div>
 
               {selectedProblemSet && (

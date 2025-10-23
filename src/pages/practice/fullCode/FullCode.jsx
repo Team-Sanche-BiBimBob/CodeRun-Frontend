@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
+import { jwtDecode } from 'jwt-decode';
 import CompletionModal from '../../../components/practice/completionModal/CompletionModal';
 
 const Fullcode = () => {
