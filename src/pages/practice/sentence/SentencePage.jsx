@@ -460,6 +460,11 @@ function SentencePage() {
         updateRoomCompletionTime(roomId, completionTime);
       }
       
+      // 랭킹 점수 서버에 저장 (정확도 100%일 때만)
+      if (accuracy === 100) {
+        saveRankingScore(completionTime, 'DAILY');
+      }
+      
       navigate('/timeattack');
     } else {
       navigate('/');
@@ -495,6 +500,42 @@ function SentencePage() {
       console.log('방 완료 시간 업데이트 성공:', response.data);
     } catch (error) {
       console.error('방 완료 시간 업데이트 실패:', error);
+      console.error('에러 상세:', error.response?.data);
+    }
+  };
+
+  // 랭킹 점수 서버에 저장
+  const saveRankingScore = async (score, rankPeriod = 'DAILY') => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      // 시간을 초로 변환 (예: "00:30:15" -> 1815초)
+      const timeToSeconds = (timeStr) => {
+        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+        return hours * 3600 + minutes * 60 + seconds;
+      };
+      
+      const scoreInSeconds = timeToSeconds(score);
+      
+      const requestData = {
+        userId: 0, // 임시 사용자 ID (실제로는 로그인한 사용자 ID 사용)
+        score: scoreInSeconds,
+        rankPeriod: rankPeriod
+      };
+      
+      console.log('랭킹 점수 저장 요청:', requestData);
+      
+      const response = await axios.post(`${baseUrl}/api/arcade/rank`, requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('랭킹 점수 저장 성공:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('랭킹 점수 저장 실패:', error);
       console.error('에러 상세:', error.response?.data);
     }
   };

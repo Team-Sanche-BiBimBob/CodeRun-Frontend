@@ -23,21 +23,29 @@ const CodeRunTimeAttack = () => {
   const [activeRankingTab, setActiveRankingTab] = useState('오늘');
   const [rooms, setRooms] = useState([]);
   const [completionTimes, setCompletionTimes] = useState({});
+  const [selectedProblem, setSelectedProblem] = useState(null);
 
-  // 랭킹 데이터를 서버에서 가져오는 함수
-  const fetchRankings = async (period) => {
+  // 랭킹 데이터를 서버에서 가져오는 함수 (문제별)
+  const fetchRankings = async (period, problemId = null) => {
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
       
-      console.log(`${period} 랭킹 시도 중: ${baseUrl}/api/arcade/rank`);
+      const params = {
+        rankPeriod: period
+      };
+      
+      // 문제별 랭킹인 경우 problemId 추가
+      if (problemId) {
+        params.problemId = problemId;
+      }
+      
+      console.log(`${period} 랭킹 시도 중 (문제ID: ${problemId}): ${baseUrl}/api/arcade/rank`);
       const response = await axios.get(`${baseUrl}/api/arcade/rank`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        params: {
-          rankPeriod: period
-        }
+        params: params
       });
       
       console.log(`${period} 랭킹 성공:`, response.data);
@@ -45,12 +53,12 @@ const CodeRunTimeAttack = () => {
     } catch (error) {
       console.error(`${period} 랭킹 가져오기 실패:`, error);
       // 서버에서 가져오기 실패 시 기본 데이터 사용
-      return getDefaultRankings(period);
+      return getDefaultRankings(period, problemId);
     }
   };
 
   // 기본 랭킹 데이터 (서버 연결 실패 시 사용)
-  const getDefaultRankings = (period) => {
+  const getDefaultRankings = (period, problemId = null) => {
     const defaultData = {
       'DAILY': [
         { rank: 1, username: "김동현", score: 1926 },
@@ -349,13 +357,34 @@ const CodeRunTimeAttack = () => {
     setFilteredProblems(filtered);
   };
 
+  // 문제 카드 클릭 핸들러
+  const handleProblemClick = async (problem) => {
+    setSelectedProblem(problem);
+    
+    // 선택된 문제의 랭킹 데이터 가져오기
+    const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
+    const period = periodMap[activeRankingTab];
+    const rankingsData = await fetchRankings(period, problem.id);
+    setRankings(rankingsData);
+  };
+
   // 랭킹 탭 변경
   const handleRankingTabChange = async (tab) => {
     setActiveRankingTab(tab);
-    const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
-    const period = periodMap[tab];
-    const rankingsData = await fetchRankings(period);
-    setRankings(rankingsData);
+    
+    if (selectedProblem) {
+      // 선택된 문제가 있으면 해당 문제의 랭킹 가져오기
+      const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
+      const period = periodMap[tab];
+      const rankingsData = await fetchRankings(period, selectedProblem.id);
+      setRankings(rankingsData);
+    } else {
+      // 선택된 문제가 없으면 전체 랭킹 가져오기
+      const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
+      const period = periodMap[tab];
+      const rankingsData = await fetchRankings(period);
+      setRankings(rankingsData);
+    }
   };
 
   // 초기화 함수
@@ -675,7 +704,10 @@ const CodeRunTimeAttack = () => {
                 {(filteredProblems.length > 0 ? filteredProblems : problems).map((problem) => (
                   <div
                     key={problem.id}
-                    className="relative p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md"
+                    className={`relative p-4 transition-shadow rounded-lg bg-gray-50 hover:shadow-md cursor-pointer ${
+                      selectedProblem?.id === problem.id ? 'ring-2 ring-teal-500 bg-teal-50' : ''
+                    }`}
+                    onClick={() => handleProblemClick(problem)}
                   >
                     {/* 기록 삭제 버튼 */}
                     {completionTimes[problem.id] && (
@@ -711,16 +743,23 @@ const CodeRunTimeAttack = () => {
                         ID: {problem.id} | 완료시간: {completionTimes[problem.id] || '없음'}
                       </div>
                     </div>
-                    <button 
-                      className="w-full py-2 mt-3 text-sm text-white transition-colors rounded-md hover:opacity-90"
-                      style={{ backgroundColor: '#2DD4BF' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleChallengeClick(problem.difficulty, problem);
-                      }}
-                    >
-                      도전하기
-                    </button>
+                    <div className="mt-3 text-sm text-center text-gray-500">
+                      {selectedProblem?.id === problem.id ? '선택됨 - 랭킹 보기' : '클릭하여 랭킹 보기'}
+                    </div>
+                    
+                    {/* 도전하기 버튼 */}
+                    {selectedProblem?.id === problem.id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChallengeClick(problem.difficulty, problem);
+                        }}
+                        className="w-full py-2 mt-3 text-sm text-white transition-colors rounded-md hover:opacity-90"
+                        style={{ backgroundColor: '#2DD4BF' }}
+                      >
+                        도전하기
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -732,8 +771,16 @@ const CodeRunTimeAttack = () => {
             <div className="p-6 bg-white shadow-sm rounded-xl">
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-2xl">🏆</span>
-                <h2 className="text-xl font-semibold text-gray-800">랭킹</h2>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {selectedProblem ? `${selectedProblem.title} 랭킹` : '전체 랭킹'}
+                  </h2>
+                  {selectedProblem && (
+                    <p className="text-sm text-gray-500">{selectedProblem.difficulty}</p>
+                  )}
+                </div>
               </div>
+
 
               <div className="flex gap-1 mb-6">
                 <button 
