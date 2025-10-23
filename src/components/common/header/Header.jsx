@@ -1,24 +1,121 @@
-import { useLocation, useNavigate } from 'react-router-dom'; // Added useNavigate
+import { useLocation, useNavigate } from 'react-router-dom';
 import { memo, useMemo, useState, useEffect } from 'react';
 import logo from '../../../assets/logo.svg';
 import userImg from '../../../assets/user.jpg';
+import { api } from '../../../server';
+import { toast } from 'react-toastify';
 
 const Header = memo(({ isLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate(); // Initialize useNavigate
   const [userName, setUserName] = useState('사용자');
 
+  // JWT 토큰에서 사용자 정보 추출
+  const decodeJWT = (token) => {
+    try {
+      if (!token) return null;
+
+      // JWT 토큰을 '.'으로 분리 (header.payload.signature)
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      // payload 부분을 base64 디코딩 (URL-safe base64 처리)
+      const payload = parts[1];
+
+      // URL-safe base64 디코딩 (padding 추가)
+      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const paddedPayload = normalizedPayload + '='.repeat((4 - normalizedPayload.length % 4) % 4);
+
+      try {
+        const decodedPayload = atob(paddedPayload);
+        const parsedPayload = JSON.parse(decodedPayload);
+        return parsedPayload;
+      } catch (e) {
+        console.error('Base64 디코딩 실패:', e);
+        return null;
+      }
+    } catch (error) {
+      console.error('JWT 토큰 디코딩 실패:', error);
+      return null;
+    }
+  };
+
+  // 토큰에서 사용자 정보 가져오기
+  const getUserFromToken = () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return null;
+
+      const decoded = decodeJWT(token);
+      return decoded;
+    } catch (error) {
+      console.error('토큰에서 사용자 정보 추출 실패:', error);
+      return null;
+    }
+  };
+
   // 사용자 정보 가져오기
   useEffect(() => {
     if (isLoggedIn) {
-      // localStorage에서 사용자 정보 가져오기 (실제 구현에서는 API 호출)
+      // 1. 먼저 JWT 토큰에서 username 추출 시도
+      const tokenUser = getUserFromToken();
+      if (tokenUser && tokenUser.username) {
+        console.log('토큰에서 username 추출:', tokenUser.username);
+        setUserName(tokenUser.username);
+        return;
+      }
+
+      if (tokenUser && tokenUser.name) {
+        console.log('토큰에서 name 추출:', tokenUser.name);
+        setUserName(tokenUser.name);
+        return;
+      }
+
+      if (tokenUser && tokenUser.email) {
+        console.log('토큰에서 email 추출:', tokenUser.email);
+        setUserName(tokenUser.email.split('@')[0]);
+        return;
+      }
+
+      // 2. 토큰에 사용자 정보가 없으면 localStorage에서 userId 가져와서 API 호출
       const userInfo = localStorage.getItem('userInfo');
       if (userInfo) {
         try {
           const user = JSON.parse(userInfo);
-          setUserName(user.name || user.username || '사용자');
+          const userId = user.id || user.userId;
+
+          if (userId) {
+            // 서버에서 사용자 프로필 정보 가져오기 (즉시 실행)
+            (async () => {
+              try {
+                console.log('사용자 프로필 요청:', `/api/user/profile/${userId}`);
+                const response = await api.get(`/api/user/profile/${userId}`);
+                console.log('사용자 프로필 응답:', response.data);
+
+                if (response.data && response.data.username) {
+                  setUserName(response.data.username);
+                } else if (response.data && response.data.name) {
+                  setUserName(response.data.name);
+                } else if (response.data && response.data.email) {
+                  setUserName(response.data.email.split('@')[0]);
+                } else {
+                  setUserName('사용자');
+                }
+              } catch (error) {
+                console.error('사용자 프로필 가져오기 실패:', error);
+                // API 실패 시 토큰이나 localStorage 정보로 폴백
+                const fallbackName = tokenUser?.username || tokenUser?.name || tokenUser?.email?.split('@')[0] ||
+                                   user.name || user.username || user.email?.split('@')[0] || '사용자';
+                setUserName(fallbackName);
+              }
+            })();
+          } else {
+            // userId가 없으면 localStorage의 기존 정보로 폴백
+            setUserName(user.name || user.username || user.email?.split('@')[0] || '사용자');
+          }
         } catch (error) {
           console.error('사용자 정보 파싱 오류:', error);
+          setUserName('사용자');
         }
       }
     }
@@ -26,8 +123,15 @@ const Header = memo(({ isLoggedIn }) => {
 
   // 네비게이션 아이템들을 메모이제이션하여 성능 최적화
   const navigation = useMemo(() => {
-    const userInfo = localStorage.getItem('userInfo');
-    const user = userInfo ? JSON.parse(userInfo) : {};
+    const tokenUser = getUserFromToken();
+
+    // 토큰에서 정보를 가져올 수 없으면 localStorage에서 가져오기
+    let user = tokenUser;
+    if (!user) {
+      const userInfo = localStorage.getItem('userInfo');
+      user = userInfo ? JSON.parse(userInfo) : {};
+    }
+
     const studyHref = user.role === 'PREMIUM' ? '/teacher' : '/study';
 
     const navItems = [
