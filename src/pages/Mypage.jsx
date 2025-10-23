@@ -116,16 +116,16 @@ import { useNavigate } from 'react-router';
     <div className="min-h-screen bg-white">
       <h1 className="px-8 py-6 text-3xl font-bold">마이페이지</h1>
       
-      <div className="flex gap-8 px-8 pb-8">
+      <div className="flex gap-8 px-8 pb-8 mx-auto max-w-7xl">
         {/* 왼쪽 사이드바 */}
-        <div className="flex flex-col justify-between p-8 rounded-lg w-80 bg-gray-50" style={{ height: '640px' }}>
+        <div className="flex flex-col justify-between flex-shrink-0 p-8 rounded-lg w-80 bg-gray-50" style={{ height: '600px' }}>
                       <div className="flex flex-col items-center">
                       <div 
                         className="relative flex items-center justify-center w-40 h-40 mb-6 overflow-hidden bg-gray-300 rounded-full cursor-pointer group"
                         onClick={() => setShowProfileModal(true)}
                       >
                         {userProfile && userProfile.profileImage && userProfile.profileImage.trim() !== '' ? (
-                          <img src={userProfile.profileImage} alt="Profile" className="object-cover w-full h-full" />
+                          <img src={userProfile.profileImage} className="object-cover w-full h-full" />
                         ) : (
                           <span className="text-6xl font-bold text-gray-600">U</span>
                         )}
@@ -146,7 +146,7 @@ import { useNavigate } from 'react-router';
                       <p className="mb-6 text-gray-600">{userInfo}</p>
                       
                       <button className="px-4 py-2 font-medium text-white bg-teal-500 rounded">
-                        레벨 15
+                        레벨 1
                       </button>
                     </div>
           <div className="flex flex-col items-center pt-4 border-t border-gray-300">
@@ -180,122 +180,168 @@ import { useNavigate } from 'react-router';
         </div>
 
         {/* 오른쪽 메인 컨텐츠 */}
-        <div className="flex-1">
-          {/* 최근 학습한 언어 섹션 */}
-          {userProfile && userProfile.recentlyStudiedLanguage ? (
-            <div className="p-8 mb-8 bg-white rounded-lg shadow-sm">
-              <h3 className="mb-6 text-xl font-bold text-gray-800">최근 학습한 언어</h3>
-              
-              <div className="p-6 bg-white border border-gray-200 rounded-lg">
-                <h4 className="mb-3 text-xl font-bold text-gray-800">{userProfile.recentlyStudiedLanguage.name}</h4>
-                <p className="mb-4 text-sm text-gray-700">
-                  {userProfile.recentlyStudiedLanguage.description}
-                </p>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-4">
+            {/* 최근 학습한 언어 섹션 */}
+            {userProfile && userProfile.recentlyStudiedLanguage ? (
+              <div className="overflow-hidden bg-white rounded-lg shadow-sm p-">
+                <h3 className="mb-4 text-lg font-bold text-gray-800 truncate">최근 학습한 언어</h3>
                 
-                {/* 진행도 표시 */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">진행도</span>
-                    <span className="text-sm font-medium text-[#13ae9d]">{userProfile.recentlyStudiedLanguageProgress || 0}%</span>
+                <div className="p-4 overflow-hidden bg-white border border-gray-200 rounded-lg">
+                  <h4 className="mb-2 text-lg font-bold text-gray-800 truncate">{userProfile.recentlyStudiedLanguage.name}</h4>
+                  <p className="mb-3 text-xs text-gray-700 line-clamp-3">
+                    {userProfile.recentlyStudiedLanguage.description}
+                  </p>
+                  
+                  {/* 진행도 표시 */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700">진행도</span>
+                      <span className="text-xs font-medium text-[#13ae9d]">{userProfile.recentlyStudiedLanguageProgress || 0}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 rounded-full">
+                      <div 
+                        className="bg-[#13ae9d] h-1.5 rounded-full transition-all duration-300" 
+                        style={{ width: `${userProfile.recentlyStudiedLanguageProgress || 0}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full">
-                    <div 
-                      className="bg-[#13ae9d] h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${userProfile.recentlyStudiedLanguageProgress || 0}%` }}
-                    ></div>
+
+                  {/* 타수 표시 */}
+                  <div className="p-1.5 mb-4 rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">총 타수</span>
+                      <span className="text-sm font-bold text-[#13ae9d]">{userProfile.recentlyStudiedLanguageScore || 0} 타</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => navigate('/word', { 
+                        state: { 
+                          language: userProfile.recentlyStudiedLanguage?.id || 1 
+                        } 
+                      })}
+                      className="px-2 py-1 text-xs font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                    >
+                      단어
+                    </button>
+                    <button 
+                      onClick={() => navigate('/sentence', { 
+                        state: { 
+                          language: userProfile.recentlyStudiedLanguage?.id || 1 
+                        } 
+                      })}
+                      className="px-2 py-1 text-xs font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                    >
+                      문장
+                    </button>
+                    <button 
+                      onClick={() => navigate('/full', { 
+                        state: { 
+                          language: userProfile.recentlyStudiedLanguage?.id || 1 
+                        } 
+                      })}
+                      className="px-2 py-1 text-xs font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                    >
+                      풀코드
+                    </button>
                   </div>
                 </div>
-
-                {/* 타수 표시 */}
-                <div className="p-3 mb-6 rounded-lg bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">총 타수</span>
-                    <span className="text-lg font-bold text-[#13ae9d]">{userProfile.recentlyStudiedLanguageScore || 0} 타</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors">
-                    단어
-                  </button>
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors">
-                    문장
-                  </button>
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors">
-                    풀코드
+              </div>
+            ) : (
+              <div className="p-4 bg-white rounded-lg shadow-sm" style={{ height: '290px' }}>
+                <h3 className="mb-4 text-lg font-bold text-gray-800">최근 학습한 언어</h3>
+                <div className="flex flex-col items-center justify-center p-10 text-center border border-gray-200 rounded-lg max-h-max bg-gray-50">
+                  <div className="mb-4 text-4xl">📚</div> 
+                  <p className="mb-4 text-sm text-gray-500">아직 학습한 언어가 없습니다.</p>
+                  <button 
+                    onClick={() => navigate("/selectLanguage")}
+                    className="px-6 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                  >
+                    언어 선택하기
                   </button>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="p-8 mb-8 bg-white rounded-lg shadow-sm">
-              <h3 className="mb-6 text-xl font-bold text-gray-800">최근 학습한 언어</h3>
-              <div className="p-6 text-center border border-gray-200 rounded-lg bg-gray-50">
-                <p className="text-gray-500">아직 학습한 언어가 없습니다.</p>
-                <button 
-                  onClick={() => navigate("/selectLanguage")}
-                  className="mt-4 px-6 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
-                >
-                  언어 선택하기
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* 가장 많이 학습한 언어 섹션 */}
-          {userProfile && userProfile.mostStudiedLanguage ? (
-            <div className="p-8 bg-white rounded-lg shadow-sm">
-              <h3 className="mb-6 text-xl font-bold text-gray-800">가장 많이 학습한 언어</h3>
-              
-              <div className="p-6 bg-white border border-gray-200 rounded-lg">
-                <h4 className="mb-3 text-xl font-bold text-gray-800">{userProfile.mostStudiedLanguage.name}</h4>
-                <p className="mb-4 text-sm text-gray-700">
-                  {userProfile.mostStudiedLanguage.description}
-                </p>
+            {/* 가장 많이 학습한 언어 섹션 */}
+            {userProfile && userProfile.mostStudiedLanguage ? (
+              <div className="p-4 bg-white rounded-lg shadow-sm">
+                <h3 className="mb-4 text-lg font-bold text-gray-800">가장 많이 학습한 언어</h3>
                 
-                {/* 진행도 표시 */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">진행도</span>
-                    <span className="text-sm font-medium text-[#13ae9d]">{userProfile.mostStudiedLanguageProgress || 0}%</span>
+                <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                  <h4 className="mb-2 text-lg font-bold text-gray-800">{userProfile.mostStudiedLanguage.name}</h4>
+                  <p className="mb-3 text-xs text-gray-700">
+                    {userProfile.mostStudiedLanguage.description}
+                  </p>
+                  
+                  {/* 진행도 표시 */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700">진행도</span>
+                      <span className="text-xs font-medium text-[#13ae9d]">{userProfile.mostStudiedLanguageProgress || 0}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 rounded-full">
+                      <div 
+                        className="bg-[#13ae9d] h-1.5 rounded-full transition-all duration-300" 
+                        style={{ width: `${userProfile.mostStudiedLanguageProgress || 0}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full">
-                    <div 
-                      className="bg-[#13ae9d] h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${userProfile.mostStudiedLanguageProgress || 0}%` }}
-                    ></div>
-                  </div>
-                </div>
 
-                {/* 타수 표시 */}
-                <div className="p-3 mb-6 rounded-lg bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">총 타수</span>
-                    <span className="text-lg font-bold text-[#13ae9d]">{userProfile.mostStudiedLanguageScore || 0} 타</span>
+                  {/* 타수 표시 */}
+                  <div className="p-1.5 mb-4 rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">총 타수</span>
+                      <span className="text-sm font-bold text-[#13ae9d]">{userProfile.mostStudiedLanguageScore || 0} 타</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex gap-3">
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors">
-                    단어
-                  </button>
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors">
-                    문장
-                  </button>
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors">
-                    풀코드
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => navigate('/word', { 
+                        state: { 
+                          language: userProfile.recentlyStudiedLanguage?.id || 1 
+                        } 
+                      })}
+                      className="px-2 py-1 text-xs font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                    >
+                      단어
+                    </button>
+                    <button 
+                      onClick={() => navigate('/sentence', { 
+                        state: { 
+                          language: userProfile.recentlyStudiedLanguage?.id || 1 
+                        } 
+                      })}
+                      className="px-2 py-1 text-xs font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                    >
+                      문장
+                    </button>
+                    <button 
+                      onClick={() => navigate('/full', { 
+                        state: { 
+                          language: userProfile.recentlyStudiedLanguage?.id || 1 
+                        } 
+                      })}
+                      className="px-2 py-1 text-xs font-medium text-white bg-[#13ae9d] rounded hover:bg-[#0f8a7a] transition-colors"
+                    >
+                      풀코드
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="p-8 bg-white rounded-lg shadow-sm">
-              <h3 className="mb-6 text-xl font-bold text-gray-800">가장 많이 학습한 언어</h3>
-              <div className="p-6 text-center border border-gray-200 rounded-lg bg-gray-50">
-                <p className="text-gray-500">아직 학습한 언어가 없습니다.</p>
+            ) : (
+              <div className="p-4 bg-white rounded-lg shadow-sm" style={{ height: '290px' }}>
+                <h3 className="mb-4 text-lg font-bold text-gray-800">가장 많이 학습한 언어</h3>
+                <div className="flex flex-col items-center justify-center max-h-full text-center border border-gray-100 rounded-lg p-17 bg-gray-50">
+                  <div className="mb-4 text-4xl">🏆</div>
+                  <p className="text-sm text-gray-500">아직 학습한 언어가 없습니다.</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 </div>
