@@ -24,32 +24,67 @@ const CodeRunTimeAttack = () => {
   const [rooms, setRooms] = useState([]);
   const [completionTimes, setCompletionTimes] = useState({});
 
-  // 랭킹 데이터
-  const rankingsData = {
-    '오늘': [
-      { rank: 1, name: "Name", time: "00:00:00" },
-      { rank: 2, name: "Name", time: "00:00:00" },
-      { rank: 3, name: "Name", time: "00:00:00" },
-      { rank: 4, name: "Name", time: "00:00:00" },
-      { rank: 5, name: "Name", time: "00:00:00" },
-      { rank: 23, name: "me", time: "00:00:00" }
-    ],
-    '이번주': [
-      { rank: 1, name: "주간 1등", time: "00:01:15" },
-      { rank: 2, name: "주간 2등", time: "00:01:32" },
-      { rank: 3, name: "주간 3등", time: "00:01:48" },
-      { rank: 4, name: "주간 4등", time: "00:02:05" },
-      { rank: 5, name: "주간 5등", time: "00:02:20" },
-      { rank: 15, name: "me", time: "00:03:45" }
-    ],
-    '이번달': [
-      { rank: 1, name: "월간 1등", time: "00:00:58" },
-      { rank: 2, name: "월간 2등", time: "00:01:12" },
-      { rank: 3, name: "월간 3등", time: "00:01:28" },
-      { rank: 4, name: "월간 4등", time: "00:01:45" },
-      { rank: 5, name: "월간 5등", time: "00:02:02" },
-      { rank: 8, name: "me", time: "00:02:30" }
-    ]
+  // 랭킹 데이터를 서버에서 가져오는 함수
+  const fetchRankings = async (period) => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.coderun.site';
+      
+      console.log(`${period} 랭킹 시도 중: ${baseUrl}/api/arcade/rank`);
+      const response = await axios.get(`${baseUrl}/api/arcade/rank`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        params: {
+          rankPeriod: period
+        }
+      });
+      
+      console.log(`${period} 랭킹 성공:`, response.data);
+      return response.data.rankings || response.data || [];
+    } catch (error) {
+      console.error(`${period} 랭킹 가져오기 실패:`, error);
+      // 서버에서 가져오기 실패 시 기본 데이터 사용
+      return getDefaultRankings(period);
+    }
+  };
+
+  // 기본 랭킹 데이터 (서버 연결 실패 시 사용)
+  const getDefaultRankings = (period) => {
+    const defaultData = {
+      'DAILY': [
+        { rank: 1, username: "김동현", score: 1926 },
+        { rank: 2, username: "최해성", score: 1980 },
+        { rank: 3, username: "서민덕", score: 2040 },
+        { rank: 4, username: "서희원", score: 2136 },
+        { rank: 5, username: "최장우", score: 2160 },
+        { rank: 6, username: "차동규", score: 2220 }
+      ],
+      'WEEKLY': [
+        { rank: 1, username: "김동현", score: 1725 },
+        { rank: 2, username: "서민덕", score: 1812 },
+        { rank: 3, username: "최해성", score: 1893 },
+        { rank: 4, username: "서희원", score: 1938 },
+        { rank: 5, username: "최장우", score: 2035 },
+        { rank: 6, username: "차동규", score: 2122 }
+      ],
+      'MONTHLY': [
+        { rank: 1, username: "서민덕", score: 1530 },
+        { rank: 2, username: "김동현", score: 1605 },
+        { rank: 3, username: "서희원", score: 1692 },
+        { rank: 4, username: "최해성", score: 1773 },
+        { rank: 5, username: "최장우", score: 1855 },
+        { rank: 6, username: "차동규", score: 1938 }
+      ]
+    };
+    return defaultData[period] || [];
+  };
+
+  // 시간을 초로 변환하는 함수 (score 표시용)
+  const formatScore = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   // 초기 문제 데이터 - 언어당 하나씩만 (서버 ID에 맞게 수정)
@@ -266,28 +301,40 @@ const CodeRunTimeAttack = () => {
   };
 
   useEffect(() => {
-    setRankings(rankingsData['오늘']);
     setProblems(initialProblems);
     setFilteredProblems([]);
     fetchRooms();
     
-    // 초기 로드 시에만 완료 시간 확인
-    fetchRoomCompletionTimes();
+    // 랭킹 데이터 가져오기
+    const loadRankings = async () => {
+      const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
+      const period = periodMap[activeRankingTab];
+      const rankingsData = await fetchRankings(period);
+      setRankings(rankingsData);
+    };
+    
+    loadRankings();
+    
+    // 서버에서 완료 시간 주기적으로 가져오기 (5초마다)
+    const interval = setInterval(fetchRoomCompletionTimes, 5000);
     
     // 페이지 포커스 시 완료 시간 로드
     const handleFocus = () => {
       loadCompletionTimeFromStorage();
+      fetchRoomCompletionTimes(); // 포커스 시에도 서버에서 최신 데이터 가져오기
     };
     
     window.addEventListener('focus', handleFocus);
     
     // 초기 로드 시에도 완료 시간 확인
     loadCompletionTimeFromStorage();
+    fetchRoomCompletionTimes(); // 초기 로드 시에도 서버에서 데이터 가져오기
     
     return () => {
+      clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [activeRankingTab]);
 
   // 문제 필터링 함수
   const filterProblems = (tags) => {
@@ -303,9 +350,12 @@ const CodeRunTimeAttack = () => {
   };
 
   // 랭킹 탭 변경
-  const handleRankingTabChange = (tab) => {
+  const handleRankingTabChange = async (tab) => {
     setActiveRankingTab(tab);
-    setRankings(rankingsData[tab]);
+    const periodMap = { '오늘': 'DAILY', '이번주': 'WEEKLY', '이번달': 'MONTHLY' };
+    const period = periodMap[tab];
+    const rankingsData = await fetchRankings(period);
+    setRankings(rankingsData);
   };
 
   // 초기화 함수
@@ -724,7 +774,7 @@ const CodeRunTimeAttack = () => {
               <div className="space-y-3">
                 {rankings.map((rank, index) => {
                   // 'me' 항목 바로 전에 점 3개 표시
-                  const showDots = rank.name === 'me' && rank.rank > 6;
+                  const showDots = rank.username === 'me' && rank.rank > 6;
                   
                   return (
                     <React.Fragment key={index}>
@@ -735,11 +785,11 @@ const CodeRunTimeAttack = () => {
                       )}
                       <div
                         className={`flex items-center gap-3 p-3 rounded-lg ${
-                          rank.name === 'me' 
+                          rank.username === 'me' 
                             ? 'border' 
                             : 'bg-gray-50'
                         }`}
-                        style={rank.name === 'me' ? { backgroundColor: '#F0FDFA', borderColor: '#14B8A6' } : {}}
+                        style={rank.username === 'me' ? { backgroundColor: '#F0FDFA', borderColor: '#14B8A6' } : {}}
                       >
                         <div
                           className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
@@ -750,8 +800,8 @@ const CodeRunTimeAttack = () => {
                           {rank.rank}
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-gray-800">{rank.name}</div>
-                          <div className="text-sm text-gray-600">⏱️ {rank.time}</div>
+                          <div className="font-medium text-gray-800">{rank.username}</div>
+                          <div className="text-sm text-gray-600">⏱️ {formatScore(rank.score)}</div>
                         </div>
                       </div>
                     </React.Fragment>
