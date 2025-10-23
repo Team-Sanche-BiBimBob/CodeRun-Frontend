@@ -608,8 +608,29 @@ const Fullcode = () => {
       
       const scoreInSeconds = timeToSeconds(score);
       
+      // AccessToken에서 userId 추출
+      const getUserIdFromToken = () => {
+        try {
+          const token = localStorage.getItem('accessToken');
+          if (!token) {
+            console.log('AccessToken이 없습니다.');
+            return 0;
+          }
+          
+          const decoded = jwtDecode(token);
+          console.log('디코딩된 토큰:', decoded);
+          
+          return decoded.userid || decoded.userId || decoded.id || 0;
+        } catch (error) {
+          console.error('토큰 디코딩 실패:', error);
+          return 0;
+        }
+      };
+      
+      const userId = getUserIdFromToken();
+      
       const requestData = {
-        userId: 0, // 임시 사용자 ID (실제로는 로그인한 사용자 ID 사용)
+        userId: userId, // AccessToken에서 추출한 실제 사용자 ID
         score: scoreInSeconds,
         rankPeriod: rankPeriod
       };
