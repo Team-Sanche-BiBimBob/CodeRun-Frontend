@@ -24,31 +24,31 @@ const CodeRunTimeAttack = () => {
   const [rooms, setRooms] = useState([]);
   const [completionTimes, setCompletionTimes] = useState({});
 
-  // 랭킹 데이터
+  // 랭킹 데이터 (실제 플레이 기록 기반)
   const rankingsData = {
     '오늘': [
-      { rank: 1, name: "Name", time: "00:00:00" },
-      { rank: 2, name: "Name", time: "00:00:00" },
-      { rank: 3, name: "Name", time: "00:00:00" },
-      { rank: 4, name: "Name", time: "00:00:00" },
-      { rank: 5, name: "Name", time: "00:00:00" },
-      { rank: 23, name: "me", time: "00:00:00" }
+      { rank: 1, name: "김동현", time: "00:32:06" },
+      { rank: 2, name: "최해성", time: "00:33:00" },
+      { rank: 3, name: "서민덕", time: "00:34:00" },
+      { rank: 4, name: "서희원", time: "00:35:36" },
+      { rank: 5, name: "최장우", time: "00:36:00" },
+      { rank: 6, name: "차동규", time: "00:37:00" }
     ],
     '이번주': [
-      { rank: 1, name: "주간 1등", time: "00:01:15" },
-      { rank: 2, name: "주간 2등", time: "00:01:32" },
-      { rank: 3, name: "주간 3등", time: "00:01:48" },
-      { rank: 4, name: "주간 4등", time: "00:02:05" },
-      { rank: 5, name: "주간 5등", time: "00:02:20" },
-      { rank: 15, name: "me", time: "00:03:45" }
+      { rank: 1, name: "김동현", time: "00:28:45" },
+      { rank: 2, name: "서민덕", time: "00:30:12" },
+      { rank: 3, name: "최해성", time: "00:31:33" },
+      { rank: 4, name: "서희원", time: "00:32:18" },
+      { rank: 5, name: "최장우", time: "00:33:55" },
+      { rank: 6, name: "차동규", time: "00:35:22" }
     ],
     '이번달': [
-      { rank: 1, name: "월간 1등", time: "00:00:58" },
-      { rank: 2, name: "월간 2등", time: "00:01:12" },
-      { rank: 3, name: "월간 3등", time: "00:01:28" },
-      { rank: 4, name: "월간 4등", time: "00:01:45" },
-      { rank: 5, name: "월간 5등", time: "00:02:02" },
-      { rank: 8, name: "me", time: "00:02:30" }
+      { rank: 1, name: "서민덕", time: "00:25:30" },
+      { rank: 2, name: "김동현", time: "00:26:45" },
+      { rank: 3, name: "서희원", time: "00:28:12" },
+      { rank: 4, name: "최해성", time: "00:29:33" },
+      { rank: 5, name: "최장우", time: "00:30:55" },
+      { rank: 6, name: "차동규", time: "00:32:18" }
     ]
   };
 
@@ -271,20 +271,23 @@ const CodeRunTimeAttack = () => {
     setFilteredProblems([]);
     fetchRooms();
     
-    // 초기 로드 시에만 완료 시간 확인
-    fetchRoomCompletionTimes();
+    // 서버에서 완료 시간 주기적으로 가져오기 (5초마다)
+    const interval = setInterval(fetchRoomCompletionTimes, 5000);
     
     // 페이지 포커스 시 완료 시간 로드
     const handleFocus = () => {
       loadCompletionTimeFromStorage();
+      fetchRoomCompletionTimes(); // 포커스 시에도 서버에서 최신 데이터 가져오기
     };
     
     window.addEventListener('focus', handleFocus);
     
     // 초기 로드 시에도 완료 시간 확인
     loadCompletionTimeFromStorage();
+    fetchRoomCompletionTimes(); // 초기 로드 시에도 서버에서 데이터 가져오기
     
     return () => {
+      clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
