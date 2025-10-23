@@ -52,7 +52,15 @@ const CodeRunTimeAttack = () => {
       console.log(`${period} 랭킹 성공:`, response.data);
       const rankings = response.data.rankings || response.data || [];
       console.log('가져온 랭킹 데이터:', rankings);
-      return rankings;
+      
+      // 서버 데이터가 있으면 서버 데이터 사용, 없으면 기본 데이터 사용
+      if (rankings && rankings.length > 0) {
+        console.log('서버에서 실제 플레이 기록을 가져왔습니다!');
+        return rankings;
+      } else {
+        console.log('서버에 랭킹 데이터가 없어서 기본 데이터 사용');
+        return getDefaultRankings(period, problemId);
+      }
     } catch (error) {
       console.error(`${period} 랭킹 가져오기 실패:`, error);
       // 서버에서 가져오기 실패 시 기본 데이터 사용
@@ -258,8 +266,8 @@ const CodeRunTimeAttack = () => {
 
   // 기록 삭제 함수
   const deleteRecord = (problemId) => {
-    // sessionStorage에서 완료 시간 삭제
-    sessionStorage.removeItem(`problem_${problemId}_completion`);
+    // localStorage에서 완료 시간 삭제 (브라우저 껐다 켜도 유지되던 기록 삭제)
+    localStorage.removeItem(`problem_${problemId}_completion`);
     
     // 상태에서도 완료 시간 제거
     setCompletionTimes(prev => {
@@ -354,7 +362,7 @@ const CodeRunTimeAttack = () => {
   };
 
 
-  // sessionStorage에서 완료 시간 가져오기 (기록 유지)
+  // localStorage에서 완료 시간 가져오기 (브라우저 껐다 켜도 유지)
   const loadCompletionTimeFromStorage = () => {
     try {
       // 모든 문제에 대해 완료 시간 확인
@@ -364,7 +372,7 @@ const CodeRunTimeAttack = () => {
       console.log('완료 시간 로드 시작...');
       
       problemIds.forEach(problemId => {
-        const completionTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+        const completionTime = localStorage.getItem(`problem_${problemId}_completion`);
         if (completionTime) {
           newCompletionTimes[problemId] = completionTime;
           console.log(`문제 ${problemId} 완료 시간 로드:`, completionTime);
@@ -632,13 +640,13 @@ const CodeRunTimeAttack = () => {
       localStorage.setItem(`roomInfo_${room.roomId}`, JSON.stringify(roomData));
       
       console.log('방 정보 저장:', roomData);
-      
-      if (difficulty === '문장') {
-        if (languageId) {
+    
+    if (difficulty === '문장') {
+      if (languageId) {
           // sentence 페이지로 이동 (선택된 언어 ID와 방 ID 전달)
           window.location.href = `/sentence?language=${languageId}&roomId=${room.roomId}`;
-        } else {
-          // 일반 sentence 페이지로 이동
+      } else {
+        // 일반 sentence 페이지로 이동
           window.location.href = `/sentence?roomId=${room.roomId}`;
         }
       } else if (difficulty === '풀코드') {
@@ -666,13 +674,13 @@ const CodeRunTimeAttack = () => {
         if (languageId) {
           window.location.href = `/sentence?language=${languageId}`;
         } else {
-          window.location.href = '/sentence';
-        }
-      } else if (difficulty === '풀코드') {
-        if (languageId) {
-          window.location.href = `/full?language=${languageId}`;
-        } else {
-          window.location.href = '/full';
+        window.location.href = '/sentence';
+      }
+    } else if (difficulty === '풀코드') {
+      if (languageId) {
+        window.location.href = `/full?language=${languageId}`;
+      } else {
+        window.location.href = '/full';
         }
       } else if (difficulty === '단어') {
         if (languageId) {
@@ -857,16 +865,16 @@ const CodeRunTimeAttack = () => {
                     
                     {/* 도전하기 버튼 */}
                     {selectedProblem?.id === problem.id && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleChallengeClick(problem.difficulty, problem);
-                        }}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleChallengeClick(problem.difficulty, problem);
+                      }}
                         className="w-full py-2 mt-3 text-sm text-white transition-colors rounded-md hover:opacity-90"
                         style={{ backgroundColor: '#2DD4BF' }}
-                      >
-                        도전하기
-                      </button>
+                    >
+                      도전하기
+                    </button>
                     )}
                   </div>
                 ))}
@@ -880,12 +888,15 @@ const CodeRunTimeAttack = () => {
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-2xl">🏆</span>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    {selectedProblem ? `${selectedProblem.title} 랭킹` : '전체 랭킹'}
-                  </h2>
-                  {selectedProblem && (
-                    <p className="text-sm text-gray-500">{selectedProblem.difficulty}</p>
-                  )}
+        <h2 className="text-xl font-semibold text-gray-800">
+          {selectedProblem ? `${selectedProblem.title} 랭킹` : '전체 랭킹'}
+        </h2>
+        {selectedProblem && (
+          <p className="text-sm text-gray-500">{selectedProblem.difficulty}</p>
+        )}
+        <div className="mb-2 text-xs text-blue-600">
+          🌐 서버에서 실시간 랭킹 데이터를 가져옵니다
+        </div>
                 </div>
               </div>
 
@@ -929,39 +940,39 @@ const CodeRunTimeAttack = () => {
               <div className="space-y-3">
                 {rankings && rankings.length > 0 ? (
                   rankings.map((rank, index) => {
-                    // 'me' 항목 바로 전에 점 3개 표시
+                  // 'me' 항목 바로 전에 점 3개 표시
                     const showDots = rank.username === 'me' && rank.rank > 6;
-                    
-                    return (
-                      <React.Fragment key={index}>
-                        {showDots && (
-                          <div className="py-2 text-center">
-                            <span className="text-lg text-gray-400">⋮</span>
-                          </div>
-                        )}
-                        <div
-                          className={`flex items-center gap-3 p-3 rounded-lg ${
+                  
+                  return (
+                    <React.Fragment key={index}>
+                      {showDots && (
+                        <div className="py-2 text-center">
+                          <span className="text-lg text-gray-400">⋮</span>
+                        </div>
+                      )}
+                      <div
+                        className={`flex items-center gap-3 p-3 rounded-lg ${
                             rank.username === 'me' 
-                              ? 'border' 
-                              : 'bg-gray-50'
-                          }`}
+                            ? 'border' 
+                            : 'bg-gray-50'
+                        }`}
                           style={rank.username === 'me' ? { backgroundColor: '#F0FDFA', borderColor: '#14B8A6' } : {}}
+                      >
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
+                            rank.rank <= 3 ? '' : 'bg-gray-400'
+                          }`}
+                          style={rank.rank <= 3 ? { backgroundColor: '#14B8A6' } : {}}
                         >
-                          <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
-                              rank.rank <= 3 ? '' : 'bg-gray-400'
-                            }`}
-                            style={rank.rank <= 3 ? { backgroundColor: '#14B8A6' } : {}}
-                          >
-                            {rank.rank}
-                          </div>
-                          <div className="flex-1">
+                          {rank.rank}
+                        </div>
+                        <div className="flex-1">
                             <div className="font-medium text-gray-800">{rank.username}</div>
                             <div className="text-sm text-gray-600">⏱️ {formatScore(rank.score)}</div>
-                          </div>
                         </div>
-                      </React.Fragment>
-                    );
+                      </div>
+                    </React.Fragment>
+                  );
                   })
                 ) : (
                   <div className="py-8 text-center text-gray-500">

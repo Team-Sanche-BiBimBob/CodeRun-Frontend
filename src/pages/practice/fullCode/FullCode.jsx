@@ -522,20 +522,20 @@ const Fullcode = () => {
         }
         
         if (problemId) {
-          // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트
-          const existingTime = sessionStorage.getItem(`problem_${problemId}_completion`);
+          // 기존 기록과 비교하여 더 좋은 기록일 때만 업데이트 (localStorage 사용 - 브라우저 껐다 켜도 유지)
+          const existingTime = localStorage.getItem(`problem_${problemId}_completion`);
           
           if (!existingTime) {
             // 기존 기록이 없으면 저장
-            sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
-            console.log('완료 시간 sessionStorage 저장 (정확도 100%):', { problemId, completionTime, languageId, accuracy });
+            localStorage.setItem(`problem_${problemId}_completion`, completionTime);
+            console.log('완료 시간 localStorage 저장 (정확도 100%):', { problemId, completionTime, languageId, accuracy });
           } else {
             // 기존 기록이 있으면 시간 비교 (더 빠른 시간으로 업데이트)
             const existingSeconds = timeToSeconds(existingTime);
             const currentSeconds = timeToSeconds(completionTime);
             
             if (currentSeconds < existingSeconds) {
-              sessionStorage.setItem(`problem_${problemId}_completion`, completionTime);
+              localStorage.setItem(`problem_${problemId}_completion`, completionTime);
               console.log('더 좋은 기록으로 업데이트 (정확도 100%):', { problemId, oldTime: existingTime, newTime: completionTime, accuracy });
             } else {
               console.log('기존 기록이 더 좋음 (정확도 100%):', { problemId, existingTime, currentTime: completionTime, accuracy });
