@@ -1,19 +1,108 @@
 // src/pages/arcade/battle/BattleGamePage.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+
+// 실시간 통계 컴포넌트
+function RealTimeStats({ 
+  accuracy, 
+  typingSpeed, 
+  elapsedTime,
+  currentIndex,
+  totalItems,
+  startTime,
+  gameType
+}) {
+  const [displayAccuracy, setDisplayAccuracy] = useState(0);
+  const [displaySpeed, setDisplaySpeed] = useState(0);
+  const [currentTime, setCurrentTime] = useState(elapsedTime);
+
+  // ⏱ 1초마다 시간 갱신
+  useEffect(() => {
+    if (!startTime) return;
+
+    const timeInterval = setInterval(() => {
+      const now = new Date();
+      const diff = Math.floor((now - startTime) / 1000);
+      const minutes = String(Math.floor(diff / 60)).padStart(2, '0');
+      const seconds = String(diff % 60).padStart(2, '0');
+      setCurrentTime(`${minutes}:${seconds}`);
+    }, 1000);
+
+    return () => clearInterval(timeInterval);
+  }, [startTime]);
+
+  // 🎯 정확도 / 타속 애니메이션
+  useEffect(() => {
+    const targetAccuracy = parseFloat(accuracy) || 0;
+    const targetSpeed = parseFloat(typingSpeed) || 0;
+
+    const accuracyInterval = setInterval(() => {
+      setDisplayAccuracy(prev => {
+        const diff = targetAccuracy - prev;
+        if (Math.abs(diff) < 0.1) {
+          clearInterval(accuracyInterval);
+          return targetAccuracy;
+        }
+        return prev + diff * 0.1;
+      });
+    }, 16);
+
+    const speedInterval = setInterval(() => {
+      setDisplaySpeed(prev => {
+        const diff = targetSpeed - prev;
+        if (Math.abs(diff) < 0.1) {
+          clearInterval(speedInterval);
+          return targetSpeed;
+        }
+        return prev + diff * 0.1;
+      });
+    }, 16);
+
+    return () => {
+      clearInterval(accuracyInterval);
+      clearInterval(speedInterval);
+    };
+  }, [accuracy, typingSpeed, startTime]);
+
+  return (
+    <div className="flex justify-center w-full mb-4">
+      <div className="flex justify-between w-full max-w-4xl px-6 py-3 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg shadow-sm">
+        
+        {/* 진행도 */}
+        <div className="flex items-center flex-1 gap-2">
+          <span className="text-gray-500">진행도</span>
+          <span className="font-semibold text-gray-800">{currentIndex}/{totalItems}</span>
+        </div>
+
+        {/* 소요시간 */}
+        <div className="flex items-center justify-center flex-1 gap-2">
+          <span className="text-gray-500">시간</span>
+          <span className="font-mono font-semibold text-gray-800">{currentTime}</span>
+        </div>
+
+        {/* 정확도 */}
+        <div className="flex items-center justify-center flex-1 gap-2">
+          <span className="text-gray-500">정확도</span>
+          <span className={`font-semibold ${displayAccuracy >= 80 ? 'text-green-600' : displayAccuracy >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+            {displayAccuracy.toFixed(1)}%
+          </span>
+        </div>
+
+        {/* 분당 타수 */}
+        <div className="flex items-center justify-end flex-1 gap-2">
+          <span className="text-gray-500">분당타수</span>
+          <span className="font-semibold text-teal-600">{displaySpeed.toFixed(0)}타</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function BattleGamePage() {
   const location = useLocation();
   const [gameType, setGameType] = useState(location.state?.gameType || '단어');
   const [timeLimit] = useState(location.state?.timeLimit || 60);
   const [roomName] = useState(location.state?.roomName || '테스트방');
-  const [arcadeId] = useState(location.state?.arcadeId || '1');
-  const [playerId] = useState(location.state?.playerId || 1);
-  
-  // 웹소켓
-  const wsRef = useRef(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [opponentConnected, setOpponentConnected] = useState(false);
 
   // 공통 상태
   const [isGameStarted, setIsGameStarted] = useState(false);
@@ -25,6 +114,9 @@ function BattleGamePage() {
   const [wordList, setWordList] = useState([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [wordUserInput, setWordUserInput] = useState('');
+  
+  // 정확도 계산용: 완료된 단어들의 정확도 기록
+  const [completedWords, setCompletedWords] = useState([]); // { original, typed, isCorrect }
 
   // 문장 게임 상태
   const [sentences, setSentences] = useState([]);
@@ -38,122 +130,9 @@ function BattleGamePage() {
   const [myAccuracy, setMyAccuracy] = useState(100);
   const [mySpeed, setMySpeed] = useState(0);
   const [opponentSpeed, setOpponentSpeed] = useState(0);
-  const [opponentAccuracy, setOpponentAccuracy] = useState(100);
+  const [opponentAccuracy] = useState(80);
 
   const hangulRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
-
-  // === 웹소켓 연결 ===
-useEffect(() => {
-  let reconnectTimeout;
-  let ws;
-
-  const connect = () => {
-    try {
-      // 서버 WebSocket 핸들러 경로로 변경
-      const wsUrl = `ws://15.165.206.113:8080/api/ws/pvp?id=16`;
-      console.log('WebSocket 연결 시도:', wsUrl);
-
-      ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        console.log('✅ WebSocket 연결 성공 - 플레이어', playerId);
-        setIsConnected(true);
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('📥 받은 데이터:', data);
-
-          if (data.type === 'bothConnected' || data.bothConnected) {
-            setOpponentConnected(true);
-          }
-
-          if (data.type === 'gameStart' || data.gameStart) {
-            setOpponentConnected(true);
-          }
-
-          if (playerId === 1) {
-            if (data.player2Points !== undefined) setOpponentProgress(data.player2Points);
-            if (data.player2Speed !== undefined) setOpponentSpeed(data.player2Speed);
-            if (data.player2Accuracy !== undefined) setOpponentAccuracy(data.player2Accuracy);
-          } else if (playerId === 2) {
-            if (data.player1Points !== undefined) setOpponentProgress(data.player1Points);
-            if (data.player1Speed !== undefined) setOpponentSpeed(data.player1Speed);
-            if (data.player1Accuracy !== undefined) setOpponentAccuracy(data.player1Accuracy);
-          }
-        } catch (error) {
-          console.error('❌ 메시지 파싱 오류:', error);
-        }
-      };
-
-      ws.onerror = (error) => {
-        console.error('❌ WebSocket 오류:', error);
-        console.log('서버 상태를 확인하세요. 연결 URL:', wsUrl);
-      };
-
-      ws.onclose = (event) => {
-        console.log('🔌 WebSocket 연결 종료:', {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean
-        });
-        setIsConnected(false);
-
-        if (!event.wasClean && event.code !== 1000) {
-          console.log('🔄 5초 후 재연결 시도...');
-          reconnectTimeout = setTimeout(connect, 5000);
-        }
-      };
-    } catch (error) {
-      console.error('❌ WebSocket 생성 오류:', error);
-      reconnectTimeout = setTimeout(connect, 5000);
-    }
-  };
-
-  connect();
-
-  return () => {
-    if (reconnectTimeout) clearTimeout(reconnectTimeout);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'leave', playerId: playerId }));
-      ws.close(1000, 'User left');
-    }
-  };
-}, [arcadeId, playerId]);
-
-
-
-  // === 내 점수를 서버로 전송 ===
-  const sendMyProgress = useCallback(() => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-
-    const message = {
-      type: 'update',
-      playerId: playerId,
-      ...(playerId === 1
-        ? {
-            player1Points: Math.round(myProgress),
-            player1Speed: mySpeed,
-            player1Accuracy: myAccuracy
-          }
-        : {
-            player2Points: Math.round(myProgress),
-            player2Speed: mySpeed,
-            player2Accuracy: myAccuracy
-          })
-    };
-
-    wsRef.current.send(JSON.stringify(message));
-  }, [myProgress, mySpeed, myAccuracy, playerId]);
-
-  // 진행도 변경 시마다 전송
-  useEffect(() => {
-    if (isGameStarted && !isGameComplete) {
-      sendMyProgress();
-    }
-  }, [myProgress, mySpeed, myAccuracy, isGameStarted, isGameComplete, sendMyProgress]);
 
   // === 초기 데이터 로드 ===
   useEffect(() => {
@@ -188,10 +167,11 @@ useEffect(() => {
     setWordUserInput('');
     setTypedChars([]);
     setCompletedSentences([]);
+    setCompletedWords([]);
     setMyProgress(0);
   }, [gameType]);
 
-  // === 타이머 ===
+  // === 타이머 및 상대 시뮬레이션 ===
   useEffect(() => {
     let interval = null;
     if (isGameStarted && !isGameComplete && remainingTime > 0) {
@@ -203,6 +183,10 @@ useEffect(() => {
           }
           return prev - 1;
         });
+
+        // 상대 시뮬레이션
+        setOpponentProgress(prev => Math.min(100, prev + Math.random() * 3));
+        setOpponentSpeed(prev => Math.min(200, prev + Math.random() * 3));
       }, 1000);
     }
     return () => interval && clearInterval(interval);
@@ -239,59 +223,105 @@ useEffect(() => {
     return () => clearInterval(id);
   }, [firstKeyTime, wordList, currentWordIndex, wordUserInput, typedChars, currentSentenceIndex, sentences, gameType]);
 
-  // === 정확도 계산 ===
+  // === 정확도 계산 (실시간, 글자 단위 기준) ===
   useEffect(() => {
-    let totalTyped = 0;
-    let correctTyped = 0;
+    let totalChars = 0;
+    let correctChars = 0;
 
     if (gameType === '단어') {
-      for (let i = 0; i < currentWordIndex; i++) {
-        totalTyped += wordList[i].length;
-        correctTyped += wordList[i].length;
-      }
-      const currentWord = wordList[currentWordIndex] || '';
-      totalTyped += wordUserInput.length;
-      for (let i = 0; i < wordUserInput.length; i++) {
-        if (wordUserInput[i] === currentWord[i]) correctTyped++;
+      // 완료된 단어들은 모두 정확했다고 가정(엔터로 넘어갔으므로)
+      completedWords.forEach(word => {
+        totalChars += word.original.length;
+        if (word.isCorrect) {
+          correctChars += word.original.length;
+        } else {
+          // 틀린 단어는 typed 길이만큼 정확도 계산
+          const minLength = Math.min(word.typed.length, word.original.length);
+          for (let i = 0; i < minLength; i++) {
+            if (word.typed[i] === word.original[i]) {
+              correctChars++;
+            }
+          }
+        }
+      });
+      
+      // 현재 입력 중인 단어의 글자별 정확도
+      if (wordUserInput.length > 0) {
+        const currentWord = wordList[currentWordIndex] || '';
+        totalChars += wordUserInput.length;
+        for (let i = 0; i < wordUserInput.length; i++) {
+          if (wordUserInput[i] === currentWord[i]) {
+            correctChars++;
+          }
+        }
       }
     } else {
-      for (let i = 0; i < currentSentenceIndex; i++) {
-        totalTyped += sentences[i].length;
-        correctTyped += sentences[i].length;
-      }
-      const currentSentence = sentences[currentSentenceIndex] || '';
-      for (let i = 0; i < typedChars.length; i++) {
-        totalTyped++;
-        if (typedChars[i] === currentSentence[i]) correctTyped++;
+      // 완료된 문장들의 글자별 정확도
+      completedSentences.forEach(item => {
+        const { original, typed } = item;
+        totalChars += typed.length;
+        
+        for (let i = 0; i < typed.length; i++) {
+          if (typed[i] === original[i]) {
+            correctChars++;
+          }
+        }
+      });
+      
+      // 현재 입력 중인 문장의 글자별 정확도
+      if (typedChars.length > 0) {
+        const currentSentence = sentences[currentSentenceIndex] || '';
+        totalChars += typedChars.length;
+        
+        for (let i = 0; i < typedChars.length; i++) {
+          if (typedChars[i] === currentSentence[i]) {
+            correctChars++;
+          }
+        }
       }
     }
-
-    const acc = totalTyped === 0 ? 100 : (correctTyped / totalTyped) * 100;
+    
+    if (totalChars === 0) {
+      setMyAccuracy(100);
+      return;
+    }
+    
+    const acc = (correctChars / totalChars) * 100;
     setMyAccuracy(Number(acc.toFixed(1)));
-  }, [wordUserInput, currentWordIndex, typedChars, currentSentenceIndex, sentences, gameType, wordList]);
+  }, [completedWords, completedSentences, wordUserInput, typedChars, currentWordIndex, currentSentenceIndex, wordList, sentences, gameType]);
+
+  // === 정확도 애니메이션을 위한 표시 값 ===
+  const [displayAccuracy, setDisplayAccuracy] = useState(100);
+
+  useEffect(() => {
+    const targetAccuracy = myAccuracy;
+    
+    const interval = setInterval(() => {
+      setDisplayAccuracy(prev => {
+        const diff = targetAccuracy - prev;
+        if (Math.abs(diff) < 0.1) {
+          clearInterval(interval);
+          return targetAccuracy;
+        }
+        return prev + diff * 0.1;
+      });
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [myAccuracy]);
 
   // === 게임 결과 전송 ===
   useEffect(() => {
     if (!isGameComplete) return;
 
     const winnerId =
-      myProgress > opponentProgress ? playerId :
-      myProgress < opponentProgress ? (playerId === 1 ? 2 : 1) :
+      myProgress > opponentProgress ? 1 :
+      myProgress < opponentProgress ? 2 :
       0;
 
     const sendResult = async () => {
       try {
-        // 웹소켓으로도 게임 종료 알림
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
-            type: 'gameEnd',
-            playerId: playerId,
-            winnerId: winnerId,
-            finalProgress: myProgress
-          }));
-        }
-
-        const response = await fetch('/api/rooms/result/16', {
+        const response = await fetch('/api/battle/result', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -310,7 +340,7 @@ useEffect(() => {
     };
 
     sendResult();
-  }, [isGameComplete, myProgress, opponentProgress, playerId]);
+  }, [isGameComplete, myProgress, opponentProgress]);
 
   // === 게임 시작 ===
   const handleStartGame = () => {
@@ -323,19 +353,12 @@ useEffect(() => {
     setOpponentProgress(0);
     setOpponentSpeed(0);
     setCompletedSentences([]);
+    setCompletedWords([]);
     setCurrentWordIndex(0);
     setCurrentSentenceIndex(0);
     setWordUserInput('');
     setTypedChars([]);
     setMyProgress(0);
-
-    // 게임 시작 신호 전송
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'start',
-        playerId: playerId
-      }));
-    }
   };
 
   // === 단어 게임 로직 ===
@@ -347,7 +370,15 @@ useEffect(() => {
     const currentWord = wordList[currentWordIndex] || '';
     setWordUserInput(value);
 
+    // 자동 정답 처리
     if (value === currentWord) {
+      // 정확한 단어로 기록
+      setCompletedWords(prev => [...prev, {
+        original: currentWord,
+        typed: value,
+        isCorrect: true
+      }]);
+
       const nextIndex = currentWordIndex + 1;
       setMyProgress(((nextIndex) / wordList.length) * 100);
       if (nextIndex >= wordList.length) {
@@ -365,6 +396,16 @@ useEffect(() => {
       e.preventDefault();
       if (wordUserInput.trim() === '') return;
       if (!firstKeyTime) setFirstKeyTime(Date.now());
+
+      const currentWord = wordList[currentWordIndex] || '';
+      
+      // 엔터로 넘어갈 때 정확도 판단
+      const isCorrect = wordUserInput === currentWord;
+      setCompletedWords(prev => [...prev, {
+        original: currentWord,
+        typed: wordUserInput,
+        isCorrect: isCorrect
+      }]);
 
       const nextIndex = currentWordIndex + 1;
       setMyProgress(((nextIndex) / wordList.length) * 100);
@@ -526,41 +567,28 @@ useEffect(() => {
               <span className="text-gray-600">제한 시간</span>
               <span className="font-semibold">{timeLimit}초</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded bg-gray-50">
-              <span className="text-gray-600">연결 상태</span>
-              <span className={`font-semibold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                {isConnected ? '연결됨' : '연결 중...'}
-              </span>
-            </div>
           </div>
 
           <div className="mb-6 space-y-3">
             <div className="p-4 rounded-lg bg-teal-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">나 (플레이어 {playerId})</span>
+                <span className="font-semibold">나</span>
                 <span className="px-3 py-1 text-sm text-white bg-teal-500 rounded-full">준비 완료</span>
               </div>
             </div>
             <div className="p-4 rounded-lg bg-red-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">상대 (플레이어 {playerId === 1 ? 2 : 1})</span>
-                <span className={`px-3 py-1 text-sm text-white rounded-full ${opponentConnected ? 'bg-red-500' : 'bg-gray-400'}`}>
-                  {opponentConnected ? '준비 완료' : '대기 중...'}
-                </span>
+                <span className="font-semibold">상대</span>
+                <span className="px-3 py-1 text-sm text-white bg-red-500 rounded-full">준비 완료</span>
               </div>
             </div>
           </div>
 
           <button
             onClick={handleStartGame}
-            disabled={!isConnected || !opponentConnected}
-            className={`w-full py-3 text-lg font-semibold text-white transition-colors rounded-lg ${
-              isConnected && opponentConnected
-                ? 'bg-teal-500 hover:bg-teal-600'
-                : 'bg-gray-400 cursor-not-allowed'
-            }`}
+            className="w-full py-3 text-lg font-semibold text-white transition-colors bg-teal-500 rounded-lg hover:bg-teal-600"
           >
-            {!isConnected ? '서버 연결 중...' : !opponentConnected ? '상대 대기 중...' : '게임 시작'}
+            게임 시작
           </button>
         </div>
       </div>
@@ -579,23 +607,35 @@ useEffect(() => {
           <div className="mb-6 space-y-4">
             <div className="p-4 rounded-lg bg-gray-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold">나 (플레이어 {playerId})</span>
+                <span className="text-lg font-semibold">나</span>
                 <span className="text-2xl font-bold text-teal-600">{myProgress.toFixed(0)}%</span>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
-                <div className="flex justify-between"><span>정확도</span><span>{myAccuracy.toFixed(1)}%</span></div>
-                <div className="flex justify-between"><span>타수</span><span>{mySpeed} 타/분</span></div>
+                <div className="flex justify-between">
+                  <span>정확도</span>
+                  <span className={`font-semibold ${displayAccuracy >= 80 ? 'text-green-600' : displayAccuracy >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {displayAccuracy.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>정확한 {gameType}</span>
+                  <span>
+                    {gameType === '단어' 
+                      ? `${completedWords.filter(w => w.isCorrect).length} / ${completedWords.length}`
+                      : `${completedSentences.filter(s => s.typed.length === s.original.length && s.typed.every((c, i) => c === s.original[i])).length} / ${completedSentences.length}`
+                    }
+                  </span>
+                </div>
               </div>
             </div>
 
             <div className="p-4 rounded-lg bg-gray-50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-lg font-semibold">상대 (플레이어 {playerId === 1 ? 2 : 1})</span>
+                <span className="text-lg font-semibold">상대</span>
                 <span className="text-2xl font-bold text-red-600">{opponentProgress.toFixed(0)}%</span>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
                 <div className="flex justify-between"><span>정확도</span><span>{opponentAccuracy.toFixed(1)}%</span></div>
-                <div className="flex justify-between"><span>타수</span><span>{opponentSpeed.toFixed(0)} 타/분</span></div>
               </div>
             </div>
           </div>
@@ -626,21 +666,23 @@ useEffect(() => {
         <div className="p-6 bg-white rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col items-start space-y-1">
-              <span className="text-xl font-bold">나 (P{playerId})</span>
+              <span className="text-xl font-bold">나</span>
               <span className="text-3xl font-bold text-teal-600">{myProgress.toFixed(0)}%</span>
-              <span className="text-sm text-gray-600">{mySpeed} 타/분</span>
             </div>
 
             <div className="text-center">
               <div className="mb-1 text-sm text-gray-600">남은 시간</div>
               <div className="text-3xl font-bold text-gray-800">{formatTime(remainingTime)}</div>
-              <div className="mt-1 text-sm text-gray-500">정확도: {myAccuracy.toFixed(1)}%</div>
+              <div className="mt-1 text-sm text-gray-500">
+                정확도: <span className={`font-semibold ${displayAccuracy >= 80 ? 'text-green-600' : displayAccuracy >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  {displayAccuracy.toFixed(1)}%
+                </span>
+              </div>
             </div>
 
             <div className="flex flex-col items-end space-y-1">
               <span className="text-3xl font-bold text-red-600">{opponentProgress.toFixed(0)}%</span>
-              <span className="text-xl font-bold">상대 (P{playerId === 1 ? 2 : 1})</span>
-              <span className="text-sm text-gray-600">{opponentSpeed.toFixed(0)} 타/분</span>
+              <span className="text-xl font-bold">상대</span>
             </div>
           </div>
 
