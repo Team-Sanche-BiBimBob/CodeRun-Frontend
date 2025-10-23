@@ -461,10 +461,8 @@ function SentencePage() {
         updateRoomCompletionTime(roomId, completionTime);
       }
       
-      // 랭킹 점수 서버에 저장 (정확도 100%일 때만)
-      if (accuracy === 100) {
-        saveRankingScore(completionTime, 'DAILY');
-      }
+      // 랭킹 점수 서버에 저장 (완료하면 무조건 저장)
+      saveRankingScore(completionTime, 'DAILY');
       
       navigate('/timeattack');
     } else {

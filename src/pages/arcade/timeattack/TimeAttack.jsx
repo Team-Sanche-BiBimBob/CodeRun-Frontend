@@ -56,7 +56,13 @@ const CodeRunTimeAttack = () => {
       // 서버 데이터가 있으면 서버 데이터 사용, 없으면 기본 데이터 사용
       if (rankings && rankings.length > 0) {
         console.log('서버에서 실제 플레이 기록을 가져왔습니다!');
-        return rankings;
+        // 시간 순서대로 정렬 (빠른 시간이 위로)
+        const sortedRankings = rankings.sort((a, b) => a.score - b.score);
+        // 순위 재할당
+        return sortedRankings.map((rank, index) => ({
+          ...rank,
+          rank: index + 1
+        }));
       } else {
         console.log('서버에 랭킹 데이터가 없어서 기본 데이터 사용');
         return getDefaultRankings(period, problemId);
