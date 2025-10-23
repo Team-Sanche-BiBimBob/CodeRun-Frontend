@@ -83,7 +83,7 @@ const Study = () => {
                                                 코드 복사하기
                                             </button>
                                             <button
-                                                onClick={() => setIsJoined(true)}
+                                                onClick={() => navigate('/teacher')}
                                                 className="w-full bg-[#009b84] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#007a6b] transition-colors"
                                             >
                                                 학습방 입장하기
