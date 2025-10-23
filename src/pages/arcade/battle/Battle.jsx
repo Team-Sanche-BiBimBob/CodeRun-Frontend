@@ -139,7 +139,7 @@ function Battle() {
     };
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      // const accessToken = localStorage.getItem('accessToken');
 
       const response = await fetch('/api/rooms', {
         method: 'POST',
